@@ -5,7 +5,8 @@ CREATE TABLE "User" (
   "Password" varchar(100) NOT NULL,
   "FirstName" varchar(50) NOT NULL,
   "LastName" varchar(50) NOT NULL,
-  "CreatedAt" timestamp
+  "CreatedAt" timestamptz DEFAULT (now()),
+  "UpdatedAt" timestamptz
 );
 
 CREATE TABLE "UserAddress" (
@@ -32,7 +33,9 @@ CREATE TABLE "Product" (
   "ProductImage" varchar(500) NOT NULL,
   "IngredientsListID" int UNIQUE NOT NULL,
   "NutritionalInformationID" int UNIQUE NOT NULL,
-  "PromotionID" int UNIQUE NOT NULL
+  "PromotionID" int UNIQUE NOT NULL,
+  "CreatedAt" timestamptz DEFAULT (now()),
+  "UpdatedAt" timestamptz
 );
 
 CREATE TABLE "NutritionalInformation" (
@@ -92,8 +95,8 @@ CREATE TABLE "Promotion" (
   "Name" varchar(100),
   "Description" varchar(500),
   "DiscountRate" int,
-  "StartDate" timestamp,
-  "EndDate" timestamp
+  "StartDate" timestamptz,
+  "EndDate" timestamptz
 );
 
 CREATE TABLE "ShoppingCart" (
@@ -111,7 +114,7 @@ CREATE TABLE "ShoppingCartItem" (
 CREATE TABLE "ShopOrder" (
   "ShopOrderID" int PRIMARY KEY,
   "UserID" int UNIQUE NOT NULL,
-  "OrderDate" timestamp,
+  "OrderDateAndTime" timestamptz DEFAULT (now()),
   "PaymentMethod" varchar(20),
   "ShippingAddressID" int UNIQUE NOT NULL,
   "ShippingMethodID" int UNIQUE NOT NULL,
