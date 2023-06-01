@@ -1,11 +1,10 @@
 CREATE TABLE "User" (
   "UserID" int PRIMARY KEY,
-  "Username" varchar(20),
-  "EmailAddress" varchar(60),
-  "PhoneNumber" int,
-  "Password" varchar(100),
-  "FirstName" varchar(50),
-  "LastName" varchar(50),
+  "Username" varchar(20) UNIQUE NOT NULL,
+  "EmailAddress" varchar(60) UNIQUE NOT NULL,
+  "Password" varchar(100) NOT NULL,
+  "FirstName" varchar(50) NOT NULL,
+  "LastName" varchar(50) NOT NULL,
   "CreatedAt" timestamp
 );
 
@@ -17,27 +16,28 @@ CREATE TABLE "UserAddress" (
 
 CREATE TABLE "Address" (
   "AddressID" int PRIMARY KEY,
-  "AddressLine1" varchar(100),
-  "AddressLine2" varchar(100),
-  "City" varchar(35),
-  "State" varchar(20),
-  "PINCode" varchar(10)
+  "PhoneNumber" int NOT NULL,
+  "AddressLine1" varchar(100) NOT NULL,
+  "AddressLine2" varchar(100) NOT NULL,
+  "City" varchar(35) NOT NULL,
+  "State" varchar(20) NOT NULL,
+  "PINCode" varchar(10) NOT NULL
 );
 
 CREATE TABLE "Product" (
   "ProductID" int PRIMARY KEY,
-  "ProductCategoryID" int,
-  "Name" varchar(50),
-  "Description" varchar(500),
-  "ProductImage" varchar(500),
-  "IngredientsListID" int,
-  "NutritionalInformationID" int,
-  "PromotionID" int
+  "ProductCategoryID" int NOT NULL,
+  "Name" varchar(50) NOT NULL,
+  "Description" varchar(500) NOT NULL,
+  "ProductImage" varchar(500) NOT NULL,
+  "IngredientsListID" int UNIQUE NOT NULL,
+  "NutritionalInformationID" int UNIQUE NOT NULL,
+  "PromotionID" int UNIQUE NOT NULL
 );
 
 CREATE TABLE "NutritionalInformation" (
   "NutritionalInformationID" int PRIMARY KEY,
-  "NutritionalInformationListID" int,
+  "NutritionalInformationListID" int UNIQUE NOT NULL,
   "NAmount" int,
   "NMeasuringUnit" varchar(6)
 );
@@ -57,7 +57,7 @@ CREATE TABLE "IngredientsList" (
 
 CREATE TABLE "ProductItem" (
   "ProductItemID" int PRIMARY KEY,
-  "ProductID" int,
+  "ProductID" int UNIQUE NOT NULL,
   "StockKeepingUnit" varchar(100),
   "QuantityInStock" int,
   "ProductImage" varchar(500),
@@ -66,24 +66,24 @@ CREATE TABLE "ProductItem" (
 
 CREATE TABLE "ProductCategory" (
   "ProductCategoryID" int PRIMARY KEY,
-  "ParentCategoryID" int,
+  "ParentCategoryID" int UNIQUE NOT NULL,
   "CategoryName" varchar(20)
 );
 
 CREATE TABLE "ProductConfiguration" (
-  "ProductItemID" int,
-  "VariationOptionID" int
+  "ProductItemID" int UNIQUE NOT NULL,
+  "VariationOptionID" int UNIQUE NOT NULL
 );
 
 CREATE TABLE "Variation" (
   "VariationID" int PRIMARY KEY,
-  "ProductCategoryID" int,
+  "ProductCategoryID" int UNIQUE NOT NULL,
   "Name" varchar(20)
 );
 
 CREATE TABLE "VariationOption" (
   "VariationOptionID" int PRIMARY KEY,
-  "VariationID" int,
+  "VariationID" int UNIQUE NOT NULL,
   "Value" varchar(50)
 );
 
@@ -98,7 +98,7 @@ CREATE TABLE "Promotion" (
 
 CREATE TABLE "ShoppingCart" (
   "ShoppingCartID" int PRIMARY KEY,
-  "UserID" int
+  "UserID" int UNIQUE NOT NULL
 );
 
 CREATE TABLE "ShoppingCartItem" (
@@ -110,17 +110,18 @@ CREATE TABLE "ShoppingCartItem" (
 
 CREATE TABLE "ShopOrder" (
   "ShopOrderID" int PRIMARY KEY,
-  "UserID" int,
+  "UserID" int UNIQUE NOT NULL,
   "OrderDate" timestamp,
   "PaymentMethod" varchar(20),
-  "ShippingAddressID" int,
-  "ShippingMethodID" int,
+  "ShippingAddressID" int UNIQUE NOT NULL,
+  "ShippingMethodID" int UNIQUE NOT NULL,
   "OrderTotal" float4,
-  "OrderStatusID" int
+  "OrderStatusID" int UNIQUE NOT NULL
 );
 
 CREATE TABLE "ShippingAddress" (
   "ShippingAddressID" int PRIMARY KEY,
+  "PhoneNumber" int,
   "AddressLine1" varchar(100),
   "AddressLine2" varchar(100),
   "City" varchar(35),
@@ -141,16 +142,16 @@ CREATE TABLE "OrderStatus" (
 
 CREATE TABLE "OrderLine" (
   "OrderLineID" int PRIMARY KEY,
-  "ProductItemID" int,
-  "ShopOrderID" int,
+  "ProductItemID" int UNIQUE NOT NULL,
+  "ShopOrderID" int UNIQUE NOT NULL,
   "Quantity" int,
   "Price" float4
 );
 
 CREATE TABLE "UserReview" (
   "UserReviewID" int PRIMARY KEY,
-  "UserID" int,
-  "OrderedProductID" int,
+  "UserID" int UNIQUE NOT NULL,
+  "OrderedProductID" int UNIQUE NOT NULL,
   "RatingValue" int,
   "Comment" varchar(500)
 );
