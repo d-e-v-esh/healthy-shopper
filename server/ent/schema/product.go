@@ -17,16 +17,16 @@ type Product struct {
 // Fields of the Product.
 func (Product) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("Name").NotEmpty(),
-		field.String("Description").NotEmpty(),
-		field.String("ProductImage").NotEmpty(),
-		field.Int("ProductCategoryID").Positive(),
-		field.Int("IngredientsListID").Positive(),
-		field.Int("NutritionalInformationID").Positive(),
-		field.Int("PromotionID").Positive(),
+		field.String("name").NotEmpty(),
+		field.String("description").NotEmpty(),
+		field.String("product_image").NotEmpty(),
+		field.Int("product_category_id").Positive(),
+		field.Int("ingredients_List_id").Positive(),
+		field.Int("nutritional_information_id").Positive(),
+		field.Int("promotion_id").Positive(),
 
-		field.Time("CreatedAt").Default(time.Now).Immutable(),
-		field.Time("UpdatedAt").Default(time.Now).UpdateDefault(time.Now)}
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now)}
 }
 
 // Edges of the Product.
