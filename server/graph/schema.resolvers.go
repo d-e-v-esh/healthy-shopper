@@ -6,14 +6,37 @@ package graph
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
+	"math/big"
 
 	"github.com/d-e-v-esh/healthy-shopper/graph/model"
 )
 
+// CreateUser is the resolver for the createUser field.
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+	rand, _ := rand.Int(rand.Reader, big.NewInt(100))
+	user := &model.User{
+		UserID:       fmt.Sprintf("T%d", rand),
+		Username:     input.Username,
+		EmailAddress: input.EmailAddress,
+		Password:     input.Password,
+		FirstName:    input.FirstName,
+		LastName:     input.LastName,
+	}
+
+	r.users = append(r.users, user)
+	return user, nil
+}
+
+// CreateProduct is the resolver for the createProduct field.
+func (r *mutationResolver) CreateProduct(ctx context.Context, input model.NewProduct) (*model.Product, error) {
+	panic(fmt.Errorf("not implemented: CreateProduct - createProduct"))
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+	return r.users, nil
 }
 
 // Products is the resolver for the products field.
@@ -21,7 +44,11 @@ func (r *queryResolver) Products(ctx context.Context) ([]*model.Product, error) 
 	panic(fmt.Errorf("not implemented: Products - products"))
 }
 
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

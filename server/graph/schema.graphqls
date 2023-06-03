@@ -168,6 +168,29 @@ type Query {
   products: [Product!]!
 }
 
+type Mutation {
+  createUser(input: NewUser!): User!
+  createProduct(input: NewProduct!): Product!
+}
+
+input NewUser {
+  Username: String!
+  EmailAddress: String!
+  Password: String!
+  FirstName: String!
+  LastName: String!
+}
+
+input NewProduct {
+  ProductCategoryID: ID
+  Name: String!
+  Description: String!
+  ProductImage: String!
+  IngredientsListID: ID
+  NutritionalInformationID: ID
+  PromotionID: ID
+}
+
 # type Todo {
 #   id: ID!
 #   text: String!

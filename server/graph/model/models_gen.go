@@ -18,6 +18,24 @@ type IngredientsList struct {
 	Description       string `json:"Description"`
 }
 
+type NewProduct struct {
+	ProductCategoryID        *string `json:"ProductCategoryID,omitempty"`
+	Name                     string  `json:"Name"`
+	Description              string  `json:"Description"`
+	ProductImage             string  `json:"ProductImage"`
+	IngredientsListID        *string `json:"IngredientsListID,omitempty"`
+	NutritionalInformationID *string `json:"NutritionalInformationID,omitempty"`
+	PromotionID              *string `json:"PromotionID,omitempty"`
+}
+
+type NewUser struct {
+	Username     string `json:"Username"`
+	EmailAddress string `json:"EmailAddress"`
+	Password     string `json:"Password"`
+	FirstName    string `json:"FirstName"`
+	LastName     string `json:"LastName"`
+}
+
 type NutritionalInformation struct {
 	NutritionalInformationID     string `json:"NutritionalInformationID"`
 	NutritionalInformationListID string `json:"NutritionalInformationListID"`
