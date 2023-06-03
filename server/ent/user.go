@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/user"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -13,9 +14,23 @@ import (
 
 // User is the model entity for the User schema.
 type User struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// Username holds the value of the "Username" field.
+	Username string `json:"Username,omitempty"`
+	// EmailAddress holds the value of the "EmailAddress" field.
+	EmailAddress string `json:"EmailAddress,omitempty"`
+	// Password holds the value of the "Password" field.
+	Password string `json:"Password,omitempty"`
+	// FirstName holds the value of the "FirstName" field.
+	FirstName string `json:"FirstName,omitempty"`
+	// LastName holds the value of the "LastName" field.
+	LastName string `json:"LastName,omitempty"`
+	// CreatedAt holds the value of the "CreatedAt" field.
+	CreatedAt time.Time `json:"CreatedAt,omitempty"`
+	// UpdatedAt holds the value of the "UpdatedAt" field.
+	UpdatedAt    time.Time `json:"UpdatedAt,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -26,6 +41,10 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
+		case user.FieldUsername, user.FieldEmailAddress, user.FieldPassword, user.FieldFirstName, user.FieldLastName:
+			values[i] = new(sql.NullString)
+		case user.FieldCreatedAt, user.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -47,6 +66,48 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			u.ID = int(value.Int64)
+		case user.FieldUsername:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field Username", values[i])
+			} else if value.Valid {
+				u.Username = value.String
+			}
+		case user.FieldEmailAddress:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field EmailAddress", values[i])
+			} else if value.Valid {
+				u.EmailAddress = value.String
+			}
+		case user.FieldPassword:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field Password", values[i])
+			} else if value.Valid {
+				u.Password = value.String
+			}
+		case user.FieldFirstName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field FirstName", values[i])
+			} else if value.Valid {
+				u.FirstName = value.String
+			}
+		case user.FieldLastName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field LastName", values[i])
+			} else if value.Valid {
+				u.LastName = value.String
+			}
+		case user.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field CreatedAt", values[i])
+			} else if value.Valid {
+				u.CreatedAt = value.Time
+			}
+		case user.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field UpdatedAt", values[i])
+			} else if value.Valid {
+				u.UpdatedAt = value.Time
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -82,7 +143,27 @@ func (u *User) Unwrap() *User {
 func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
-	builder.WriteString(fmt.Sprintf("id=%v", u.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString("Username=")
+	builder.WriteString(u.Username)
+	builder.WriteString(", ")
+	builder.WriteString("EmailAddress=")
+	builder.WriteString(u.EmailAddress)
+	builder.WriteString(", ")
+	builder.WriteString("Password=")
+	builder.WriteString(u.Password)
+	builder.WriteString(", ")
+	builder.WriteString("FirstName=")
+	builder.WriteString(u.FirstName)
+	builder.WriteString(", ")
+	builder.WriteString("LastName=")
+	builder.WriteString(u.LastName)
+	builder.WriteString(", ")
+	builder.WriteString("CreatedAt=")
+	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("UpdatedAt=")
+	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

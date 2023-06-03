@@ -2,8 +2,46 @@
 
 package ent
 
+import (
+	"healthyshopper/ent/schema"
+	"healthyshopper/ent/user"
+	"time"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescUsername is the schema descriptor for Username field.
+	userDescUsername := userFields[0].Descriptor()
+	// user.UsernameValidator is a validator for the "Username" field. It is called by the builders before save.
+	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
+	// userDescEmailAddress is the schema descriptor for EmailAddress field.
+	userDescEmailAddress := userFields[1].Descriptor()
+	// user.EmailAddressValidator is a validator for the "EmailAddress" field. It is called by the builders before save.
+	user.EmailAddressValidator = userDescEmailAddress.Validators[0].(func(string) error)
+	// userDescPassword is the schema descriptor for Password field.
+	userDescPassword := userFields[2].Descriptor()
+	// user.PasswordValidator is a validator for the "Password" field. It is called by the builders before save.
+	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
+	// userDescFirstName is the schema descriptor for FirstName field.
+	userDescFirstName := userFields[3].Descriptor()
+	// user.FirstNameValidator is a validator for the "FirstName" field. It is called by the builders before save.
+	user.FirstNameValidator = userDescFirstName.Validators[0].(func(string) error)
+	// userDescLastName is the schema descriptor for LastName field.
+	userDescLastName := userFields[4].Descriptor()
+	// user.LastNameValidator is a validator for the "LastName" field. It is called by the builders before save.
+	user.LastNameValidator = userDescLastName.Validators[0].(func(string) error)
+	// userDescCreatedAt is the schema descriptor for CreatedAt field.
+	userDescCreatedAt := userFields[5].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the CreatedAt field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for UpdatedAt field.
+	userDescUpdatedAt := userFields[6].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the UpdatedAt field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the UpdatedAt field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 }
