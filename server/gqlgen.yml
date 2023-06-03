@@ -25,4 +25,4 @@ models:
       - github.com/99designs/gqlgen/graphql.IntID
   Node:
     model:
-      - todo/ent.Noder
+      - healthyshopper/ent.Noder
