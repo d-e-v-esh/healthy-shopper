@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"healthyshopper/ent/product"
 	"healthyshopper/ent/schema"
 	"healthyshopper/ent/user"
 	"time"
@@ -12,6 +13,46 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	productFields := schema.Product{}.Fields()
+	_ = productFields
+	// productDescName is the schema descriptor for Name field.
+	productDescName := productFields[0].Descriptor()
+	// product.NameValidator is a validator for the "Name" field. It is called by the builders before save.
+	product.NameValidator = productDescName.Validators[0].(func(string) error)
+	// productDescDescription is the schema descriptor for Description field.
+	productDescDescription := productFields[1].Descriptor()
+	// product.DescriptionValidator is a validator for the "Description" field. It is called by the builders before save.
+	product.DescriptionValidator = productDescDescription.Validators[0].(func(string) error)
+	// productDescProductImage is the schema descriptor for ProductImage field.
+	productDescProductImage := productFields[2].Descriptor()
+	// product.ProductImageValidator is a validator for the "ProductImage" field. It is called by the builders before save.
+	product.ProductImageValidator = productDescProductImage.Validators[0].(func(string) error)
+	// productDescProductCategoryID is the schema descriptor for ProductCategoryID field.
+	productDescProductCategoryID := productFields[3].Descriptor()
+	// product.ProductCategoryIDValidator is a validator for the "ProductCategoryID" field. It is called by the builders before save.
+	product.ProductCategoryIDValidator = productDescProductCategoryID.Validators[0].(func(int) error)
+	// productDescIngredientsListID is the schema descriptor for IngredientsListID field.
+	productDescIngredientsListID := productFields[4].Descriptor()
+	// product.IngredientsListIDValidator is a validator for the "IngredientsListID" field. It is called by the builders before save.
+	product.IngredientsListIDValidator = productDescIngredientsListID.Validators[0].(func(int) error)
+	// productDescNutritionalInformationID is the schema descriptor for NutritionalInformationID field.
+	productDescNutritionalInformationID := productFields[5].Descriptor()
+	// product.NutritionalInformationIDValidator is a validator for the "NutritionalInformationID" field. It is called by the builders before save.
+	product.NutritionalInformationIDValidator = productDescNutritionalInformationID.Validators[0].(func(int) error)
+	// productDescPromotionID is the schema descriptor for PromotionID field.
+	productDescPromotionID := productFields[6].Descriptor()
+	// product.PromotionIDValidator is a validator for the "PromotionID" field. It is called by the builders before save.
+	product.PromotionIDValidator = productDescPromotionID.Validators[0].(func(int) error)
+	// productDescCreatedAt is the schema descriptor for CreatedAt field.
+	productDescCreatedAt := productFields[7].Descriptor()
+	// product.DefaultCreatedAt holds the default value on creation for the CreatedAt field.
+	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
+	// productDescUpdatedAt is the schema descriptor for UpdatedAt field.
+	productDescUpdatedAt := productFields[8].Descriptor()
+	// product.DefaultUpdatedAt holds the default value on creation for the UpdatedAt field.
+	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
+	// product.UpdateDefaultUpdatedAt holds the default value on update for the UpdatedAt field.
+	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for Username field.

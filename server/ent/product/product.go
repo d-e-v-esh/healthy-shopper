@@ -3,6 +3,8 @@
 package product
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -11,6 +13,24 @@ const (
 	Label = "product"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldProductImage holds the string denoting the productimage field in the database.
+	FieldProductImage = "product_image"
+	// FieldProductCategoryID holds the string denoting the productcategoryid field in the database.
+	FieldProductCategoryID = "product_category_id"
+	// FieldIngredientsListID holds the string denoting the ingredientslistid field in the database.
+	FieldIngredientsListID = "ingredients_list_id"
+	// FieldNutritionalInformationID holds the string denoting the nutritionalinformationid field in the database.
+	FieldNutritionalInformationID = "nutritional_information_id"
+	// FieldPromotionID holds the string denoting the promotionid field in the database.
+	FieldPromotionID = "promotion_id"
+	// FieldCreatedAt holds the string denoting the createdat field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updatedat field in the database.
+	FieldUpdatedAt = "updated_at"
 	// Table holds the table name of the product in the database.
 	Table = "products"
 )
@@ -18,6 +38,15 @@ const (
 // Columns holds all SQL columns for product fields.
 var Columns = []string{
 	FieldID,
+	FieldName,
+	FieldDescription,
+	FieldProductImage,
+	FieldProductCategoryID,
+	FieldIngredientsListID,
+	FieldNutritionalInformationID,
+	FieldPromotionID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -30,10 +59,78 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// NameValidator is a validator for the "Name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// DescriptionValidator is a validator for the "Description" field. It is called by the builders before save.
+	DescriptionValidator func(string) error
+	// ProductImageValidator is a validator for the "ProductImage" field. It is called by the builders before save.
+	ProductImageValidator func(string) error
+	// ProductCategoryIDValidator is a validator for the "ProductCategoryID" field. It is called by the builders before save.
+	ProductCategoryIDValidator func(int) error
+	// IngredientsListIDValidator is a validator for the "IngredientsListID" field. It is called by the builders before save.
+	IngredientsListIDValidator func(int) error
+	// NutritionalInformationIDValidator is a validator for the "NutritionalInformationID" field. It is called by the builders before save.
+	NutritionalInformationIDValidator func(int) error
+	// PromotionIDValidator is a validator for the "PromotionID" field. It is called by the builders before save.
+	PromotionIDValidator func(int) error
+	// DefaultCreatedAt holds the default value on creation for the "CreatedAt" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "UpdatedAt" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "UpdatedAt" field.
+	UpdateDefaultUpdatedAt func() time.Time
+)
+
 // OrderOption defines the ordering options for the Product queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByName orders the results by the Name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the Description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByProductImage orders the results by the ProductImage field.
+func ByProductImage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProductImage, opts...).ToFunc()
+}
+
+// ByProductCategoryID orders the results by the ProductCategoryID field.
+func ByProductCategoryID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProductCategoryID, opts...).ToFunc()
+}
+
+// ByIngredientsListID orders the results by the IngredientsListID field.
+func ByIngredientsListID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIngredientsListID, opts...).ToFunc()
+}
+
+// ByNutritionalInformationID orders the results by the NutritionalInformationID field.
+func ByNutritionalInformationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNutritionalInformationID, opts...).ToFunc()
+}
+
+// ByPromotionID orders the results by the PromotionID field.
+func ByPromotionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPromotionID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the CreatedAt field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the UpdatedAt field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
