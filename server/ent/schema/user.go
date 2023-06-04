@@ -17,13 +17,13 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("Username").NotEmpty().Unique(),
-		field.String("EmailAddress").NotEmpty().Unique(),
-		field.String("Password").NotEmpty(),
-		field.String("FirstName").NotEmpty(),
-		field.String("LastName").NotEmpty(),
-		field.Time("CreatedAt").Default(time.Now).Immutable(),
-		field.Time("UpdatedAt").Default(time.Now).UpdateDefault(time.Now),
+		field.String("username").NotEmpty(),
+		field.String("email_address").NotEmpty().Unique(),
+		field.String("password").NotEmpty(),
+		field.String("first_name").NotEmpty(),
+		field.String("last_name").NotEmpty(),
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 
