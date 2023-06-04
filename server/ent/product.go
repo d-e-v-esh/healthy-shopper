@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/product"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -13,9 +14,27 @@ import (
 
 // Product is the model entity for the Product schema.
 type Product struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID           int `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
+	// ProductImage holds the value of the "product_image" field.
+	ProductImage string `json:"product_image,omitempty"`
+	// ProductCategoryID holds the value of the "product_category_id" field.
+	ProductCategoryID int `json:"product_category_id,omitempty"`
+	// IngredientsListID holds the value of the "ingredients_List_id" field.
+	IngredientsListID int `json:"ingredients_List_id,omitempty"`
+	// NutritionalInformationID holds the value of the "nutritional_information_id" field.
+	NutritionalInformationID int `json:"nutritional_information_id,omitempty"`
+	// PromotionID holds the value of the "promotion_id" field.
+	PromotionID int `json:"promotion_id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt    time.Time `json:"updated_at,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -24,8 +43,12 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case product.FieldID:
+		case product.FieldID, product.FieldProductCategoryID, product.FieldIngredientsListID, product.FieldNutritionalInformationID, product.FieldPromotionID:
 			values[i] = new(sql.NullInt64)
+		case product.FieldName, product.FieldDescription, product.FieldProductImage:
+			values[i] = new(sql.NullString)
+		case product.FieldCreatedAt, product.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -47,6 +70,60 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pr.ID = int(value.Int64)
+		case product.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				pr.Name = value.String
+			}
+		case product.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				pr.Description = value.String
+			}
+		case product.FieldProductImage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field product_image", values[i])
+			} else if value.Valid {
+				pr.ProductImage = value.String
+			}
+		case product.FieldProductCategoryID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field product_category_id", values[i])
+			} else if value.Valid {
+				pr.ProductCategoryID = int(value.Int64)
+			}
+		case product.FieldIngredientsListID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field ingredients_List_id", values[i])
+			} else if value.Valid {
+				pr.IngredientsListID = int(value.Int64)
+			}
+		case product.FieldNutritionalInformationID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field nutritional_information_id", values[i])
+			} else if value.Valid {
+				pr.NutritionalInformationID = int(value.Int64)
+			}
+		case product.FieldPromotionID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field promotion_id", values[i])
+			} else if value.Valid {
+				pr.PromotionID = int(value.Int64)
+			}
+		case product.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				pr.CreatedAt = value.Time
+			}
+		case product.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				pr.UpdatedAt = value.Time
+			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])
 		}
@@ -82,7 +159,33 @@ func (pr *Product) Unwrap() *Product {
 func (pr *Product) String() string {
 	var builder strings.Builder
 	builder.WriteString("Product(")
-	builder.WriteString(fmt.Sprintf("id=%v", pr.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
+	builder.WriteString("name=")
+	builder.WriteString(pr.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(pr.Description)
+	builder.WriteString(", ")
+	builder.WriteString("product_image=")
+	builder.WriteString(pr.ProductImage)
+	builder.WriteString(", ")
+	builder.WriteString("product_category_id=")
+	builder.WriteString(fmt.Sprintf("%v", pr.ProductCategoryID))
+	builder.WriteString(", ")
+	builder.WriteString("ingredients_List_id=")
+	builder.WriteString(fmt.Sprintf("%v", pr.IngredientsListID))
+	builder.WriteString(", ")
+	builder.WriteString("nutritional_information_id=")
+	builder.WriteString(fmt.Sprintf("%v", pr.NutritionalInformationID))
+	builder.WriteString(", ")
+	builder.WriteString("promotion_id=")
+	builder.WriteString(fmt.Sprintf("%v", pr.PromotionID))
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(pr.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,82 @@ func (pu *ProductUpdate) Where(ps ...predicate.Product) *ProductUpdate {
 	return pu
 }
 
+// SetName sets the "name" field.
+func (pu *ProductUpdate) SetName(s string) *ProductUpdate {
+	pu.mutation.SetName(s)
+	return pu
+}
+
+// SetDescription sets the "description" field.
+func (pu *ProductUpdate) SetDescription(s string) *ProductUpdate {
+	pu.mutation.SetDescription(s)
+	return pu
+}
+
+// SetProductImage sets the "product_image" field.
+func (pu *ProductUpdate) SetProductImage(s string) *ProductUpdate {
+	pu.mutation.SetProductImage(s)
+	return pu
+}
+
+// SetProductCategoryID sets the "product_category_id" field.
+func (pu *ProductUpdate) SetProductCategoryID(i int) *ProductUpdate {
+	pu.mutation.ResetProductCategoryID()
+	pu.mutation.SetProductCategoryID(i)
+	return pu
+}
+
+// AddProductCategoryID adds i to the "product_category_id" field.
+func (pu *ProductUpdate) AddProductCategoryID(i int) *ProductUpdate {
+	pu.mutation.AddProductCategoryID(i)
+	return pu
+}
+
+// SetIngredientsListID sets the "ingredients_List_id" field.
+func (pu *ProductUpdate) SetIngredientsListID(i int) *ProductUpdate {
+	pu.mutation.ResetIngredientsListID()
+	pu.mutation.SetIngredientsListID(i)
+	return pu
+}
+
+// AddIngredientsListID adds i to the "ingredients_List_id" field.
+func (pu *ProductUpdate) AddIngredientsListID(i int) *ProductUpdate {
+	pu.mutation.AddIngredientsListID(i)
+	return pu
+}
+
+// SetNutritionalInformationID sets the "nutritional_information_id" field.
+func (pu *ProductUpdate) SetNutritionalInformationID(i int) *ProductUpdate {
+	pu.mutation.ResetNutritionalInformationID()
+	pu.mutation.SetNutritionalInformationID(i)
+	return pu
+}
+
+// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
+func (pu *ProductUpdate) AddNutritionalInformationID(i int) *ProductUpdate {
+	pu.mutation.AddNutritionalInformationID(i)
+	return pu
+}
+
+// SetPromotionID sets the "promotion_id" field.
+func (pu *ProductUpdate) SetPromotionID(i int) *ProductUpdate {
+	pu.mutation.ResetPromotionID()
+	pu.mutation.SetPromotionID(i)
+	return pu
+}
+
+// AddPromotionID adds i to the "promotion_id" field.
+func (pu *ProductUpdate) AddPromotionID(i int) *ProductUpdate {
+	pu.mutation.AddPromotionID(i)
+	return pu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (pu *ProductUpdate) SetUpdatedAt(t time.Time) *ProductUpdate {
+	pu.mutation.SetUpdatedAt(t)
+	return pu
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pu *ProductUpdate) Mutation() *ProductMutation {
 	return pu.mutation
@@ -34,6 +111,7 @@ func (pu *ProductUpdate) Mutation() *ProductMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pu *ProductUpdate) Save(ctx context.Context) (int, error) {
+	pu.defaults()
 	return withHooks(ctx, pu.sqlSave, pu.mutation, pu.hooks)
 }
 
@@ -59,7 +137,58 @@ func (pu *ProductUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (pu *ProductUpdate) defaults() {
+	if _, ok := pu.mutation.UpdatedAt(); !ok {
+		v := product.UpdateDefaultUpdatedAt()
+		pu.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (pu *ProductUpdate) check() error {
+	if v, ok := pu.mutation.Name(); ok {
+		if err := product.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.Description(); ok {
+		if err := product.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.ProductImage(); ok {
+		if err := product.ProductImageValidator(v); err != nil {
+			return &ValidationError{Name: "product_image", err: fmt.Errorf(`ent: validator failed for field "Product.product_image": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.ProductCategoryID(); ok {
+		if err := product.ProductCategoryIDValidator(v); err != nil {
+			return &ValidationError{Name: "product_category_id", err: fmt.Errorf(`ent: validator failed for field "Product.product_category_id": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.IngredientsListID(); ok {
+		if err := product.IngredientsListIDValidator(v); err != nil {
+			return &ValidationError{Name: "ingredients_List_id", err: fmt.Errorf(`ent: validator failed for field "Product.ingredients_List_id": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.NutritionalInformationID(); ok {
+		if err := product.NutritionalInformationIDValidator(v); err != nil {
+			return &ValidationError{Name: "nutritional_information_id", err: fmt.Errorf(`ent: validator failed for field "Product.nutritional_information_id": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.PromotionID(); ok {
+		if err := product.PromotionIDValidator(v); err != nil {
+			return &ValidationError{Name: "promotion_id", err: fmt.Errorf(`ent: validator failed for field "Product.promotion_id": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := pu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(product.Table, product.Columns, sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -67,6 +196,42 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := pu.mutation.Name(); ok {
+		_spec.SetField(product.FieldName, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.Description(); ok {
+		_spec.SetField(product.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.ProductImage(); ok {
+		_spec.SetField(product.FieldProductImage, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.ProductCategoryID(); ok {
+		_spec.SetField(product.FieldProductCategoryID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.AddedProductCategoryID(); ok {
+		_spec.AddField(product.FieldProductCategoryID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.IngredientsListID(); ok {
+		_spec.SetField(product.FieldIngredientsListID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.AddedIngredientsListID(); ok {
+		_spec.AddField(product.FieldIngredientsListID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.NutritionalInformationID(); ok {
+		_spec.SetField(product.FieldNutritionalInformationID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.AddedNutritionalInformationID(); ok {
+		_spec.AddField(product.FieldNutritionalInformationID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.PromotionID(); ok {
+		_spec.SetField(product.FieldPromotionID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.AddedPromotionID(); ok {
+		_spec.AddField(product.FieldPromotionID, field.TypeInt, value)
+	}
+	if value, ok := pu.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -86,6 +251,82 @@ type ProductUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *ProductMutation
+}
+
+// SetName sets the "name" field.
+func (puo *ProductUpdateOne) SetName(s string) *ProductUpdateOne {
+	puo.mutation.SetName(s)
+	return puo
+}
+
+// SetDescription sets the "description" field.
+func (puo *ProductUpdateOne) SetDescription(s string) *ProductUpdateOne {
+	puo.mutation.SetDescription(s)
+	return puo
+}
+
+// SetProductImage sets the "product_image" field.
+func (puo *ProductUpdateOne) SetProductImage(s string) *ProductUpdateOne {
+	puo.mutation.SetProductImage(s)
+	return puo
+}
+
+// SetProductCategoryID sets the "product_category_id" field.
+func (puo *ProductUpdateOne) SetProductCategoryID(i int) *ProductUpdateOne {
+	puo.mutation.ResetProductCategoryID()
+	puo.mutation.SetProductCategoryID(i)
+	return puo
+}
+
+// AddProductCategoryID adds i to the "product_category_id" field.
+func (puo *ProductUpdateOne) AddProductCategoryID(i int) *ProductUpdateOne {
+	puo.mutation.AddProductCategoryID(i)
+	return puo
+}
+
+// SetIngredientsListID sets the "ingredients_List_id" field.
+func (puo *ProductUpdateOne) SetIngredientsListID(i int) *ProductUpdateOne {
+	puo.mutation.ResetIngredientsListID()
+	puo.mutation.SetIngredientsListID(i)
+	return puo
+}
+
+// AddIngredientsListID adds i to the "ingredients_List_id" field.
+func (puo *ProductUpdateOne) AddIngredientsListID(i int) *ProductUpdateOne {
+	puo.mutation.AddIngredientsListID(i)
+	return puo
+}
+
+// SetNutritionalInformationID sets the "nutritional_information_id" field.
+func (puo *ProductUpdateOne) SetNutritionalInformationID(i int) *ProductUpdateOne {
+	puo.mutation.ResetNutritionalInformationID()
+	puo.mutation.SetNutritionalInformationID(i)
+	return puo
+}
+
+// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
+func (puo *ProductUpdateOne) AddNutritionalInformationID(i int) *ProductUpdateOne {
+	puo.mutation.AddNutritionalInformationID(i)
+	return puo
+}
+
+// SetPromotionID sets the "promotion_id" field.
+func (puo *ProductUpdateOne) SetPromotionID(i int) *ProductUpdateOne {
+	puo.mutation.ResetPromotionID()
+	puo.mutation.SetPromotionID(i)
+	return puo
+}
+
+// AddPromotionID adds i to the "promotion_id" field.
+func (puo *ProductUpdateOne) AddPromotionID(i int) *ProductUpdateOne {
+	puo.mutation.AddPromotionID(i)
+	return puo
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (puo *ProductUpdateOne) SetUpdatedAt(t time.Time) *ProductUpdateOne {
+	puo.mutation.SetUpdatedAt(t)
+	return puo
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -108,6 +349,7 @@ func (puo *ProductUpdateOne) Select(field string, fields ...string) *ProductUpda
 
 // Save executes the query and returns the updated Product entity.
 func (puo *ProductUpdateOne) Save(ctx context.Context) (*Product, error) {
+	puo.defaults()
 	return withHooks(ctx, puo.sqlSave, puo.mutation, puo.hooks)
 }
 
@@ -133,7 +375,58 @@ func (puo *ProductUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (puo *ProductUpdateOne) defaults() {
+	if _, ok := puo.mutation.UpdatedAt(); !ok {
+		v := product.UpdateDefaultUpdatedAt()
+		puo.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (puo *ProductUpdateOne) check() error {
+	if v, ok := puo.mutation.Name(); ok {
+		if err := product.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.Description(); ok {
+		if err := product.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.ProductImage(); ok {
+		if err := product.ProductImageValidator(v); err != nil {
+			return &ValidationError{Name: "product_image", err: fmt.Errorf(`ent: validator failed for field "Product.product_image": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.ProductCategoryID(); ok {
+		if err := product.ProductCategoryIDValidator(v); err != nil {
+			return &ValidationError{Name: "product_category_id", err: fmt.Errorf(`ent: validator failed for field "Product.product_category_id": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.IngredientsListID(); ok {
+		if err := product.IngredientsListIDValidator(v); err != nil {
+			return &ValidationError{Name: "ingredients_List_id", err: fmt.Errorf(`ent: validator failed for field "Product.ingredients_List_id": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.NutritionalInformationID(); ok {
+		if err := product.NutritionalInformationIDValidator(v); err != nil {
+			return &ValidationError{Name: "nutritional_information_id", err: fmt.Errorf(`ent: validator failed for field "Product.nutritional_information_id": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.PromotionID(); ok {
+		if err := product.PromotionIDValidator(v); err != nil {
+			return &ValidationError{Name: "promotion_id", err: fmt.Errorf(`ent: validator failed for field "Product.promotion_id": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err error) {
+	if err := puo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(product.Table, product.Columns, sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt))
 	id, ok := puo.mutation.ID()
 	if !ok {
@@ -158,6 +451,42 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := puo.mutation.Name(); ok {
+		_spec.SetField(product.FieldName, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.Description(); ok {
+		_spec.SetField(product.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.ProductImage(); ok {
+		_spec.SetField(product.FieldProductImage, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.ProductCategoryID(); ok {
+		_spec.SetField(product.FieldProductCategoryID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.AddedProductCategoryID(); ok {
+		_spec.AddField(product.FieldProductCategoryID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.IngredientsListID(); ok {
+		_spec.SetField(product.FieldIngredientsListID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.AddedIngredientsListID(); ok {
+		_spec.AddField(product.FieldIngredientsListID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.NutritionalInformationID(); ok {
+		_spec.SetField(product.FieldNutritionalInformationID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.AddedNutritionalInformationID(); ok {
+		_spec.AddField(product.FieldNutritionalInformationID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.PromotionID(); ok {
+		_spec.SetField(product.FieldPromotionID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.AddedPromotionID(); ok {
+		_spec.AddField(product.FieldPromotionID, field.TypeInt, value)
+	}
+	if value, ok := puo.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
 	}
 	_node = &Product{config: puo.config}
 	_spec.Assign = _node.assignValues
