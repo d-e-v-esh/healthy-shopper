@@ -28,37 +28,37 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return uu
 }
 
-// SetUsername sets the "Username" field.
+// SetUsername sets the "username" field.
 func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
 	uu.mutation.SetUsername(s)
 	return uu
 }
 
-// SetEmailAddress sets the "EmailAddress" field.
+// SetEmailAddress sets the "email_address" field.
 func (uu *UserUpdate) SetEmailAddress(s string) *UserUpdate {
 	uu.mutation.SetEmailAddress(s)
 	return uu
 }
 
-// SetPassword sets the "Password" field.
+// SetPassword sets the "password" field.
 func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
 	uu.mutation.SetPassword(s)
 	return uu
 }
 
-// SetFirstName sets the "FirstName" field.
+// SetFirstName sets the "first_name" field.
 func (uu *UserUpdate) SetFirstName(s string) *UserUpdate {
 	uu.mutation.SetFirstName(s)
 	return uu
 }
 
-// SetLastName sets the "LastName" field.
+// SetLastName sets the "last_name" field.
 func (uu *UserUpdate) SetLastName(s string) *UserUpdate {
 	uu.mutation.SetLastName(s)
 	return uu
 }
 
-// SetUpdatedAt sets the "UpdatedAt" field.
+// SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
 	return uu
@@ -109,27 +109,27 @@ func (uu *UserUpdate) defaults() {
 func (uu *UserUpdate) check() error {
 	if v, ok := uu.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
-			return &ValidationError{Name: "Username", err: fmt.Errorf(`ent: validator failed for field "User.Username": %w`, err)}
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.EmailAddress(); ok {
 		if err := user.EmailAddressValidator(v); err != nil {
-			return &ValidationError{Name: "EmailAddress", err: fmt.Errorf(`ent: validator failed for field "User.EmailAddress": %w`, err)}
+			return &ValidationError{Name: "email_address", err: fmt.Errorf(`ent: validator failed for field "User.email_address": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.Password(); ok {
 		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "Password", err: fmt.Errorf(`ent: validator failed for field "User.Password": %w`, err)}
+			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.FirstName(); ok {
 		if err := user.FirstNameValidator(v); err != nil {
-			return &ValidationError{Name: "FirstName", err: fmt.Errorf(`ent: validator failed for field "User.FirstName": %w`, err)}
+			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.LastName(); ok {
 		if err := user.LastNameValidator(v); err != nil {
-			return &ValidationError{Name: "LastName", err: fmt.Errorf(`ent: validator failed for field "User.LastName": %w`, err)}
+			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "User.last_name": %w`, err)}
 		}
 	}
 	return nil
@@ -185,37 +185,37 @@ type UserUpdateOne struct {
 	mutation *UserMutation
 }
 
-// SetUsername sets the "Username" field.
+// SetUsername sets the "username" field.
 func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
 	uuo.mutation.SetUsername(s)
 	return uuo
 }
 
-// SetEmailAddress sets the "EmailAddress" field.
+// SetEmailAddress sets the "email_address" field.
 func (uuo *UserUpdateOne) SetEmailAddress(s string) *UserUpdateOne {
 	uuo.mutation.SetEmailAddress(s)
 	return uuo
 }
 
-// SetPassword sets the "Password" field.
+// SetPassword sets the "password" field.
 func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
 	uuo.mutation.SetPassword(s)
 	return uuo
 }
 
-// SetFirstName sets the "FirstName" field.
+// SetFirstName sets the "first_name" field.
 func (uuo *UserUpdateOne) SetFirstName(s string) *UserUpdateOne {
 	uuo.mutation.SetFirstName(s)
 	return uuo
 }
 
-// SetLastName sets the "LastName" field.
+// SetLastName sets the "last_name" field.
 func (uuo *UserUpdateOne) SetLastName(s string) *UserUpdateOne {
 	uuo.mutation.SetLastName(s)
 	return uuo
 }
 
-// SetUpdatedAt sets the "UpdatedAt" field.
+// SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
 	return uuo
@@ -279,27 +279,27 @@ func (uuo *UserUpdateOne) defaults() {
 func (uuo *UserUpdateOne) check() error {
 	if v, ok := uuo.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
-			return &ValidationError{Name: "Username", err: fmt.Errorf(`ent: validator failed for field "User.Username": %w`, err)}
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.EmailAddress(); ok {
 		if err := user.EmailAddressValidator(v); err != nil {
-			return &ValidationError{Name: "EmailAddress", err: fmt.Errorf(`ent: validator failed for field "User.EmailAddress": %w`, err)}
+			return &ValidationError{Name: "email_address", err: fmt.Errorf(`ent: validator failed for field "User.email_address": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.Password(); ok {
 		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "Password", err: fmt.Errorf(`ent: validator failed for field "User.Password": %w`, err)}
+			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.FirstName(); ok {
 		if err := user.FirstNameValidator(v); err != nil {
-			return &ValidationError{Name: "FirstName", err: fmt.Errorf(`ent: validator failed for field "User.FirstName": %w`, err)}
+			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.LastName(); ok {
 		if err := user.LastNameValidator(v); err != nil {
-			return &ValidationError{Name: "LastName", err: fmt.Errorf(`ent: validator failed for field "User.LastName": %w`, err)}
+			return &ValidationError{Name: "last_name", err: fmt.Errorf(`ent: validator failed for field "User.last_name": %w`, err)}
 		}
 	}
 	return nil

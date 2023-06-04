@@ -28,77 +28,77 @@ func (pu *ProductUpdate) Where(ps ...predicate.Product) *ProductUpdate {
 	return pu
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (pu *ProductUpdate) SetName(s string) *ProductUpdate {
 	pu.mutation.SetName(s)
 	return pu
 }
 
-// SetDescription sets the "Description" field.
+// SetDescription sets the "description" field.
 func (pu *ProductUpdate) SetDescription(s string) *ProductUpdate {
 	pu.mutation.SetDescription(s)
 	return pu
 }
 
-// SetProductImage sets the "ProductImage" field.
+// SetProductImage sets the "product_image" field.
 func (pu *ProductUpdate) SetProductImage(s string) *ProductUpdate {
 	pu.mutation.SetProductImage(s)
 	return pu
 }
 
-// SetProductCategoryID sets the "ProductCategoryID" field.
+// SetProductCategoryID sets the "product_category_id" field.
 func (pu *ProductUpdate) SetProductCategoryID(i int) *ProductUpdate {
 	pu.mutation.ResetProductCategoryID()
 	pu.mutation.SetProductCategoryID(i)
 	return pu
 }
 
-// AddProductCategoryID adds i to the "ProductCategoryID" field.
+// AddProductCategoryID adds i to the "product_category_id" field.
 func (pu *ProductUpdate) AddProductCategoryID(i int) *ProductUpdate {
 	pu.mutation.AddProductCategoryID(i)
 	return pu
 }
 
-// SetIngredientsListID sets the "IngredientsListID" field.
+// SetIngredientsListID sets the "ingredients_List_id" field.
 func (pu *ProductUpdate) SetIngredientsListID(i int) *ProductUpdate {
 	pu.mutation.ResetIngredientsListID()
 	pu.mutation.SetIngredientsListID(i)
 	return pu
 }
 
-// AddIngredientsListID adds i to the "IngredientsListID" field.
+// AddIngredientsListID adds i to the "ingredients_List_id" field.
 func (pu *ProductUpdate) AddIngredientsListID(i int) *ProductUpdate {
 	pu.mutation.AddIngredientsListID(i)
 	return pu
 }
 
-// SetNutritionalInformationID sets the "NutritionalInformationID" field.
+// SetNutritionalInformationID sets the "nutritional_information_id" field.
 func (pu *ProductUpdate) SetNutritionalInformationID(i int) *ProductUpdate {
 	pu.mutation.ResetNutritionalInformationID()
 	pu.mutation.SetNutritionalInformationID(i)
 	return pu
 }
 
-// AddNutritionalInformationID adds i to the "NutritionalInformationID" field.
+// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
 func (pu *ProductUpdate) AddNutritionalInformationID(i int) *ProductUpdate {
 	pu.mutation.AddNutritionalInformationID(i)
 	return pu
 }
 
-// SetPromotionID sets the "PromotionID" field.
+// SetPromotionID sets the "promotion_id" field.
 func (pu *ProductUpdate) SetPromotionID(i int) *ProductUpdate {
 	pu.mutation.ResetPromotionID()
 	pu.mutation.SetPromotionID(i)
 	return pu
 }
 
-// AddPromotionID adds i to the "PromotionID" field.
+// AddPromotionID adds i to the "promotion_id" field.
 func (pu *ProductUpdate) AddPromotionID(i int) *ProductUpdate {
 	pu.mutation.AddPromotionID(i)
 	return pu
 }
 
-// SetUpdatedAt sets the "UpdatedAt" field.
+// SetUpdatedAt sets the "updated_at" field.
 func (pu *ProductUpdate) SetUpdatedAt(t time.Time) *ProductUpdate {
 	pu.mutation.SetUpdatedAt(t)
 	return pu
@@ -149,37 +149,37 @@ func (pu *ProductUpdate) defaults() {
 func (pu *ProductUpdate) check() error {
 	if v, ok := pu.mutation.Name(); ok {
 		if err := product.NameValidator(v); err != nil {
-			return &ValidationError{Name: "Name", err: fmt.Errorf(`ent: validator failed for field "Product.Name": %w`, err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.Description(); ok {
 		if err := product.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "Description", err: fmt.Errorf(`ent: validator failed for field "Product.Description": %w`, err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.ProductImage(); ok {
 		if err := product.ProductImageValidator(v); err != nil {
-			return &ValidationError{Name: "ProductImage", err: fmt.Errorf(`ent: validator failed for field "Product.ProductImage": %w`, err)}
+			return &ValidationError{Name: "product_image", err: fmt.Errorf(`ent: validator failed for field "Product.product_image": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.ProductCategoryID(); ok {
 		if err := product.ProductCategoryIDValidator(v); err != nil {
-			return &ValidationError{Name: "ProductCategoryID", err: fmt.Errorf(`ent: validator failed for field "Product.ProductCategoryID": %w`, err)}
+			return &ValidationError{Name: "product_category_id", err: fmt.Errorf(`ent: validator failed for field "Product.product_category_id": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.IngredientsListID(); ok {
 		if err := product.IngredientsListIDValidator(v); err != nil {
-			return &ValidationError{Name: "IngredientsListID", err: fmt.Errorf(`ent: validator failed for field "Product.IngredientsListID": %w`, err)}
+			return &ValidationError{Name: "ingredients_List_id", err: fmt.Errorf(`ent: validator failed for field "Product.ingredients_List_id": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.NutritionalInformationID(); ok {
 		if err := product.NutritionalInformationIDValidator(v); err != nil {
-			return &ValidationError{Name: "NutritionalInformationID", err: fmt.Errorf(`ent: validator failed for field "Product.NutritionalInformationID": %w`, err)}
+			return &ValidationError{Name: "nutritional_information_id", err: fmt.Errorf(`ent: validator failed for field "Product.nutritional_information_id": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.PromotionID(); ok {
 		if err := product.PromotionIDValidator(v); err != nil {
-			return &ValidationError{Name: "PromotionID", err: fmt.Errorf(`ent: validator failed for field "Product.PromotionID": %w`, err)}
+			return &ValidationError{Name: "promotion_id", err: fmt.Errorf(`ent: validator failed for field "Product.promotion_id": %w`, err)}
 		}
 	}
 	return nil
@@ -253,77 +253,77 @@ type ProductUpdateOne struct {
 	mutation *ProductMutation
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (puo *ProductUpdateOne) SetName(s string) *ProductUpdateOne {
 	puo.mutation.SetName(s)
 	return puo
 }
 
-// SetDescription sets the "Description" field.
+// SetDescription sets the "description" field.
 func (puo *ProductUpdateOne) SetDescription(s string) *ProductUpdateOne {
 	puo.mutation.SetDescription(s)
 	return puo
 }
 
-// SetProductImage sets the "ProductImage" field.
+// SetProductImage sets the "product_image" field.
 func (puo *ProductUpdateOne) SetProductImage(s string) *ProductUpdateOne {
 	puo.mutation.SetProductImage(s)
 	return puo
 }
 
-// SetProductCategoryID sets the "ProductCategoryID" field.
+// SetProductCategoryID sets the "product_category_id" field.
 func (puo *ProductUpdateOne) SetProductCategoryID(i int) *ProductUpdateOne {
 	puo.mutation.ResetProductCategoryID()
 	puo.mutation.SetProductCategoryID(i)
 	return puo
 }
 
-// AddProductCategoryID adds i to the "ProductCategoryID" field.
+// AddProductCategoryID adds i to the "product_category_id" field.
 func (puo *ProductUpdateOne) AddProductCategoryID(i int) *ProductUpdateOne {
 	puo.mutation.AddProductCategoryID(i)
 	return puo
 }
 
-// SetIngredientsListID sets the "IngredientsListID" field.
+// SetIngredientsListID sets the "ingredients_List_id" field.
 func (puo *ProductUpdateOne) SetIngredientsListID(i int) *ProductUpdateOne {
 	puo.mutation.ResetIngredientsListID()
 	puo.mutation.SetIngredientsListID(i)
 	return puo
 }
 
-// AddIngredientsListID adds i to the "IngredientsListID" field.
+// AddIngredientsListID adds i to the "ingredients_List_id" field.
 func (puo *ProductUpdateOne) AddIngredientsListID(i int) *ProductUpdateOne {
 	puo.mutation.AddIngredientsListID(i)
 	return puo
 }
 
-// SetNutritionalInformationID sets the "NutritionalInformationID" field.
+// SetNutritionalInformationID sets the "nutritional_information_id" field.
 func (puo *ProductUpdateOne) SetNutritionalInformationID(i int) *ProductUpdateOne {
 	puo.mutation.ResetNutritionalInformationID()
 	puo.mutation.SetNutritionalInformationID(i)
 	return puo
 }
 
-// AddNutritionalInformationID adds i to the "NutritionalInformationID" field.
+// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
 func (puo *ProductUpdateOne) AddNutritionalInformationID(i int) *ProductUpdateOne {
 	puo.mutation.AddNutritionalInformationID(i)
 	return puo
 }
 
-// SetPromotionID sets the "PromotionID" field.
+// SetPromotionID sets the "promotion_id" field.
 func (puo *ProductUpdateOne) SetPromotionID(i int) *ProductUpdateOne {
 	puo.mutation.ResetPromotionID()
 	puo.mutation.SetPromotionID(i)
 	return puo
 }
 
-// AddPromotionID adds i to the "PromotionID" field.
+// AddPromotionID adds i to the "promotion_id" field.
 func (puo *ProductUpdateOne) AddPromotionID(i int) *ProductUpdateOne {
 	puo.mutation.AddPromotionID(i)
 	return puo
 }
 
-// SetUpdatedAt sets the "UpdatedAt" field.
+// SetUpdatedAt sets the "updated_at" field.
 func (puo *ProductUpdateOne) SetUpdatedAt(t time.Time) *ProductUpdateOne {
 	puo.mutation.SetUpdatedAt(t)
 	return puo
@@ -387,37 +387,37 @@ func (puo *ProductUpdateOne) defaults() {
 func (puo *ProductUpdateOne) check() error {
 	if v, ok := puo.mutation.Name(); ok {
 		if err := product.NameValidator(v); err != nil {
-			return &ValidationError{Name: "Name", err: fmt.Errorf(`ent: validator failed for field "Product.Name": %w`, err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.Description(); ok {
 		if err := product.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "Description", err: fmt.Errorf(`ent: validator failed for field "Product.Description": %w`, err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.ProductImage(); ok {
 		if err := product.ProductImageValidator(v); err != nil {
-			return &ValidationError{Name: "ProductImage", err: fmt.Errorf(`ent: validator failed for field "Product.ProductImage": %w`, err)}
+			return &ValidationError{Name: "product_image", err: fmt.Errorf(`ent: validator failed for field "Product.product_image": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.ProductCategoryID(); ok {
 		if err := product.ProductCategoryIDValidator(v); err != nil {
-			return &ValidationError{Name: "ProductCategoryID", err: fmt.Errorf(`ent: validator failed for field "Product.ProductCategoryID": %w`, err)}
+			return &ValidationError{Name: "product_category_id", err: fmt.Errorf(`ent: validator failed for field "Product.product_category_id": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.IngredientsListID(); ok {
 		if err := product.IngredientsListIDValidator(v); err != nil {
-			return &ValidationError{Name: "IngredientsListID", err: fmt.Errorf(`ent: validator failed for field "Product.IngredientsListID": %w`, err)}
+			return &ValidationError{Name: "ingredients_List_id", err: fmt.Errorf(`ent: validator failed for field "Product.ingredients_List_id": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.NutritionalInformationID(); ok {
 		if err := product.NutritionalInformationIDValidator(v); err != nil {
-			return &ValidationError{Name: "NutritionalInformationID", err: fmt.Errorf(`ent: validator failed for field "Product.NutritionalInformationID": %w`, err)}
+			return &ValidationError{Name: "nutritional_information_id", err: fmt.Errorf(`ent: validator failed for field "Product.nutritional_information_id": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.PromotionID(); ok {
 		if err := product.PromotionIDValidator(v); err != nil {
-			return &ValidationError{Name: "PromotionID", err: fmt.Errorf(`ent: validator failed for field "Product.PromotionID": %w`, err)}
+			return &ValidationError{Name: "promotion_id", err: fmt.Errorf(`ent: validator failed for field "Product.promotion_id": %w`, err)}
 		}
 	}
 	return nil

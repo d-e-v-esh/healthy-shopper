@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -24,6 +25,67 @@ func (pr *ProductQuery) CollectFields(ctx context.Context, satisfies ...string) 
 
 func (pr *ProductQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
 	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(product.Columns))
+		selectedFields = []string{product.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "name":
+			if _, ok := fieldSeen[product.FieldName]; !ok {
+				selectedFields = append(selectedFields, product.FieldName)
+				fieldSeen[product.FieldName] = struct{}{}
+			}
+		case "description":
+			if _, ok := fieldSeen[product.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, product.FieldDescription)
+				fieldSeen[product.FieldDescription] = struct{}{}
+			}
+		case "productImage":
+			if _, ok := fieldSeen[product.FieldProductImage]; !ok {
+				selectedFields = append(selectedFields, product.FieldProductImage)
+				fieldSeen[product.FieldProductImage] = struct{}{}
+			}
+		case "productCategoryID":
+			if _, ok := fieldSeen[product.FieldProductCategoryID]; !ok {
+				selectedFields = append(selectedFields, product.FieldProductCategoryID)
+				fieldSeen[product.FieldProductCategoryID] = struct{}{}
+			}
+		case "ingredientsListID":
+			if _, ok := fieldSeen[product.FieldIngredientsListID]; !ok {
+				selectedFields = append(selectedFields, product.FieldIngredientsListID)
+				fieldSeen[product.FieldIngredientsListID] = struct{}{}
+			}
+		case "nutritionalInformationID":
+			if _, ok := fieldSeen[product.FieldNutritionalInformationID]; !ok {
+				selectedFields = append(selectedFields, product.FieldNutritionalInformationID)
+				fieldSeen[product.FieldNutritionalInformationID] = struct{}{}
+			}
+		case "promotionID":
+			if _, ok := fieldSeen[product.FieldPromotionID]; !ok {
+				selectedFields = append(selectedFields, product.FieldPromotionID)
+				fieldSeen[product.FieldPromotionID] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[product.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, product.FieldCreatedAt)
+				fieldSeen[product.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[product.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, product.FieldUpdatedAt)
+				fieldSeen[product.FieldUpdatedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		pr.Select(selectedFields...)
+	}
 	return nil
 }
 
@@ -79,7 +141,7 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, user.FieldUsername)
 				fieldSeen[user.FieldUsername] = struct{}{}
 			}
-		case "emailaddress":
+		case "emailAddress":
 			if _, ok := fieldSeen[user.FieldEmailAddress]; !ok {
 				selectedFields = append(selectedFields, user.FieldEmailAddress)
 				fieldSeen[user.FieldEmailAddress] = struct{}{}
@@ -89,22 +151,22 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				selectedFields = append(selectedFields, user.FieldPassword)
 				fieldSeen[user.FieldPassword] = struct{}{}
 			}
-		case "firstname":
+		case "firstName":
 			if _, ok := fieldSeen[user.FieldFirstName]; !ok {
 				selectedFields = append(selectedFields, user.FieldFirstName)
 				fieldSeen[user.FieldFirstName] = struct{}{}
 			}
-		case "lastname":
+		case "lastName":
 			if _, ok := fieldSeen[user.FieldLastName]; !ok {
 				selectedFields = append(selectedFields, user.FieldLastName)
 				fieldSeen[user.FieldLastName] = struct{}{}
 			}
-		case "createdat":
+		case "createdAt":
 			if _, ok := fieldSeen[user.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, user.FieldCreatedAt)
 				fieldSeen[user.FieldCreatedAt] = struct{}{}
 			}
-		case "updatedat":
+		case "updatedAt":
 			if _, ok := fieldSeen[user.FieldUpdatedAt]; !ok {
 				selectedFields = append(selectedFields, user.FieldUpdatedAt)
 				fieldSeen[user.FieldUpdatedAt] = struct{}{}

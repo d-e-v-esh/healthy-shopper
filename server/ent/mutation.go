@@ -32,26 +32,26 @@ const (
 // ProductMutation represents an operation that mutates the Product nodes in the graph.
 type ProductMutation struct {
 	config
-	op                           Op
-	typ                          string
-	id                           *int
-	_Name                        *string
-	_Description                 *string
-	_ProductImage                *string
-	_ProductCategoryID           *int
-	add_ProductCategoryID        *int
-	_IngredientsListID           *int
-	add_IngredientsListID        *int
-	_NutritionalInformationID    *int
-	add_NutritionalInformationID *int
-	_PromotionID                 *int
-	add_PromotionID              *int
-	_CreatedAt                   *time.Time
-	_UpdatedAt                   *time.Time
-	clearedFields                map[string]struct{}
-	done                         bool
-	oldValue                     func(context.Context) (*Product, error)
-	predicates                   []predicate.Product
+	op                            Op
+	typ                           string
+	id                            *int
+	name                          *string
+	description                   *string
+	product_image                 *string
+	product_category_id           *int
+	addproduct_category_id        *int
+	ingredients_List_id           *int
+	addingredients_List_id        *int
+	nutritional_information_id    *int
+	addnutritional_information_id *int
+	promotion_id                  *int
+	addpromotion_id               *int
+	created_at                    *time.Time
+	updated_at                    *time.Time
+	clearedFields                 map[string]struct{}
+	done                          bool
+	oldValue                      func(context.Context) (*Product, error)
+	predicates                    []predicate.Product
 }
 
 var _ ent.Mutation = (*ProductMutation)(nil)
@@ -152,21 +152,21 @@ func (m *ProductMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (m *ProductMutation) SetName(s string) {
-	m._Name = &s
+	m.name = &s
 }
 
-// Name returns the value of the "Name" field in the mutation.
+// Name returns the value of the "name" field in the mutation.
 func (m *ProductMutation) Name() (r string, exists bool) {
-	v := m._Name
+	v := m.name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldName returns the old "Name" field's value of the Product entity.
+// OldName returns the old "name" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldName(ctx context.Context) (v string, err error) {
@@ -183,26 +183,26 @@ func (m *ProductMutation) OldName(ctx context.Context) (v string, err error) {
 	return oldValue.Name, nil
 }
 
-// ResetName resets all changes to the "Name" field.
+// ResetName resets all changes to the "name" field.
 func (m *ProductMutation) ResetName() {
-	m._Name = nil
+	m.name = nil
 }
 
-// SetDescription sets the "Description" field.
+// SetDescription sets the "description" field.
 func (m *ProductMutation) SetDescription(s string) {
-	m._Description = &s
+	m.description = &s
 }
 
-// Description returns the value of the "Description" field in the mutation.
+// Description returns the value of the "description" field in the mutation.
 func (m *ProductMutation) Description() (r string, exists bool) {
-	v := m._Description
+	v := m.description
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDescription returns the old "Description" field's value of the Product entity.
+// OldDescription returns the old "description" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldDescription(ctx context.Context) (v string, err error) {
@@ -219,26 +219,26 @@ func (m *ProductMutation) OldDescription(ctx context.Context) (v string, err err
 	return oldValue.Description, nil
 }
 
-// ResetDescription resets all changes to the "Description" field.
+// ResetDescription resets all changes to the "description" field.
 func (m *ProductMutation) ResetDescription() {
-	m._Description = nil
+	m.description = nil
 }
 
-// SetProductImage sets the "ProductImage" field.
+// SetProductImage sets the "product_image" field.
 func (m *ProductMutation) SetProductImage(s string) {
-	m._ProductImage = &s
+	m.product_image = &s
 }
 
-// ProductImage returns the value of the "ProductImage" field in the mutation.
+// ProductImage returns the value of the "product_image" field in the mutation.
 func (m *ProductMutation) ProductImage() (r string, exists bool) {
-	v := m._ProductImage
+	v := m.product_image
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldProductImage returns the old "ProductImage" field's value of the Product entity.
+// OldProductImage returns the old "product_image" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldProductImage(ctx context.Context) (v string, err error) {
@@ -255,27 +255,27 @@ func (m *ProductMutation) OldProductImage(ctx context.Context) (v string, err er
 	return oldValue.ProductImage, nil
 }
 
-// ResetProductImage resets all changes to the "ProductImage" field.
+// ResetProductImage resets all changes to the "product_image" field.
 func (m *ProductMutation) ResetProductImage() {
-	m._ProductImage = nil
+	m.product_image = nil
 }
 
-// SetProductCategoryID sets the "ProductCategoryID" field.
+// SetProductCategoryID sets the "product_category_id" field.
 func (m *ProductMutation) SetProductCategoryID(i int) {
-	m._ProductCategoryID = &i
-	m.add_ProductCategoryID = nil
+	m.product_category_id = &i
+	m.addproduct_category_id = nil
 }
 
-// ProductCategoryID returns the value of the "ProductCategoryID" field in the mutation.
+// ProductCategoryID returns the value of the "product_category_id" field in the mutation.
 func (m *ProductMutation) ProductCategoryID() (r int, exists bool) {
-	v := m._ProductCategoryID
+	v := m.product_category_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldProductCategoryID returns the old "ProductCategoryID" field's value of the Product entity.
+// OldProductCategoryID returns the old "product_category_id" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldProductCategoryID(ctx context.Context) (v int, err error) {
@@ -292,46 +292,46 @@ func (m *ProductMutation) OldProductCategoryID(ctx context.Context) (v int, err 
 	return oldValue.ProductCategoryID, nil
 }
 
-// AddProductCategoryID adds i to the "ProductCategoryID" field.
+// AddProductCategoryID adds i to the "product_category_id" field.
 func (m *ProductMutation) AddProductCategoryID(i int) {
-	if m.add_ProductCategoryID != nil {
-		*m.add_ProductCategoryID += i
+	if m.addproduct_category_id != nil {
+		*m.addproduct_category_id += i
 	} else {
-		m.add_ProductCategoryID = &i
+		m.addproduct_category_id = &i
 	}
 }
 
-// AddedProductCategoryID returns the value that was added to the "ProductCategoryID" field in this mutation.
+// AddedProductCategoryID returns the value that was added to the "product_category_id" field in this mutation.
 func (m *ProductMutation) AddedProductCategoryID() (r int, exists bool) {
-	v := m.add_ProductCategoryID
+	v := m.addproduct_category_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetProductCategoryID resets all changes to the "ProductCategoryID" field.
+// ResetProductCategoryID resets all changes to the "product_category_id" field.
 func (m *ProductMutation) ResetProductCategoryID() {
-	m._ProductCategoryID = nil
-	m.add_ProductCategoryID = nil
+	m.product_category_id = nil
+	m.addproduct_category_id = nil
 }
 
-// SetIngredientsListID sets the "IngredientsListID" field.
+// SetIngredientsListID sets the "ingredients_List_id" field.
 func (m *ProductMutation) SetIngredientsListID(i int) {
-	m._IngredientsListID = &i
-	m.add_IngredientsListID = nil
+	m.ingredients_List_id = &i
+	m.addingredients_List_id = nil
 }
 
-// IngredientsListID returns the value of the "IngredientsListID" field in the mutation.
+// IngredientsListID returns the value of the "ingredients_List_id" field in the mutation.
 func (m *ProductMutation) IngredientsListID() (r int, exists bool) {
-	v := m._IngredientsListID
+	v := m.ingredients_List_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIngredientsListID returns the old "IngredientsListID" field's value of the Product entity.
+// OldIngredientsListID returns the old "ingredients_List_id" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldIngredientsListID(ctx context.Context) (v int, err error) {
@@ -348,46 +348,46 @@ func (m *ProductMutation) OldIngredientsListID(ctx context.Context) (v int, err 
 	return oldValue.IngredientsListID, nil
 }
 
-// AddIngredientsListID adds i to the "IngredientsListID" field.
+// AddIngredientsListID adds i to the "ingredients_List_id" field.
 func (m *ProductMutation) AddIngredientsListID(i int) {
-	if m.add_IngredientsListID != nil {
-		*m.add_IngredientsListID += i
+	if m.addingredients_List_id != nil {
+		*m.addingredients_List_id += i
 	} else {
-		m.add_IngredientsListID = &i
+		m.addingredients_List_id = &i
 	}
 }
 
-// AddedIngredientsListID returns the value that was added to the "IngredientsListID" field in this mutation.
+// AddedIngredientsListID returns the value that was added to the "ingredients_List_id" field in this mutation.
 func (m *ProductMutation) AddedIngredientsListID() (r int, exists bool) {
-	v := m.add_IngredientsListID
+	v := m.addingredients_List_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetIngredientsListID resets all changes to the "IngredientsListID" field.
+// ResetIngredientsListID resets all changes to the "ingredients_List_id" field.
 func (m *ProductMutation) ResetIngredientsListID() {
-	m._IngredientsListID = nil
-	m.add_IngredientsListID = nil
+	m.ingredients_List_id = nil
+	m.addingredients_List_id = nil
 }
 
-// SetNutritionalInformationID sets the "NutritionalInformationID" field.
+// SetNutritionalInformationID sets the "nutritional_information_id" field.
 func (m *ProductMutation) SetNutritionalInformationID(i int) {
-	m._NutritionalInformationID = &i
-	m.add_NutritionalInformationID = nil
+	m.nutritional_information_id = &i
+	m.addnutritional_information_id = nil
 }
 
-// NutritionalInformationID returns the value of the "NutritionalInformationID" field in the mutation.
+// NutritionalInformationID returns the value of the "nutritional_information_id" field in the mutation.
 func (m *ProductMutation) NutritionalInformationID() (r int, exists bool) {
-	v := m._NutritionalInformationID
+	v := m.nutritional_information_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldNutritionalInformationID returns the old "NutritionalInformationID" field's value of the Product entity.
+// OldNutritionalInformationID returns the old "nutritional_information_id" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldNutritionalInformationID(ctx context.Context) (v int, err error) {
@@ -404,46 +404,46 @@ func (m *ProductMutation) OldNutritionalInformationID(ctx context.Context) (v in
 	return oldValue.NutritionalInformationID, nil
 }
 
-// AddNutritionalInformationID adds i to the "NutritionalInformationID" field.
+// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
 func (m *ProductMutation) AddNutritionalInformationID(i int) {
-	if m.add_NutritionalInformationID != nil {
-		*m.add_NutritionalInformationID += i
+	if m.addnutritional_information_id != nil {
+		*m.addnutritional_information_id += i
 	} else {
-		m.add_NutritionalInformationID = &i
+		m.addnutritional_information_id = &i
 	}
 }
 
-// AddedNutritionalInformationID returns the value that was added to the "NutritionalInformationID" field in this mutation.
+// AddedNutritionalInformationID returns the value that was added to the "nutritional_information_id" field in this mutation.
 func (m *ProductMutation) AddedNutritionalInformationID() (r int, exists bool) {
-	v := m.add_NutritionalInformationID
+	v := m.addnutritional_information_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetNutritionalInformationID resets all changes to the "NutritionalInformationID" field.
+// ResetNutritionalInformationID resets all changes to the "nutritional_information_id" field.
 func (m *ProductMutation) ResetNutritionalInformationID() {
-	m._NutritionalInformationID = nil
-	m.add_NutritionalInformationID = nil
+	m.nutritional_information_id = nil
+	m.addnutritional_information_id = nil
 }
 
-// SetPromotionID sets the "PromotionID" field.
+// SetPromotionID sets the "promotion_id" field.
 func (m *ProductMutation) SetPromotionID(i int) {
-	m._PromotionID = &i
-	m.add_PromotionID = nil
+	m.promotion_id = &i
+	m.addpromotion_id = nil
 }
 
-// PromotionID returns the value of the "PromotionID" field in the mutation.
+// PromotionID returns the value of the "promotion_id" field in the mutation.
 func (m *ProductMutation) PromotionID() (r int, exists bool) {
-	v := m._PromotionID
+	v := m.promotion_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPromotionID returns the old "PromotionID" field's value of the Product entity.
+// OldPromotionID returns the old "promotion_id" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldPromotionID(ctx context.Context) (v int, err error) {
@@ -460,45 +460,45 @@ func (m *ProductMutation) OldPromotionID(ctx context.Context) (v int, err error)
 	return oldValue.PromotionID, nil
 }
 
-// AddPromotionID adds i to the "PromotionID" field.
+// AddPromotionID adds i to the "promotion_id" field.
 func (m *ProductMutation) AddPromotionID(i int) {
-	if m.add_PromotionID != nil {
-		*m.add_PromotionID += i
+	if m.addpromotion_id != nil {
+		*m.addpromotion_id += i
 	} else {
-		m.add_PromotionID = &i
+		m.addpromotion_id = &i
 	}
 }
 
-// AddedPromotionID returns the value that was added to the "PromotionID" field in this mutation.
+// AddedPromotionID returns the value that was added to the "promotion_id" field in this mutation.
 func (m *ProductMutation) AddedPromotionID() (r int, exists bool) {
-	v := m.add_PromotionID
+	v := m.addpromotion_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetPromotionID resets all changes to the "PromotionID" field.
+// ResetPromotionID resets all changes to the "promotion_id" field.
 func (m *ProductMutation) ResetPromotionID() {
-	m._PromotionID = nil
-	m.add_PromotionID = nil
+	m.promotion_id = nil
+	m.addpromotion_id = nil
 }
 
-// SetCreatedAt sets the "CreatedAt" field.
+// SetCreatedAt sets the "created_at" field.
 func (m *ProductMutation) SetCreatedAt(t time.Time) {
-	m._CreatedAt = &t
+	m.created_at = &t
 }
 
-// CreatedAt returns the value of the "CreatedAt" field in the mutation.
+// CreatedAt returns the value of the "created_at" field in the mutation.
 func (m *ProductMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m._CreatedAt
+	v := m.created_at
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCreatedAt returns the old "CreatedAt" field's value of the Product entity.
+// OldCreatedAt returns the old "created_at" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
@@ -515,26 +515,26 @@ func (m *ProductMutation) OldCreatedAt(ctx context.Context) (v time.Time, err er
 	return oldValue.CreatedAt, nil
 }
 
-// ResetCreatedAt resets all changes to the "CreatedAt" field.
+// ResetCreatedAt resets all changes to the "created_at" field.
 func (m *ProductMutation) ResetCreatedAt() {
-	m._CreatedAt = nil
+	m.created_at = nil
 }
 
-// SetUpdatedAt sets the "UpdatedAt" field.
+// SetUpdatedAt sets the "updated_at" field.
 func (m *ProductMutation) SetUpdatedAt(t time.Time) {
-	m._UpdatedAt = &t
+	m.updated_at = &t
 }
 
-// UpdatedAt returns the value of the "UpdatedAt" field in the mutation.
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
 func (m *ProductMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m._UpdatedAt
+	v := m.updated_at
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "UpdatedAt" field's value of the Product entity.
+// OldUpdatedAt returns the old "updated_at" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProductMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
@@ -551,9 +551,9 @@ func (m *ProductMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err er
 	return oldValue.UpdatedAt, nil
 }
 
-// ResetUpdatedAt resets all changes to the "UpdatedAt" field.
+// ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *ProductMutation) ResetUpdatedAt() {
-	m._UpdatedAt = nil
+	m.updated_at = nil
 }
 
 // Where appends a list predicates to the ProductMutation builder.
@@ -591,31 +591,31 @@ func (m *ProductMutation) Type() string {
 // AddedFields().
 func (m *ProductMutation) Fields() []string {
 	fields := make([]string, 0, 9)
-	if m._Name != nil {
+	if m.name != nil {
 		fields = append(fields, product.FieldName)
 	}
-	if m._Description != nil {
+	if m.description != nil {
 		fields = append(fields, product.FieldDescription)
 	}
-	if m._ProductImage != nil {
+	if m.product_image != nil {
 		fields = append(fields, product.FieldProductImage)
 	}
-	if m._ProductCategoryID != nil {
+	if m.product_category_id != nil {
 		fields = append(fields, product.FieldProductCategoryID)
 	}
-	if m._IngredientsListID != nil {
+	if m.ingredients_List_id != nil {
 		fields = append(fields, product.FieldIngredientsListID)
 	}
-	if m._NutritionalInformationID != nil {
+	if m.nutritional_information_id != nil {
 		fields = append(fields, product.FieldNutritionalInformationID)
 	}
-	if m._PromotionID != nil {
+	if m.promotion_id != nil {
 		fields = append(fields, product.FieldPromotionID)
 	}
-	if m._CreatedAt != nil {
+	if m.created_at != nil {
 		fields = append(fields, product.FieldCreatedAt)
 	}
-	if m._UpdatedAt != nil {
+	if m.updated_at != nil {
 		fields = append(fields, product.FieldUpdatedAt)
 	}
 	return fields
@@ -751,16 +751,16 @@ func (m *ProductMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *ProductMutation) AddedFields() []string {
 	var fields []string
-	if m.add_ProductCategoryID != nil {
+	if m.addproduct_category_id != nil {
 		fields = append(fields, product.FieldProductCategoryID)
 	}
-	if m.add_IngredientsListID != nil {
+	if m.addingredients_List_id != nil {
 		fields = append(fields, product.FieldIngredientsListID)
 	}
-	if m.add_NutritionalInformationID != nil {
+	if m.addnutritional_information_id != nil {
 		fields = append(fields, product.FieldNutritionalInformationID)
 	}
-	if m.add_PromotionID != nil {
+	if m.addpromotion_id != nil {
 		fields = append(fields, product.FieldPromotionID)
 	}
 	return fields
@@ -928,13 +928,13 @@ type UserMutation struct {
 	op            Op
 	typ           string
 	id            *int
-	_Username     *string
-	_EmailAddress *string
-	_Password     *string
-	_FirstName    *string
-	_LastName     *string
-	_CreatedAt    *time.Time
-	_UpdatedAt    *time.Time
+	username      *string
+	email_address *string
+	password      *string
+	first_name    *string
+	last_name     *string
+	created_at    *time.Time
+	updated_at    *time.Time
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*User, error)
@@ -1039,21 +1039,21 @@ func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
-// SetUsername sets the "Username" field.
+// SetUsername sets the "username" field.
 func (m *UserMutation) SetUsername(s string) {
-	m._Username = &s
+	m.username = &s
 }
 
-// Username returns the value of the "Username" field in the mutation.
+// Username returns the value of the "username" field in the mutation.
 func (m *UserMutation) Username() (r string, exists bool) {
-	v := m._Username
+	v := m.username
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUsername returns the old "Username" field's value of the User entity.
+// OldUsername returns the old "username" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldUsername(ctx context.Context) (v string, err error) {
@@ -1070,26 +1070,26 @@ func (m *UserMutation) OldUsername(ctx context.Context) (v string, err error) {
 	return oldValue.Username, nil
 }
 
-// ResetUsername resets all changes to the "Username" field.
+// ResetUsername resets all changes to the "username" field.
 func (m *UserMutation) ResetUsername() {
-	m._Username = nil
+	m.username = nil
 }
 
-// SetEmailAddress sets the "EmailAddress" field.
+// SetEmailAddress sets the "email_address" field.
 func (m *UserMutation) SetEmailAddress(s string) {
-	m._EmailAddress = &s
+	m.email_address = &s
 }
 
-// EmailAddress returns the value of the "EmailAddress" field in the mutation.
+// EmailAddress returns the value of the "email_address" field in the mutation.
 func (m *UserMutation) EmailAddress() (r string, exists bool) {
-	v := m._EmailAddress
+	v := m.email_address
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldEmailAddress returns the old "EmailAddress" field's value of the User entity.
+// OldEmailAddress returns the old "email_address" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldEmailAddress(ctx context.Context) (v string, err error) {
@@ -1106,26 +1106,26 @@ func (m *UserMutation) OldEmailAddress(ctx context.Context) (v string, err error
 	return oldValue.EmailAddress, nil
 }
 
-// ResetEmailAddress resets all changes to the "EmailAddress" field.
+// ResetEmailAddress resets all changes to the "email_address" field.
 func (m *UserMutation) ResetEmailAddress() {
-	m._EmailAddress = nil
+	m.email_address = nil
 }
 
-// SetPassword sets the "Password" field.
+// SetPassword sets the "password" field.
 func (m *UserMutation) SetPassword(s string) {
-	m._Password = &s
+	m.password = &s
 }
 
-// Password returns the value of the "Password" field in the mutation.
+// Password returns the value of the "password" field in the mutation.
 func (m *UserMutation) Password() (r string, exists bool) {
-	v := m._Password
+	v := m.password
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldPassword returns the old "Password" field's value of the User entity.
+// OldPassword returns the old "password" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
@@ -1142,26 +1142,26 @@ func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
 	return oldValue.Password, nil
 }
 
-// ResetPassword resets all changes to the "Password" field.
+// ResetPassword resets all changes to the "password" field.
 func (m *UserMutation) ResetPassword() {
-	m._Password = nil
+	m.password = nil
 }
 
-// SetFirstName sets the "FirstName" field.
+// SetFirstName sets the "first_name" field.
 func (m *UserMutation) SetFirstName(s string) {
-	m._FirstName = &s
+	m.first_name = &s
 }
 
-// FirstName returns the value of the "FirstName" field in the mutation.
+// FirstName returns the value of the "first_name" field in the mutation.
 func (m *UserMutation) FirstName() (r string, exists bool) {
-	v := m._FirstName
+	v := m.first_name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldFirstName returns the old "FirstName" field's value of the User entity.
+// OldFirstName returns the old "first_name" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldFirstName(ctx context.Context) (v string, err error) {
@@ -1178,26 +1178,26 @@ func (m *UserMutation) OldFirstName(ctx context.Context) (v string, err error) {
 	return oldValue.FirstName, nil
 }
 
-// ResetFirstName resets all changes to the "FirstName" field.
+// ResetFirstName resets all changes to the "first_name" field.
 func (m *UserMutation) ResetFirstName() {
-	m._FirstName = nil
+	m.first_name = nil
 }
 
-// SetLastName sets the "LastName" field.
+// SetLastName sets the "last_name" field.
 func (m *UserMutation) SetLastName(s string) {
-	m._LastName = &s
+	m.last_name = &s
 }
 
-// LastName returns the value of the "LastName" field in the mutation.
+// LastName returns the value of the "last_name" field in the mutation.
 func (m *UserMutation) LastName() (r string, exists bool) {
-	v := m._LastName
+	v := m.last_name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLastName returns the old "LastName" field's value of the User entity.
+// OldLastName returns the old "last_name" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldLastName(ctx context.Context) (v string, err error) {
@@ -1214,26 +1214,26 @@ func (m *UserMutation) OldLastName(ctx context.Context) (v string, err error) {
 	return oldValue.LastName, nil
 }
 
-// ResetLastName resets all changes to the "LastName" field.
+// ResetLastName resets all changes to the "last_name" field.
 func (m *UserMutation) ResetLastName() {
-	m._LastName = nil
+	m.last_name = nil
 }
 
-// SetCreatedAt sets the "CreatedAt" field.
+// SetCreatedAt sets the "created_at" field.
 func (m *UserMutation) SetCreatedAt(t time.Time) {
-	m._CreatedAt = &t
+	m.created_at = &t
 }
 
-// CreatedAt returns the value of the "CreatedAt" field in the mutation.
+// CreatedAt returns the value of the "created_at" field in the mutation.
 func (m *UserMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m._CreatedAt
+	v := m.created_at
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCreatedAt returns the old "CreatedAt" field's value of the User entity.
+// OldCreatedAt returns the old "created_at" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
@@ -1250,26 +1250,26 @@ func (m *UserMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error
 	return oldValue.CreatedAt, nil
 }
 
-// ResetCreatedAt resets all changes to the "CreatedAt" field.
+// ResetCreatedAt resets all changes to the "created_at" field.
 func (m *UserMutation) ResetCreatedAt() {
-	m._CreatedAt = nil
+	m.created_at = nil
 }
 
-// SetUpdatedAt sets the "UpdatedAt" field.
+// SetUpdatedAt sets the "updated_at" field.
 func (m *UserMutation) SetUpdatedAt(t time.Time) {
-	m._UpdatedAt = &t
+	m.updated_at = &t
 }
 
-// UpdatedAt returns the value of the "UpdatedAt" field in the mutation.
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
 func (m *UserMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m._UpdatedAt
+	v := m.updated_at
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "UpdatedAt" field's value of the User entity.
+// OldUpdatedAt returns the old "updated_at" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
@@ -1286,9 +1286,9 @@ func (m *UserMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error
 	return oldValue.UpdatedAt, nil
 }
 
-// ResetUpdatedAt resets all changes to the "UpdatedAt" field.
+// ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *UserMutation) ResetUpdatedAt() {
-	m._UpdatedAt = nil
+	m.updated_at = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -1326,25 +1326,25 @@ func (m *UserMutation) Type() string {
 // AddedFields().
 func (m *UserMutation) Fields() []string {
 	fields := make([]string, 0, 7)
-	if m._Username != nil {
+	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
-	if m._EmailAddress != nil {
+	if m.email_address != nil {
 		fields = append(fields, user.FieldEmailAddress)
 	}
-	if m._Password != nil {
+	if m.password != nil {
 		fields = append(fields, user.FieldPassword)
 	}
-	if m._FirstName != nil {
+	if m.first_name != nil {
 		fields = append(fields, user.FieldFirstName)
 	}
-	if m._LastName != nil {
+	if m.last_name != nil {
 		fields = append(fields, user.FieldLastName)
 	}
-	if m._CreatedAt != nil {
+	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
-	if m._UpdatedAt != nil {
+	if m.updated_at != nil {
 		fields = append(fields, user.FieldUpdatedAt)
 	}
 	return fields

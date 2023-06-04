@@ -8,10 +8,32 @@ import (
 
 // CreateProductInput represents a mutation input for creating products.
 type CreateProductInput struct {
+	Name                     string
+	Description              string
+	ProductImage             string
+	ProductCategoryID        int
+	IngredientsListID        int
+	NutritionalInformationID int
+	PromotionID              int
+	CreatedAt                *time.Time
+	UpdatedAt                *time.Time
 }
 
 // Mutate applies the CreateProductInput on the ProductMutation builder.
 func (i *CreateProductInput) Mutate(m *ProductMutation) {
+	m.SetName(i.Name)
+	m.SetDescription(i.Description)
+	m.SetProductImage(i.ProductImage)
+	m.SetProductCategoryID(i.ProductCategoryID)
+	m.SetIngredientsListID(i.IngredientsListID)
+	m.SetNutritionalInformationID(i.NutritionalInformationID)
+	m.SetPromotionID(i.PromotionID)
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
 }
 
 // SetInput applies the change-set in the CreateProductInput on the ProductCreate builder.

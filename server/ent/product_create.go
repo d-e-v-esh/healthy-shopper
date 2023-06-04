@@ -20,55 +20,55 @@ type ProductCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (pc *ProductCreate) SetName(s string) *ProductCreate {
 	pc.mutation.SetName(s)
 	return pc
 }
 
-// SetDescription sets the "Description" field.
+// SetDescription sets the "description" field.
 func (pc *ProductCreate) SetDescription(s string) *ProductCreate {
 	pc.mutation.SetDescription(s)
 	return pc
 }
 
-// SetProductImage sets the "ProductImage" field.
+// SetProductImage sets the "product_image" field.
 func (pc *ProductCreate) SetProductImage(s string) *ProductCreate {
 	pc.mutation.SetProductImage(s)
 	return pc
 }
 
-// SetProductCategoryID sets the "ProductCategoryID" field.
+// SetProductCategoryID sets the "product_category_id" field.
 func (pc *ProductCreate) SetProductCategoryID(i int) *ProductCreate {
 	pc.mutation.SetProductCategoryID(i)
 	return pc
 }
 
-// SetIngredientsListID sets the "IngredientsListID" field.
+// SetIngredientsListID sets the "ingredients_List_id" field.
 func (pc *ProductCreate) SetIngredientsListID(i int) *ProductCreate {
 	pc.mutation.SetIngredientsListID(i)
 	return pc
 }
 
-// SetNutritionalInformationID sets the "NutritionalInformationID" field.
+// SetNutritionalInformationID sets the "nutritional_information_id" field.
 func (pc *ProductCreate) SetNutritionalInformationID(i int) *ProductCreate {
 	pc.mutation.SetNutritionalInformationID(i)
 	return pc
 }
 
-// SetPromotionID sets the "PromotionID" field.
+// SetPromotionID sets the "promotion_id" field.
 func (pc *ProductCreate) SetPromotionID(i int) *ProductCreate {
 	pc.mutation.SetPromotionID(i)
 	return pc
 }
 
-// SetCreatedAt sets the "CreatedAt" field.
+// SetCreatedAt sets the "created_at" field.
 func (pc *ProductCreate) SetCreatedAt(t time.Time) *ProductCreate {
 	pc.mutation.SetCreatedAt(t)
 	return pc
 }
 
-// SetNillableCreatedAt sets the "CreatedAt" field if the given value is not nil.
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
 func (pc *ProductCreate) SetNillableCreatedAt(t *time.Time) *ProductCreate {
 	if t != nil {
 		pc.SetCreatedAt(*t)
@@ -76,13 +76,13 @@ func (pc *ProductCreate) SetNillableCreatedAt(t *time.Time) *ProductCreate {
 	return pc
 }
 
-// SetUpdatedAt sets the "UpdatedAt" field.
+// SetUpdatedAt sets the "updated_at" field.
 func (pc *ProductCreate) SetUpdatedAt(t time.Time) *ProductCreate {
 	pc.mutation.SetUpdatedAt(t)
 	return pc
 }
 
-// SetNillableUpdatedAt sets the "UpdatedAt" field if the given value is not nil.
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
 func (pc *ProductCreate) SetNillableUpdatedAt(t *time.Time) *ProductCreate {
 	if t != nil {
 		pc.SetUpdatedAt(*t)
@@ -138,66 +138,66 @@ func (pc *ProductCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.Name(); !ok {
-		return &ValidationError{Name: "Name", err: errors.New(`ent: missing required field "Product.Name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Product.name"`)}
 	}
 	if v, ok := pc.mutation.Name(); ok {
 		if err := product.NameValidator(v); err != nil {
-			return &ValidationError{Name: "Name", err: fmt.Errorf(`ent: validator failed for field "Product.Name": %w`, err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Product.name": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.Description(); !ok {
-		return &ValidationError{Name: "Description", err: errors.New(`ent: missing required field "Product.Description"`)}
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Product.description"`)}
 	}
 	if v, ok := pc.mutation.Description(); ok {
 		if err := product.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "Description", err: fmt.Errorf(`ent: validator failed for field "Product.Description": %w`, err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.ProductImage(); !ok {
-		return &ValidationError{Name: "ProductImage", err: errors.New(`ent: missing required field "Product.ProductImage"`)}
+		return &ValidationError{Name: "product_image", err: errors.New(`ent: missing required field "Product.product_image"`)}
 	}
 	if v, ok := pc.mutation.ProductImage(); ok {
 		if err := product.ProductImageValidator(v); err != nil {
-			return &ValidationError{Name: "ProductImage", err: fmt.Errorf(`ent: validator failed for field "Product.ProductImage": %w`, err)}
+			return &ValidationError{Name: "product_image", err: fmt.Errorf(`ent: validator failed for field "Product.product_image": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.ProductCategoryID(); !ok {
-		return &ValidationError{Name: "ProductCategoryID", err: errors.New(`ent: missing required field "Product.ProductCategoryID"`)}
+		return &ValidationError{Name: "product_category_id", err: errors.New(`ent: missing required field "Product.product_category_id"`)}
 	}
 	if v, ok := pc.mutation.ProductCategoryID(); ok {
 		if err := product.ProductCategoryIDValidator(v); err != nil {
-			return &ValidationError{Name: "ProductCategoryID", err: fmt.Errorf(`ent: validator failed for field "Product.ProductCategoryID": %w`, err)}
+			return &ValidationError{Name: "product_category_id", err: fmt.Errorf(`ent: validator failed for field "Product.product_category_id": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.IngredientsListID(); !ok {
-		return &ValidationError{Name: "IngredientsListID", err: errors.New(`ent: missing required field "Product.IngredientsListID"`)}
+		return &ValidationError{Name: "ingredients_List_id", err: errors.New(`ent: missing required field "Product.ingredients_List_id"`)}
 	}
 	if v, ok := pc.mutation.IngredientsListID(); ok {
 		if err := product.IngredientsListIDValidator(v); err != nil {
-			return &ValidationError{Name: "IngredientsListID", err: fmt.Errorf(`ent: validator failed for field "Product.IngredientsListID": %w`, err)}
+			return &ValidationError{Name: "ingredients_List_id", err: fmt.Errorf(`ent: validator failed for field "Product.ingredients_List_id": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.NutritionalInformationID(); !ok {
-		return &ValidationError{Name: "NutritionalInformationID", err: errors.New(`ent: missing required field "Product.NutritionalInformationID"`)}
+		return &ValidationError{Name: "nutritional_information_id", err: errors.New(`ent: missing required field "Product.nutritional_information_id"`)}
 	}
 	if v, ok := pc.mutation.NutritionalInformationID(); ok {
 		if err := product.NutritionalInformationIDValidator(v); err != nil {
-			return &ValidationError{Name: "NutritionalInformationID", err: fmt.Errorf(`ent: validator failed for field "Product.NutritionalInformationID": %w`, err)}
+			return &ValidationError{Name: "nutritional_information_id", err: fmt.Errorf(`ent: validator failed for field "Product.nutritional_information_id": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.PromotionID(); !ok {
-		return &ValidationError{Name: "PromotionID", err: errors.New(`ent: missing required field "Product.PromotionID"`)}
+		return &ValidationError{Name: "promotion_id", err: errors.New(`ent: missing required field "Product.promotion_id"`)}
 	}
 	if v, ok := pc.mutation.PromotionID(); ok {
 		if err := product.PromotionIDValidator(v); err != nil {
-			return &ValidationError{Name: "PromotionID", err: fmt.Errorf(`ent: validator failed for field "Product.PromotionID": %w`, err)}
+			return &ValidationError{Name: "promotion_id", err: fmt.Errorf(`ent: validator failed for field "Product.promotion_id": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "CreatedAt", err: errors.New(`ent: missing required field "Product.CreatedAt"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Product.created_at"`)}
 	}
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "UpdatedAt", err: errors.New(`ent: missing required field "Product.UpdatedAt"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Product.updated_at"`)}
 	}
 	return nil
 }

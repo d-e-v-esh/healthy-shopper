@@ -54,482 +54,482 @@ func IDLTE(id int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldID, id))
 }
 
-// Name applies equality check predicate on the "Name" field. It's identical to NameEQ.
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldName, v))
 }
 
-// Description applies equality check predicate on the "Description" field. It's identical to DescriptionEQ.
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldDescription, v))
 }
 
-// ProductImage applies equality check predicate on the "ProductImage" field. It's identical to ProductImageEQ.
+// ProductImage applies equality check predicate on the "product_image" field. It's identical to ProductImageEQ.
 func ProductImage(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldProductImage, v))
 }
 
-// ProductCategoryID applies equality check predicate on the "ProductCategoryID" field. It's identical to ProductCategoryIDEQ.
+// ProductCategoryID applies equality check predicate on the "product_category_id" field. It's identical to ProductCategoryIDEQ.
 func ProductCategoryID(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldProductCategoryID, v))
 }
 
-// IngredientsListID applies equality check predicate on the "IngredientsListID" field. It's identical to IngredientsListIDEQ.
+// IngredientsListID applies equality check predicate on the "ingredients_List_id" field. It's identical to IngredientsListIDEQ.
 func IngredientsListID(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldIngredientsListID, v))
 }
 
-// NutritionalInformationID applies equality check predicate on the "NutritionalInformationID" field. It's identical to NutritionalInformationIDEQ.
+// NutritionalInformationID applies equality check predicate on the "nutritional_information_id" field. It's identical to NutritionalInformationIDEQ.
 func NutritionalInformationID(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldNutritionalInformationID, v))
 }
 
-// PromotionID applies equality check predicate on the "PromotionID" field. It's identical to PromotionIDEQ.
+// PromotionID applies equality check predicate on the "promotion_id" field. It's identical to PromotionIDEQ.
 func PromotionID(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldPromotionID, v))
 }
 
-// CreatedAt applies equality check predicate on the "CreatedAt" field. It's identical to CreatedAtEQ.
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// UpdatedAt applies equality check predicate on the "UpdatedAt" field. It's identical to UpdatedAtEQ.
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// NameEQ applies the EQ predicate on the "Name" field.
+// NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldName, v))
 }
 
-// NameNEQ applies the NEQ predicate on the "Name" field.
+// NameNEQ applies the NEQ predicate on the "name" field.
 func NameNEQ(v string) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldName, v))
 }
 
-// NameIn applies the In predicate on the "Name" field.
+// NameIn applies the In predicate on the "name" field.
 func NameIn(vs ...string) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldName, vs...))
 }
 
-// NameNotIn applies the NotIn predicate on the "Name" field.
+// NameNotIn applies the NotIn predicate on the "name" field.
 func NameNotIn(vs ...string) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldName, vs...))
 }
 
-// NameGT applies the GT predicate on the "Name" field.
+// NameGT applies the GT predicate on the "name" field.
 func NameGT(v string) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldName, v))
 }
 
-// NameGTE applies the GTE predicate on the "Name" field.
+// NameGTE applies the GTE predicate on the "name" field.
 func NameGTE(v string) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldName, v))
 }
 
-// NameLT applies the LT predicate on the "Name" field.
+// NameLT applies the LT predicate on the "name" field.
 func NameLT(v string) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldName, v))
 }
 
-// NameLTE applies the LTE predicate on the "Name" field.
+// NameLTE applies the LTE predicate on the "name" field.
 func NameLTE(v string) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldName, v))
 }
 
-// NameContains applies the Contains predicate on the "Name" field.
+// NameContains applies the Contains predicate on the "name" field.
 func NameContains(v string) predicate.Product {
 	return predicate.Product(sql.FieldContains(FieldName, v))
 }
 
-// NameHasPrefix applies the HasPrefix predicate on the "Name" field.
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
 func NameHasPrefix(v string) predicate.Product {
 	return predicate.Product(sql.FieldHasPrefix(FieldName, v))
 }
 
-// NameHasSuffix applies the HasSuffix predicate on the "Name" field.
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
 func NameHasSuffix(v string) predicate.Product {
 	return predicate.Product(sql.FieldHasSuffix(FieldName, v))
 }
 
-// NameEqualFold applies the EqualFold predicate on the "Name" field.
+// NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldEqualFold(FieldName, v))
 }
 
-// NameContainsFold applies the ContainsFold predicate on the "Name" field.
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldContainsFold(FieldName, v))
 }
 
-// DescriptionEQ applies the EQ predicate on the "Description" field.
+// DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldDescription, v))
 }
 
-// DescriptionNEQ applies the NEQ predicate on the "Description" field.
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
 func DescriptionNEQ(v string) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldDescription, v))
 }
 
-// DescriptionIn applies the In predicate on the "Description" field.
+// DescriptionIn applies the In predicate on the "description" field.
 func DescriptionIn(vs ...string) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldDescription, vs...))
 }
 
-// DescriptionNotIn applies the NotIn predicate on the "Description" field.
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
 func DescriptionNotIn(vs ...string) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldDescription, vs...))
 }
 
-// DescriptionGT applies the GT predicate on the "Description" field.
+// DescriptionGT applies the GT predicate on the "description" field.
 func DescriptionGT(v string) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldDescription, v))
 }
 
-// DescriptionGTE applies the GTE predicate on the "Description" field.
+// DescriptionGTE applies the GTE predicate on the "description" field.
 func DescriptionGTE(v string) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldDescription, v))
 }
 
-// DescriptionLT applies the LT predicate on the "Description" field.
+// DescriptionLT applies the LT predicate on the "description" field.
 func DescriptionLT(v string) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldDescription, v))
 }
 
-// DescriptionLTE applies the LTE predicate on the "Description" field.
+// DescriptionLTE applies the LTE predicate on the "description" field.
 func DescriptionLTE(v string) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldDescription, v))
 }
 
-// DescriptionContains applies the Contains predicate on the "Description" field.
+// DescriptionContains applies the Contains predicate on the "description" field.
 func DescriptionContains(v string) predicate.Product {
 	return predicate.Product(sql.FieldContains(FieldDescription, v))
 }
 
-// DescriptionHasPrefix applies the HasPrefix predicate on the "Description" field.
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
 func DescriptionHasPrefix(v string) predicate.Product {
 	return predicate.Product(sql.FieldHasPrefix(FieldDescription, v))
 }
 
-// DescriptionHasSuffix applies the HasSuffix predicate on the "Description" field.
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
 func DescriptionHasSuffix(v string) predicate.Product {
 	return predicate.Product(sql.FieldHasSuffix(FieldDescription, v))
 }
 
-// DescriptionEqualFold applies the EqualFold predicate on the "Description" field.
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
 func DescriptionEqualFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldEqualFold(FieldDescription, v))
 }
 
-// DescriptionContainsFold applies the ContainsFold predicate on the "Description" field.
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// ProductImageEQ applies the EQ predicate on the "ProductImage" field.
+// ProductImageEQ applies the EQ predicate on the "product_image" field.
 func ProductImageEQ(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldProductImage, v))
 }
 
-// ProductImageNEQ applies the NEQ predicate on the "ProductImage" field.
+// ProductImageNEQ applies the NEQ predicate on the "product_image" field.
 func ProductImageNEQ(v string) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldProductImage, v))
 }
 
-// ProductImageIn applies the In predicate on the "ProductImage" field.
+// ProductImageIn applies the In predicate on the "product_image" field.
 func ProductImageIn(vs ...string) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldProductImage, vs...))
 }
 
-// ProductImageNotIn applies the NotIn predicate on the "ProductImage" field.
+// ProductImageNotIn applies the NotIn predicate on the "product_image" field.
 func ProductImageNotIn(vs ...string) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldProductImage, vs...))
 }
 
-// ProductImageGT applies the GT predicate on the "ProductImage" field.
+// ProductImageGT applies the GT predicate on the "product_image" field.
 func ProductImageGT(v string) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldProductImage, v))
 }
 
-// ProductImageGTE applies the GTE predicate on the "ProductImage" field.
+// ProductImageGTE applies the GTE predicate on the "product_image" field.
 func ProductImageGTE(v string) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldProductImage, v))
 }
 
-// ProductImageLT applies the LT predicate on the "ProductImage" field.
+// ProductImageLT applies the LT predicate on the "product_image" field.
 func ProductImageLT(v string) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldProductImage, v))
 }
 
-// ProductImageLTE applies the LTE predicate on the "ProductImage" field.
+// ProductImageLTE applies the LTE predicate on the "product_image" field.
 func ProductImageLTE(v string) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldProductImage, v))
 }
 
-// ProductImageContains applies the Contains predicate on the "ProductImage" field.
+// ProductImageContains applies the Contains predicate on the "product_image" field.
 func ProductImageContains(v string) predicate.Product {
 	return predicate.Product(sql.FieldContains(FieldProductImage, v))
 }
 
-// ProductImageHasPrefix applies the HasPrefix predicate on the "ProductImage" field.
+// ProductImageHasPrefix applies the HasPrefix predicate on the "product_image" field.
 func ProductImageHasPrefix(v string) predicate.Product {
 	return predicate.Product(sql.FieldHasPrefix(FieldProductImage, v))
 }
 
-// ProductImageHasSuffix applies the HasSuffix predicate on the "ProductImage" field.
+// ProductImageHasSuffix applies the HasSuffix predicate on the "product_image" field.
 func ProductImageHasSuffix(v string) predicate.Product {
 	return predicate.Product(sql.FieldHasSuffix(FieldProductImage, v))
 }
 
-// ProductImageEqualFold applies the EqualFold predicate on the "ProductImage" field.
+// ProductImageEqualFold applies the EqualFold predicate on the "product_image" field.
 func ProductImageEqualFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldEqualFold(FieldProductImage, v))
 }
 
-// ProductImageContainsFold applies the ContainsFold predicate on the "ProductImage" field.
+// ProductImageContainsFold applies the ContainsFold predicate on the "product_image" field.
 func ProductImageContainsFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldContainsFold(FieldProductImage, v))
 }
 
-// ProductCategoryIDEQ applies the EQ predicate on the "ProductCategoryID" field.
+// ProductCategoryIDEQ applies the EQ predicate on the "product_category_id" field.
 func ProductCategoryIDEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldProductCategoryID, v))
 }
 
-// ProductCategoryIDNEQ applies the NEQ predicate on the "ProductCategoryID" field.
+// ProductCategoryIDNEQ applies the NEQ predicate on the "product_category_id" field.
 func ProductCategoryIDNEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldProductCategoryID, v))
 }
 
-// ProductCategoryIDIn applies the In predicate on the "ProductCategoryID" field.
+// ProductCategoryIDIn applies the In predicate on the "product_category_id" field.
 func ProductCategoryIDIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldProductCategoryID, vs...))
 }
 
-// ProductCategoryIDNotIn applies the NotIn predicate on the "ProductCategoryID" field.
+// ProductCategoryIDNotIn applies the NotIn predicate on the "product_category_id" field.
 func ProductCategoryIDNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldProductCategoryID, vs...))
 }
 
-// ProductCategoryIDGT applies the GT predicate on the "ProductCategoryID" field.
+// ProductCategoryIDGT applies the GT predicate on the "product_category_id" field.
 func ProductCategoryIDGT(v int) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldProductCategoryID, v))
 }
 
-// ProductCategoryIDGTE applies the GTE predicate on the "ProductCategoryID" field.
+// ProductCategoryIDGTE applies the GTE predicate on the "product_category_id" field.
 func ProductCategoryIDGTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldProductCategoryID, v))
 }
 
-// ProductCategoryIDLT applies the LT predicate on the "ProductCategoryID" field.
+// ProductCategoryIDLT applies the LT predicate on the "product_category_id" field.
 func ProductCategoryIDLT(v int) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldProductCategoryID, v))
 }
 
-// ProductCategoryIDLTE applies the LTE predicate on the "ProductCategoryID" field.
+// ProductCategoryIDLTE applies the LTE predicate on the "product_category_id" field.
 func ProductCategoryIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldProductCategoryID, v))
 }
 
-// IngredientsListIDEQ applies the EQ predicate on the "IngredientsListID" field.
+// IngredientsListIDEQ applies the EQ predicate on the "ingredients_List_id" field.
 func IngredientsListIDEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDNEQ applies the NEQ predicate on the "IngredientsListID" field.
+// IngredientsListIDNEQ applies the NEQ predicate on the "ingredients_List_id" field.
 func IngredientsListIDNEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDIn applies the In predicate on the "IngredientsListID" field.
+// IngredientsListIDIn applies the In predicate on the "ingredients_List_id" field.
 func IngredientsListIDIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldIngredientsListID, vs...))
 }
 
-// IngredientsListIDNotIn applies the NotIn predicate on the "IngredientsListID" field.
+// IngredientsListIDNotIn applies the NotIn predicate on the "ingredients_List_id" field.
 func IngredientsListIDNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldIngredientsListID, vs...))
 }
 
-// IngredientsListIDGT applies the GT predicate on the "IngredientsListID" field.
+// IngredientsListIDGT applies the GT predicate on the "ingredients_List_id" field.
 func IngredientsListIDGT(v int) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDGTE applies the GTE predicate on the "IngredientsListID" field.
+// IngredientsListIDGTE applies the GTE predicate on the "ingredients_List_id" field.
 func IngredientsListIDGTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDLT applies the LT predicate on the "IngredientsListID" field.
+// IngredientsListIDLT applies the LT predicate on the "ingredients_List_id" field.
 func IngredientsListIDLT(v int) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDLTE applies the LTE predicate on the "IngredientsListID" field.
+// IngredientsListIDLTE applies the LTE predicate on the "ingredients_List_id" field.
 func IngredientsListIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldIngredientsListID, v))
 }
 
-// NutritionalInformationIDEQ applies the EQ predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDEQ applies the EQ predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldNutritionalInformationID, v))
 }
 
-// NutritionalInformationIDNEQ applies the NEQ predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDNEQ applies the NEQ predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDNEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldNutritionalInformationID, v))
 }
 
-// NutritionalInformationIDIn applies the In predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDIn applies the In predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldNutritionalInformationID, vs...))
 }
 
-// NutritionalInformationIDNotIn applies the NotIn predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDNotIn applies the NotIn predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldNutritionalInformationID, vs...))
 }
 
-// NutritionalInformationIDGT applies the GT predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDGT applies the GT predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDGT(v int) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldNutritionalInformationID, v))
 }
 
-// NutritionalInformationIDGTE applies the GTE predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDGTE applies the GTE predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDGTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldNutritionalInformationID, v))
 }
 
-// NutritionalInformationIDLT applies the LT predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDLT applies the LT predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDLT(v int) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldNutritionalInformationID, v))
 }
 
-// NutritionalInformationIDLTE applies the LTE predicate on the "NutritionalInformationID" field.
+// NutritionalInformationIDLTE applies the LTE predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldNutritionalInformationID, v))
 }
 
-// PromotionIDEQ applies the EQ predicate on the "PromotionID" field.
+// PromotionIDEQ applies the EQ predicate on the "promotion_id" field.
 func PromotionIDEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldPromotionID, v))
 }
 
-// PromotionIDNEQ applies the NEQ predicate on the "PromotionID" field.
+// PromotionIDNEQ applies the NEQ predicate on the "promotion_id" field.
 func PromotionIDNEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldPromotionID, v))
 }
 
-// PromotionIDIn applies the In predicate on the "PromotionID" field.
+// PromotionIDIn applies the In predicate on the "promotion_id" field.
 func PromotionIDIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldPromotionID, vs...))
 }
 
-// PromotionIDNotIn applies the NotIn predicate on the "PromotionID" field.
+// PromotionIDNotIn applies the NotIn predicate on the "promotion_id" field.
 func PromotionIDNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldPromotionID, vs...))
 }
 
-// PromotionIDGT applies the GT predicate on the "PromotionID" field.
+// PromotionIDGT applies the GT predicate on the "promotion_id" field.
 func PromotionIDGT(v int) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldPromotionID, v))
 }
 
-// PromotionIDGTE applies the GTE predicate on the "PromotionID" field.
+// PromotionIDGTE applies the GTE predicate on the "promotion_id" field.
 func PromotionIDGTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldPromotionID, v))
 }
 
-// PromotionIDLT applies the LT predicate on the "PromotionID" field.
+// PromotionIDLT applies the LT predicate on the "promotion_id" field.
 func PromotionIDLT(v int) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldPromotionID, v))
 }
 
-// PromotionIDLTE applies the LTE predicate on the "PromotionID" field.
+// PromotionIDLTE applies the LTE predicate on the "promotion_id" field.
 func PromotionIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldPromotionID, v))
 }
 
-// CreatedAtEQ applies the EQ predicate on the "CreatedAt" field.
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// CreatedAtNEQ applies the NEQ predicate on the "CreatedAt" field.
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
-// CreatedAtIn applies the In predicate on the "CreatedAt" field.
+// CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
-// CreatedAtNotIn applies the NotIn predicate on the "CreatedAt" field.
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
-// CreatedAtGT applies the GT predicate on the "CreatedAt" field.
+// CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldCreatedAt, v))
 }
 
-// CreatedAtGTE applies the GTE predicate on the "CreatedAt" field.
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldCreatedAt, v))
 }
 
-// CreatedAtLT applies the LT predicate on the "CreatedAt" field.
+// CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldCreatedAt, v))
 }
 
-// CreatedAtLTE applies the LTE predicate on the "CreatedAt" field.
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldCreatedAt, v))
 }
 
-// UpdatedAtEQ applies the EQ predicate on the "UpdatedAt" field.
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
 func UpdatedAtEQ(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// UpdatedAtNEQ applies the NEQ predicate on the "UpdatedAt" field.
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
 func UpdatedAtNEQ(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldUpdatedAt, v))
 }
 
-// UpdatedAtIn applies the In predicate on the "UpdatedAt" field.
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
 func UpdatedAtIn(vs ...time.Time) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldUpdatedAt, vs...))
 }
 
-// UpdatedAtNotIn applies the NotIn predicate on the "UpdatedAt" field.
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
 func UpdatedAtNotIn(vs ...time.Time) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldUpdatedAt, vs...))
 }
 
-// UpdatedAtGT applies the GT predicate on the "UpdatedAt" field.
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
 func UpdatedAtGT(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldUpdatedAt, v))
 }
 
-// UpdatedAtGTE applies the GTE predicate on the "UpdatedAt" field.
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
 func UpdatedAtGTE(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldUpdatedAt, v))
 }
 
-// UpdatedAtLT applies the LT predicate on the "UpdatedAt" field.
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
 func UpdatedAtLT(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldUpdatedAt, v))
 }
 
-// UpdatedAtLTE applies the LTE predicate on the "UpdatedAt" field.
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldUpdatedAt, v))
 }

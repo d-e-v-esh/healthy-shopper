@@ -15,74 +15,74 @@ import (
 func init() {
 	productFields := schema.Product{}.Fields()
 	_ = productFields
-	// productDescName is the schema descriptor for Name field.
+	// productDescName is the schema descriptor for name field.
 	productDescName := productFields[0].Descriptor()
-	// product.NameValidator is a validator for the "Name" field. It is called by the builders before save.
+	// product.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	product.NameValidator = productDescName.Validators[0].(func(string) error)
-	// productDescDescription is the schema descriptor for Description field.
+	// productDescDescription is the schema descriptor for description field.
 	productDescDescription := productFields[1].Descriptor()
-	// product.DescriptionValidator is a validator for the "Description" field. It is called by the builders before save.
+	// product.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	product.DescriptionValidator = productDescDescription.Validators[0].(func(string) error)
-	// productDescProductImage is the schema descriptor for ProductImage field.
+	// productDescProductImage is the schema descriptor for product_image field.
 	productDescProductImage := productFields[2].Descriptor()
-	// product.ProductImageValidator is a validator for the "ProductImage" field. It is called by the builders before save.
+	// product.ProductImageValidator is a validator for the "product_image" field. It is called by the builders before save.
 	product.ProductImageValidator = productDescProductImage.Validators[0].(func(string) error)
-	// productDescProductCategoryID is the schema descriptor for ProductCategoryID field.
+	// productDescProductCategoryID is the schema descriptor for product_category_id field.
 	productDescProductCategoryID := productFields[3].Descriptor()
-	// product.ProductCategoryIDValidator is a validator for the "ProductCategoryID" field. It is called by the builders before save.
+	// product.ProductCategoryIDValidator is a validator for the "product_category_id" field. It is called by the builders before save.
 	product.ProductCategoryIDValidator = productDescProductCategoryID.Validators[0].(func(int) error)
-	// productDescIngredientsListID is the schema descriptor for IngredientsListID field.
+	// productDescIngredientsListID is the schema descriptor for ingredients_List_id field.
 	productDescIngredientsListID := productFields[4].Descriptor()
-	// product.IngredientsListIDValidator is a validator for the "IngredientsListID" field. It is called by the builders before save.
+	// product.IngredientsListIDValidator is a validator for the "ingredients_List_id" field. It is called by the builders before save.
 	product.IngredientsListIDValidator = productDescIngredientsListID.Validators[0].(func(int) error)
-	// productDescNutritionalInformationID is the schema descriptor for NutritionalInformationID field.
+	// productDescNutritionalInformationID is the schema descriptor for nutritional_information_id field.
 	productDescNutritionalInformationID := productFields[5].Descriptor()
-	// product.NutritionalInformationIDValidator is a validator for the "NutritionalInformationID" field. It is called by the builders before save.
+	// product.NutritionalInformationIDValidator is a validator for the "nutritional_information_id" field. It is called by the builders before save.
 	product.NutritionalInformationIDValidator = productDescNutritionalInformationID.Validators[0].(func(int) error)
-	// productDescPromotionID is the schema descriptor for PromotionID field.
+	// productDescPromotionID is the schema descriptor for promotion_id field.
 	productDescPromotionID := productFields[6].Descriptor()
-	// product.PromotionIDValidator is a validator for the "PromotionID" field. It is called by the builders before save.
+	// product.PromotionIDValidator is a validator for the "promotion_id" field. It is called by the builders before save.
 	product.PromotionIDValidator = productDescPromotionID.Validators[0].(func(int) error)
-	// productDescCreatedAt is the schema descriptor for CreatedAt field.
+	// productDescCreatedAt is the schema descriptor for created_at field.
 	productDescCreatedAt := productFields[7].Descriptor()
-	// product.DefaultCreatedAt holds the default value on creation for the CreatedAt field.
+	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
 	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
-	// productDescUpdatedAt is the schema descriptor for UpdatedAt field.
+	// productDescUpdatedAt is the schema descriptor for updated_at field.
 	productDescUpdatedAt := productFields[8].Descriptor()
-	// product.DefaultUpdatedAt holds the default value on creation for the UpdatedAt field.
+	// product.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
-	// product.UpdateDefaultUpdatedAt holds the default value on update for the UpdatedAt field.
+	// product.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
-	// userDescUsername is the schema descriptor for Username field.
+	// userDescUsername is the schema descriptor for username field.
 	userDescUsername := userFields[0].Descriptor()
-	// user.UsernameValidator is a validator for the "Username" field. It is called by the builders before save.
+	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
-	// userDescEmailAddress is the schema descriptor for EmailAddress field.
+	// userDescEmailAddress is the schema descriptor for email_address field.
 	userDescEmailAddress := userFields[1].Descriptor()
-	// user.EmailAddressValidator is a validator for the "EmailAddress" field. It is called by the builders before save.
+	// user.EmailAddressValidator is a validator for the "email_address" field. It is called by the builders before save.
 	user.EmailAddressValidator = userDescEmailAddress.Validators[0].(func(string) error)
-	// userDescPassword is the schema descriptor for Password field.
+	// userDescPassword is the schema descriptor for password field.
 	userDescPassword := userFields[2].Descriptor()
-	// user.PasswordValidator is a validator for the "Password" field. It is called by the builders before save.
+	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
-	// userDescFirstName is the schema descriptor for FirstName field.
+	// userDescFirstName is the schema descriptor for first_name field.
 	userDescFirstName := userFields[3].Descriptor()
-	// user.FirstNameValidator is a validator for the "FirstName" field. It is called by the builders before save.
+	// user.FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
 	user.FirstNameValidator = userDescFirstName.Validators[0].(func(string) error)
-	// userDescLastName is the schema descriptor for LastName field.
+	// userDescLastName is the schema descriptor for last_name field.
 	userDescLastName := userFields[4].Descriptor()
-	// user.LastNameValidator is a validator for the "LastName" field. It is called by the builders before save.
+	// user.LastNameValidator is a validator for the "last_name" field. It is called by the builders before save.
 	user.LastNameValidator = userDescLastName.Validators[0].(func(string) error)
-	// userDescCreatedAt is the schema descriptor for CreatedAt field.
+	// userDescCreatedAt is the schema descriptor for created_at field.
 	userDescCreatedAt := userFields[5].Descriptor()
-	// user.DefaultCreatedAt holds the default value on creation for the CreatedAt field.
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
-	// userDescUpdatedAt is the schema descriptor for UpdatedAt field.
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
 	userDescUpdatedAt := userFields[6].Descriptor()
-	// user.DefaultUpdatedAt holds the default value on creation for the UpdatedAt field.
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
-	// user.UpdateDefaultUpdatedAt holds the default value on update for the UpdatedAt field.
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 }
