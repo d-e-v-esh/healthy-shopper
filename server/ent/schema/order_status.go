@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -19,5 +20,7 @@ func (OrderStatus) Fields() []ent.Field {
 
 // Edges of the OrderStatus.
 func (OrderStatus) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("shop_order", ShopOrder.Type),
+	}
 }

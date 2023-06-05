@@ -417,6 +417,18 @@ func (os *OrderStatusQuery) collectField(ctx context.Context, opCtx *graphql.Ope
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "shopOrder":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShopOrderClient{config: os.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shoporderImplementors)...); err != nil {
+				return err
+			}
+			os.WithNamedShopOrder(alias, func(wq *ShopOrderQuery) {
+				*wq = *query
+			})
 		case "status":
 			if _, ok := fieldSeen[orderstatus.FieldStatus]; !ok {
 				selectedFields = append(selectedFields, orderstatus.FieldStatus)
@@ -1041,6 +1053,20 @@ func (so *ShopOrderQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 			if _, ok := fieldSeen[shoporder.FieldShippingMethodID]; !ok {
 				selectedFields = append(selectedFields, shoporder.FieldShippingMethodID)
 				fieldSeen[shoporder.FieldShippingMethodID] = struct{}{}
+			}
+		case "orderStatus":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&OrderStatusClient{config: so.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, orderstatusImplementors)...); err != nil {
+				return err
+			}
+			so.withOrderStatus = query
+			if _, ok := fieldSeen[shoporder.FieldOrderStatusID]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldOrderStatusID)
+				fieldSeen[shoporder.FieldOrderStatusID] = struct{}{}
 			}
 		case "shippingAddress":
 			var (

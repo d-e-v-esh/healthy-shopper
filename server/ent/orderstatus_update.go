@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/shoporder"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -33,9 +34,45 @@ func (osu *OrderStatusUpdate) SetStatus(s string) *OrderStatusUpdate {
 	return osu
 }
 
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (osu *OrderStatusUpdate) AddShopOrderIDs(ids ...int) *OrderStatusUpdate {
+	osu.mutation.AddShopOrderIDs(ids...)
+	return osu
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (osu *OrderStatusUpdate) AddShopOrder(s ...*ShopOrder) *OrderStatusUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return osu.AddShopOrderIDs(ids...)
+}
+
 // Mutation returns the OrderStatusMutation object of the builder.
 func (osu *OrderStatusUpdate) Mutation() *OrderStatusMutation {
 	return osu.mutation
+}
+
+// ClearShopOrder clears all "shop_order" edges to the ShopOrder entity.
+func (osu *OrderStatusUpdate) ClearShopOrder() *OrderStatusUpdate {
+	osu.mutation.ClearShopOrder()
+	return osu
+}
+
+// RemoveShopOrderIDs removes the "shop_order" edge to ShopOrder entities by IDs.
+func (osu *OrderStatusUpdate) RemoveShopOrderIDs(ids ...int) *OrderStatusUpdate {
+	osu.mutation.RemoveShopOrderIDs(ids...)
+	return osu
+}
+
+// RemoveShopOrder removes "shop_order" edges to ShopOrder entities.
+func (osu *OrderStatusUpdate) RemoveShopOrder(s ...*ShopOrder) *OrderStatusUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return osu.RemoveShopOrderIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -90,6 +127,51 @@ func (osu *OrderStatusUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := osu.mutation.Status(); ok {
 		_spec.SetField(orderstatus.FieldStatus, field.TypeString, value)
 	}
+	if osu.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderstatus.ShopOrderTable,
+			Columns: []string{orderstatus.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := osu.mutation.RemovedShopOrderIDs(); len(nodes) > 0 && !osu.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderstatus.ShopOrderTable,
+			Columns: []string{orderstatus.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := osu.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderstatus.ShopOrderTable,
+			Columns: []string{orderstatus.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, osu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{orderstatus.Label}
@@ -116,9 +198,45 @@ func (osuo *OrderStatusUpdateOne) SetStatus(s string) *OrderStatusUpdateOne {
 	return osuo
 }
 
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (osuo *OrderStatusUpdateOne) AddShopOrderIDs(ids ...int) *OrderStatusUpdateOne {
+	osuo.mutation.AddShopOrderIDs(ids...)
+	return osuo
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (osuo *OrderStatusUpdateOne) AddShopOrder(s ...*ShopOrder) *OrderStatusUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return osuo.AddShopOrderIDs(ids...)
+}
+
 // Mutation returns the OrderStatusMutation object of the builder.
 func (osuo *OrderStatusUpdateOne) Mutation() *OrderStatusMutation {
 	return osuo.mutation
+}
+
+// ClearShopOrder clears all "shop_order" edges to the ShopOrder entity.
+func (osuo *OrderStatusUpdateOne) ClearShopOrder() *OrderStatusUpdateOne {
+	osuo.mutation.ClearShopOrder()
+	return osuo
+}
+
+// RemoveShopOrderIDs removes the "shop_order" edge to ShopOrder entities by IDs.
+func (osuo *OrderStatusUpdateOne) RemoveShopOrderIDs(ids ...int) *OrderStatusUpdateOne {
+	osuo.mutation.RemoveShopOrderIDs(ids...)
+	return osuo
+}
+
+// RemoveShopOrder removes "shop_order" edges to ShopOrder entities.
+func (osuo *OrderStatusUpdateOne) RemoveShopOrder(s ...*ShopOrder) *OrderStatusUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return osuo.RemoveShopOrderIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderStatusUpdate builder.
@@ -202,6 +320,51 @@ func (osuo *OrderStatusUpdateOne) sqlSave(ctx context.Context) (_node *OrderStat
 	}
 	if value, ok := osuo.mutation.Status(); ok {
 		_spec.SetField(orderstatus.FieldStatus, field.TypeString, value)
+	}
+	if osuo.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderstatus.ShopOrderTable,
+			Columns: []string{orderstatus.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := osuo.mutation.RemovedShopOrderIDs(); len(nodes) > 0 && !osuo.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderstatus.ShopOrderTable,
+			Columns: []string{orderstatus.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := osuo.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderstatus.ShopOrderTable,
+			Columns: []string{orderstatus.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &OrderStatus{config: osuo.config}
 	_spec.Assign = _node.assignValues

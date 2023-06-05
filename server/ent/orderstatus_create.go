@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/orderstatus"
+	"healthyshopper/ent/shoporder"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -23,6 +24,21 @@ type OrderStatusCreate struct {
 func (osc *OrderStatusCreate) SetStatus(s string) *OrderStatusCreate {
 	osc.mutation.SetStatus(s)
 	return osc
+}
+
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (osc *OrderStatusCreate) AddShopOrderIDs(ids ...int) *OrderStatusCreate {
+	osc.mutation.AddShopOrderIDs(ids...)
+	return osc
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (osc *OrderStatusCreate) AddShopOrder(s ...*ShopOrder) *OrderStatusCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return osc.AddShopOrderIDs(ids...)
 }
 
 // Mutation returns the OrderStatusMutation object of the builder.
@@ -96,6 +112,22 @@ func (osc *OrderStatusCreate) createSpec() (*OrderStatus, *sqlgraph.CreateSpec) 
 	if value, ok := osc.mutation.Status(); ok {
 		_spec.SetField(orderstatus.FieldStatus, field.TypeString, value)
 		_node.Status = value
+	}
+	if nodes := osc.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderstatus.ShopOrderTable,
+			Columns: []string{orderstatus.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

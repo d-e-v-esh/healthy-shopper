@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/shoporder"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -17,12 +19,14 @@ import (
 // OrderStatusQuery is the builder for querying OrderStatus entities.
 type OrderStatusQuery struct {
 	config
-	ctx        *QueryContext
-	order      []orderstatus.OrderOption
-	inters     []Interceptor
-	predicates []predicate.OrderStatus
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*OrderStatus) error
+	ctx                *QueryContext
+	order              []orderstatus.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.OrderStatus
+	withShopOrder      *ShopOrderQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*OrderStatus) error
+	withNamedShopOrder map[string]*ShopOrderQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +61,28 @@ func (osq *OrderStatusQuery) Unique(unique bool) *OrderStatusQuery {
 func (osq *OrderStatusQuery) Order(o ...orderstatus.OrderOption) *OrderStatusQuery {
 	osq.order = append(osq.order, o...)
 	return osq
+}
+
+// QueryShopOrder chains the current query on the "shop_order" edge.
+func (osq *OrderStatusQuery) QueryShopOrder() *ShopOrderQuery {
+	query := (&ShopOrderClient{config: osq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := osq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := osq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderstatus.Table, orderstatus.FieldID, selector),
+			sqlgraph.To(shoporder.Table, shoporder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderstatus.ShopOrderTable, orderstatus.ShopOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(osq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first OrderStatus entity from the query.
@@ -246,15 +272,27 @@ func (osq *OrderStatusQuery) Clone() *OrderStatusQuery {
 		return nil
 	}
 	return &OrderStatusQuery{
-		config:     osq.config,
-		ctx:        osq.ctx.Clone(),
-		order:      append([]orderstatus.OrderOption{}, osq.order...),
-		inters:     append([]Interceptor{}, osq.inters...),
-		predicates: append([]predicate.OrderStatus{}, osq.predicates...),
+		config:        osq.config,
+		ctx:           osq.ctx.Clone(),
+		order:         append([]orderstatus.OrderOption{}, osq.order...),
+		inters:        append([]Interceptor{}, osq.inters...),
+		predicates:    append([]predicate.OrderStatus{}, osq.predicates...),
+		withShopOrder: osq.withShopOrder.Clone(),
 		// clone intermediate query.
 		sql:  osq.sql.Clone(),
 		path: osq.path,
 	}
+}
+
+// WithShopOrder tells the query-builder to eager-load the nodes that are connected to
+// the "shop_order" edge. The optional arguments are used to configure the query builder of the edge.
+func (osq *OrderStatusQuery) WithShopOrder(opts ...func(*ShopOrderQuery)) *OrderStatusQuery {
+	query := (&ShopOrderClient{config: osq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	osq.withShopOrder = query
+	return osq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,8 +371,11 @@ func (osq *OrderStatusQuery) prepareQuery(ctx context.Context) error {
 
 func (osq *OrderStatusQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OrderStatus, error) {
 	var (
-		nodes = []*OrderStatus{}
-		_spec = osq.querySpec()
+		nodes       = []*OrderStatus{}
+		_spec       = osq.querySpec()
+		loadedTypes = [1]bool{
+			osq.withShopOrder != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*OrderStatus).scanValues(nil, columns)
@@ -342,6 +383,7 @@ func (osq *OrderStatusQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &OrderStatus{config: osq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(osq.modifiers) > 0 {
@@ -356,12 +398,57 @@ func (osq *OrderStatusQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := osq.withShopOrder; query != nil {
+		if err := osq.loadShopOrder(ctx, query, nodes,
+			func(n *OrderStatus) { n.Edges.ShopOrder = []*ShopOrder{} },
+			func(n *OrderStatus, e *ShopOrder) { n.Edges.ShopOrder = append(n.Edges.ShopOrder, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range osq.withNamedShopOrder {
+		if err := osq.loadShopOrder(ctx, query, nodes,
+			func(n *OrderStatus) { n.appendNamedShopOrder(name) },
+			func(n *OrderStatus, e *ShopOrder) { n.appendNamedShopOrder(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range osq.loadTotal {
 		if err := osq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (osq *OrderStatusQuery) loadShopOrder(ctx context.Context, query *ShopOrderQuery, nodes []*OrderStatus, init func(*OrderStatus), assign func(*OrderStatus, *ShopOrder)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*OrderStatus)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(shoporder.FieldOrderStatusID)
+	}
+	query.Where(predicate.ShopOrder(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderstatus.ShopOrderColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderStatusID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_status_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (osq *OrderStatusQuery) sqlCount(ctx context.Context) (int, error) {
@@ -446,6 +533,20 @@ func (osq *OrderStatusQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedShopOrder tells the query-builder to eager-load the nodes that are connected to the "shop_order"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (osq *OrderStatusQuery) WithNamedShopOrder(name string, opts ...func(*ShopOrderQuery)) *OrderStatusQuery {
+	query := (&ShopOrderClient{config: osq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if osq.withNamedShopOrder == nil {
+		osq.withNamedShopOrder = make(map[string]*ShopOrderQuery)
+	}
+	osq.withNamedShopOrder[name] = query
+	return osq
 }
 
 // OrderStatusGroupBy is the group-by builder for OrderStatus entities.

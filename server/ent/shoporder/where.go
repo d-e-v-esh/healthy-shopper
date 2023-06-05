@@ -315,26 +315,6 @@ func OrderStatusIDNotIn(vs ...int) predicate.ShopOrder {
 	return predicate.ShopOrder(sql.FieldNotIn(FieldOrderStatusID, vs...))
 }
 
-// OrderStatusIDGT applies the GT predicate on the "order_status_id" field.
-func OrderStatusIDGT(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldGT(FieldOrderStatusID, v))
-}
-
-// OrderStatusIDGTE applies the GTE predicate on the "order_status_id" field.
-func OrderStatusIDGTE(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldGTE(FieldOrderStatusID, v))
-}
-
-// OrderStatusIDLT applies the LT predicate on the "order_status_id" field.
-func OrderStatusIDLT(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldLT(FieldOrderStatusID, v))
-}
-
-// OrderStatusIDLTE applies the LTE predicate on the "order_status_id" field.
-func OrderStatusIDLTE(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldLTE(FieldOrderStatusID, v))
-}
-
 // HasUser applies the HasEdge predicate on the "user" edge.
 func HasUser() predicate.ShopOrder {
 	return predicate.ShopOrder(func(s *sql.Selector) {
@@ -373,6 +353,29 @@ func HasShippingMethod() predicate.ShopOrder {
 func HasShippingMethodWith(preds ...predicate.ShippingMethod) predicate.ShopOrder {
 	return predicate.ShopOrder(func(s *sql.Selector) {
 		step := newShippingMethodStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderStatus applies the HasEdge predicate on the "order_status" edge.
+func HasOrderStatus() predicate.ShopOrder {
+	return predicate.ShopOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OrderStatusTable, OrderStatusColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderStatusWith applies the HasEdge predicate on the "order_status" edge with a given conditions (other predicates).
+func HasOrderStatusWith(preds ...predicate.OrderStatus) predicate.ShopOrder {
+	return predicate.ShopOrder(func(s *sql.Selector) {
+		step := newOrderStatusStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -111,6 +111,7 @@ type OrderLine implements Node {
 type OrderStatus implements Node {
   id: ID!
   status: String!
+  shopOrder: [ShopOrder!]
 }
 """
 Information about pagination in a connection.
@@ -202,9 +203,10 @@ type ShopOrder implements Node {
   userID: ID!
   shippingAddressID: ID!
   shippingMethodID: ID!
-  orderStatusID: Int!
+  orderStatusID: ID!
   user: User!
   shippingMethod: ShippingMethod!
+  orderStatus: OrderStatus!
   shippingAddress: ShippingAddress!
 }
 type ShoppingCart implements Node {

@@ -52,6 +52,18 @@ func (nit *NutritionalInformationTable) NutritionalInformation(ctx context.Conte
 	return result, err
 }
 
+func (os *OrderStatus) ShopOrder(ctx context.Context) (result []*ShopOrder, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = os.NamedShopOrder(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = os.Edges.ShopOrderOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = os.QueryShopOrder().All(ctx)
+	}
+	return result, err
+}
+
 func (pr *Product) ProductItem(ctx context.Context) (*ProductItem, error) {
 	result, err := pr.Edges.ProductItemOrErr()
 	if IsNotLoaded(err) {
@@ -132,6 +144,14 @@ func (so *ShopOrder) ShippingMethod(ctx context.Context) (*ShippingMethod, error
 	result, err := so.Edges.ShippingMethodOrErr()
 	if IsNotLoaded(err) {
 		result, err = so.QueryShippingMethod().Only(ctx)
+	}
+	return result, err
+}
+
+func (so *ShopOrder) OrderStatus(ctx context.Context) (*OrderStatus, error) {
+	result, err := so.Edges.OrderStatusOrErr()
+	if IsNotLoaded(err) {
+		result, err = so.QueryOrderStatus().Only(ctx)
 	}
 	return result, err
 }

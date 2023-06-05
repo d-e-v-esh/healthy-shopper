@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/shippingaddress"
 	"healthyshopper/ent/shippingmethod"
@@ -26,6 +27,7 @@ type ShopOrderQuery struct {
 	predicates          []predicate.ShopOrder
 	withUser            *UserQuery
 	withShippingMethod  *ShippingMethodQuery
+	withOrderStatus     *OrderStatusQuery
 	withShippingAddress *ShippingAddressQuery
 	modifiers           []func(*sql.Selector)
 	loadTotal           []func(context.Context, []*ShopOrder) error
@@ -102,6 +104,28 @@ func (soq *ShopOrderQuery) QueryShippingMethod() *ShippingMethodQuery {
 			sqlgraph.From(shoporder.Table, shoporder.FieldID, selector),
 			sqlgraph.To(shippingmethod.Table, shippingmethod.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, shoporder.ShippingMethodTable, shoporder.ShippingMethodColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(soq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderStatus chains the current query on the "order_status" edge.
+func (soq *ShopOrderQuery) QueryOrderStatus() *OrderStatusQuery {
+	query := (&OrderStatusClient{config: soq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := soq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := soq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoporder.Table, shoporder.FieldID, selector),
+			sqlgraph.To(orderstatus.Table, orderstatus.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shoporder.OrderStatusTable, shoporder.OrderStatusColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(soq.driver.Dialect(), step)
 		return fromU, nil
@@ -325,6 +349,7 @@ func (soq *ShopOrderQuery) Clone() *ShopOrderQuery {
 		predicates:          append([]predicate.ShopOrder{}, soq.predicates...),
 		withUser:            soq.withUser.Clone(),
 		withShippingMethod:  soq.withShippingMethod.Clone(),
+		withOrderStatus:     soq.withOrderStatus.Clone(),
 		withShippingAddress: soq.withShippingAddress.Clone(),
 		// clone intermediate query.
 		sql:  soq.sql.Clone(),
@@ -351,6 +376,17 @@ func (soq *ShopOrderQuery) WithShippingMethod(opts ...func(*ShippingMethodQuery)
 		opt(query)
 	}
 	soq.withShippingMethod = query
+	return soq
+}
+
+// WithOrderStatus tells the query-builder to eager-load the nodes that are connected to
+// the "order_status" edge. The optional arguments are used to configure the query builder of the edge.
+func (soq *ShopOrderQuery) WithOrderStatus(opts ...func(*OrderStatusQuery)) *ShopOrderQuery {
+	query := (&OrderStatusClient{config: soq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	soq.withOrderStatus = query
 	return soq
 }
 
@@ -443,9 +479,10 @@ func (soq *ShopOrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*S
 	var (
 		nodes       = []*ShopOrder{}
 		_spec       = soq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			soq.withUser != nil,
 			soq.withShippingMethod != nil,
+			soq.withOrderStatus != nil,
 			soq.withShippingAddress != nil,
 		}
 	)
@@ -479,6 +516,12 @@ func (soq *ShopOrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*S
 	if query := soq.withShippingMethod; query != nil {
 		if err := soq.loadShippingMethod(ctx, query, nodes, nil,
 			func(n *ShopOrder, e *ShippingMethod) { n.Edges.ShippingMethod = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := soq.withOrderStatus; query != nil {
+		if err := soq.loadOrderStatus(ctx, query, nodes, nil,
+			func(n *ShopOrder, e *OrderStatus) { n.Edges.OrderStatus = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -554,6 +597,35 @@ func (soq *ShopOrderQuery) loadShippingMethod(ctx context.Context, query *Shippi
 	}
 	return nil
 }
+func (soq *ShopOrderQuery) loadOrderStatus(ctx context.Context, query *OrderStatusQuery, nodes []*ShopOrder, init func(*ShopOrder), assign func(*ShopOrder, *OrderStatus)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*ShopOrder)
+	for i := range nodes {
+		fk := nodes[i].OrderStatusID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderstatus.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "order_status_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (soq *ShopOrderQuery) loadShippingAddress(ctx context.Context, query *ShippingAddressQuery, nodes []*ShopOrder, init func(*ShopOrder), assign func(*ShopOrder, *ShippingAddress)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*ShopOrder)
@@ -617,6 +689,9 @@ func (soq *ShopOrderQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if soq.withShippingMethod != nil {
 			_spec.Node.AddColumnOnce(shoporder.FieldShippingMethodID)
+		}
+		if soq.withOrderStatus != nil {
+			_spec.Node.AddColumnOnce(shoporder.FieldOrderStatusID)
 		}
 		if soq.withShippingAddress != nil {
 			_spec.Node.AddColumnOnce(shoporder.FieldShippingAddressID)

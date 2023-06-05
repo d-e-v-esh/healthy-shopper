@@ -954,6 +954,22 @@ func (c *OrderStatusClient) GetX(ctx context.Context, id int) *OrderStatus {
 	return obj
 }
 
+// QueryShopOrder queries the shop_order edge of a OrderStatus.
+func (c *OrderStatusClient) QueryShopOrder(os *OrderStatus) *ShopOrderQuery {
+	query := (&ShopOrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := os.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderstatus.Table, orderstatus.FieldID, id),
+			sqlgraph.To(shoporder.Table, shoporder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderstatus.ShopOrderTable, orderstatus.ShopOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(os.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderStatusClient) Hooks() []Hook {
 	return c.hooks.OrderStatus
@@ -1799,6 +1815,22 @@ func (c *ShopOrderClient) QueryShippingMethod(so *ShopOrder) *ShippingMethodQuer
 			sqlgraph.From(shoporder.Table, shoporder.FieldID, id),
 			sqlgraph.To(shippingmethod.Table, shippingmethod.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, shoporder.ShippingMethodTable, shoporder.ShippingMethodColumn),
+		)
+		fromV = sqlgraph.Neighbors(so.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderStatus queries the order_status edge of a ShopOrder.
+func (c *ShopOrderClient) QueryOrderStatus(so *ShopOrder) *OrderStatusQuery {
+	query := (&OrderStatusClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := so.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoporder.Table, shoporder.FieldID, id),
+			sqlgraph.To(orderstatus.Table, orderstatus.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shoporder.OrderStatusTable, shoporder.OrderStatusColumn),
 		)
 		fromV = sqlgraph.Neighbors(so.driver.Dialect(), step)
 		return fromV, nil

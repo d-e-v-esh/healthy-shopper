@@ -34,6 +34,8 @@ func (ShopOrder) Edges() []ent.Edge {
 
 		edge.From("shipping_method", ShippingMethod.Type).Ref("shop_order").Field("shipping_method_id").Unique().Required(),
 
+		edge.From("order_status", OrderStatus.Type).Ref("shop_order").Field("order_status_id").Unique().Required(),
+
 		edge.To("shipping_address", ShippingAddress.Type).Field("shipping_address_id").Unique().Required(),
 	}
 }

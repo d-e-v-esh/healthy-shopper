@@ -4,6 +4,7 @@ package orderstatus
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -13,8 +14,17 @@ const (
 	FieldID = "id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// EdgeShopOrder holds the string denoting the shop_order edge name in mutations.
+	EdgeShopOrder = "shop_order"
 	// Table holds the table name of the orderstatus in the database.
 	Table = "order_status"
+	// ShopOrderTable is the table that holds the shop_order relation/edge.
+	ShopOrderTable = "shop_orders"
+	// ShopOrderInverseTable is the table name for the ShopOrder entity.
+	// It exists in this package in order to avoid circular dependency with the "shoporder" package.
+	ShopOrderInverseTable = "shop_orders"
+	// ShopOrderColumn is the table column denoting the shop_order relation/edge.
+	ShopOrderColumn = "order_status_id"
 )
 
 // Columns holds all SQL columns for orderstatus fields.
@@ -49,4 +59,25 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByShopOrderCount orders the results by shop_order count.
+func ByShopOrderCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newShopOrderStep(), opts...)
+	}
+}
+
+// ByShopOrder orders the results by shop_order terms.
+func ByShopOrder(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShopOrderStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newShopOrderStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShopOrderInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ShopOrderTable, ShopOrderColumn),
+	)
 }

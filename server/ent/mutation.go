@@ -2619,14 +2619,17 @@ func (m *OrderLineMutation) ResetEdge(name string) error {
 // OrderStatusMutation represents an operation that mutates the OrderStatus nodes in the graph.
 type OrderStatusMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	status        *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*OrderStatus, error)
-	predicates    []predicate.OrderStatus
+	op                Op
+	typ               string
+	id                *int
+	status            *string
+	clearedFields     map[string]struct{}
+	shop_order        map[int]struct{}
+	removedshop_order map[int]struct{}
+	clearedshop_order bool
+	done              bool
+	oldValue          func(context.Context) (*OrderStatus, error)
+	predicates        []predicate.OrderStatus
 }
 
 var _ ent.Mutation = (*OrderStatusMutation)(nil)
@@ -2763,6 +2766,60 @@ func (m *OrderStatusMutation) ResetStatus() {
 	m.status = nil
 }
 
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by ids.
+func (m *OrderStatusMutation) AddShopOrderIDs(ids ...int) {
+	if m.shop_order == nil {
+		m.shop_order = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.shop_order[ids[i]] = struct{}{}
+	}
+}
+
+// ClearShopOrder clears the "shop_order" edge to the ShopOrder entity.
+func (m *OrderStatusMutation) ClearShopOrder() {
+	m.clearedshop_order = true
+}
+
+// ShopOrderCleared reports if the "shop_order" edge to the ShopOrder entity was cleared.
+func (m *OrderStatusMutation) ShopOrderCleared() bool {
+	return m.clearedshop_order
+}
+
+// RemoveShopOrderIDs removes the "shop_order" edge to the ShopOrder entity by IDs.
+func (m *OrderStatusMutation) RemoveShopOrderIDs(ids ...int) {
+	if m.removedshop_order == nil {
+		m.removedshop_order = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.shop_order, ids[i])
+		m.removedshop_order[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedShopOrder returns the removed IDs of the "shop_order" edge to the ShopOrder entity.
+func (m *OrderStatusMutation) RemovedShopOrderIDs() (ids []int) {
+	for id := range m.removedshop_order {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ShopOrderIDs returns the "shop_order" edge IDs in the mutation.
+func (m *OrderStatusMutation) ShopOrderIDs() (ids []int) {
+	for id := range m.shop_order {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetShopOrder resets all changes to the "shop_order" edge.
+func (m *OrderStatusMutation) ResetShopOrder() {
+	m.shop_order = nil
+	m.clearedshop_order = false
+	m.removedshop_order = nil
+}
+
 // Where appends a list predicates to the OrderStatusMutation builder.
 func (m *OrderStatusMutation) Where(ps ...predicate.OrderStatus) {
 	m.predicates = append(m.predicates, ps...)
@@ -2896,49 +2953,85 @@ func (m *OrderStatusMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderStatusMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.shop_order != nil {
+		edges = append(edges, orderstatus.EdgeShopOrder)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *OrderStatusMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderstatus.EdgeShopOrder:
+		ids := make([]ent.Value, 0, len(m.shop_order))
+		for id := range m.shop_order {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderStatusMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedshop_order != nil {
+		edges = append(edges, orderstatus.EdgeShopOrder)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *OrderStatusMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case orderstatus.EdgeShopOrder:
+		ids := make([]ent.Value, 0, len(m.removedshop_order))
+		for id := range m.removedshop_order {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderStatusMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedshop_order {
+		edges = append(edges, orderstatus.EdgeShopOrder)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *OrderStatusMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderstatus.EdgeShopOrder:
+		return m.clearedshop_order
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *OrderStatusMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown OrderStatus unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *OrderStatusMutation) ResetEdge(name string) error {
+	switch name {
+	case orderstatus.EdgeShopOrder:
+		m.ResetShopOrder()
+		return nil
+	}
 	return fmt.Errorf("unknown OrderStatus edge %s", name)
 }
 
@@ -6775,13 +6868,13 @@ type ShopOrderMutation struct {
 	payment_method          *string
 	total_price             *float64
 	addtotal_price          *float64
-	order_status_id         *int
-	addorder_status_id      *int
 	clearedFields           map[string]struct{}
 	user                    *int
 	cleareduser             bool
 	shipping_method         *int
 	clearedshipping_method  bool
+	order_status            *int
+	clearedorder_status     bool
 	shipping_address        *int
 	clearedshipping_address bool
 	done                    bool
@@ -7125,13 +7218,12 @@ func (m *ShopOrderMutation) ResetShippingMethodID() {
 
 // SetOrderStatusID sets the "order_status_id" field.
 func (m *ShopOrderMutation) SetOrderStatusID(i int) {
-	m.order_status_id = &i
-	m.addorder_status_id = nil
+	m.order_status = &i
 }
 
 // OrderStatusID returns the value of the "order_status_id" field in the mutation.
 func (m *ShopOrderMutation) OrderStatusID() (r int, exists bool) {
-	v := m.order_status_id
+	v := m.order_status
 	if v == nil {
 		return
 	}
@@ -7155,28 +7247,9 @@ func (m *ShopOrderMutation) OldOrderStatusID(ctx context.Context) (v int, err er
 	return oldValue.OrderStatusID, nil
 }
 
-// AddOrderStatusID adds i to the "order_status_id" field.
-func (m *ShopOrderMutation) AddOrderStatusID(i int) {
-	if m.addorder_status_id != nil {
-		*m.addorder_status_id += i
-	} else {
-		m.addorder_status_id = &i
-	}
-}
-
-// AddedOrderStatusID returns the value that was added to the "order_status_id" field in this mutation.
-func (m *ShopOrderMutation) AddedOrderStatusID() (r int, exists bool) {
-	v := m.addorder_status_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetOrderStatusID resets all changes to the "order_status_id" field.
 func (m *ShopOrderMutation) ResetOrderStatusID() {
-	m.order_status_id = nil
-	m.addorder_status_id = nil
+	m.order_status = nil
 }
 
 // ClearUser clears the "user" edge to the User entity.
@@ -7229,6 +7302,32 @@ func (m *ShopOrderMutation) ShippingMethodIDs() (ids []int) {
 func (m *ShopOrderMutation) ResetShippingMethod() {
 	m.shipping_method = nil
 	m.clearedshipping_method = false
+}
+
+// ClearOrderStatus clears the "order_status" edge to the OrderStatus entity.
+func (m *ShopOrderMutation) ClearOrderStatus() {
+	m.clearedorder_status = true
+}
+
+// OrderStatusCleared reports if the "order_status" edge to the OrderStatus entity was cleared.
+func (m *ShopOrderMutation) OrderStatusCleared() bool {
+	return m.clearedorder_status
+}
+
+// OrderStatusIDs returns the "order_status" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderStatusID instead. It exists only for internal usage by the builders.
+func (m *ShopOrderMutation) OrderStatusIDs() (ids []int) {
+	if id := m.order_status; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrderStatus resets all changes to the "order_status" edge.
+func (m *ShopOrderMutation) ResetOrderStatus() {
+	m.order_status = nil
+	m.clearedorder_status = false
 }
 
 // ClearShippingAddress clears the "shipping_address" edge to the ShippingAddress entity.
@@ -7310,7 +7409,7 @@ func (m *ShopOrderMutation) Fields() []string {
 	if m.shipping_method != nil {
 		fields = append(fields, shoporder.FieldShippingMethodID)
 	}
-	if m.order_status_id != nil {
+	if m.order_status != nil {
 		fields = append(fields, shoporder.FieldOrderStatusID)
 	}
 	return fields
@@ -7427,9 +7526,6 @@ func (m *ShopOrderMutation) AddedFields() []string {
 	if m.addtotal_price != nil {
 		fields = append(fields, shoporder.FieldTotalPrice)
 	}
-	if m.addorder_status_id != nil {
-		fields = append(fields, shoporder.FieldOrderStatusID)
-	}
 	return fields
 }
 
@@ -7440,8 +7536,6 @@ func (m *ShopOrderMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case shoporder.FieldTotalPrice:
 		return m.AddedTotalPrice()
-	case shoporder.FieldOrderStatusID:
-		return m.AddedOrderStatusID()
 	}
 	return nil, false
 }
@@ -7457,13 +7551,6 @@ func (m *ShopOrderMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddTotalPrice(v)
-		return nil
-	case shoporder.FieldOrderStatusID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddOrderStatusID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ShopOrder numeric field %s", name)
@@ -7519,12 +7606,15 @@ func (m *ShopOrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ShopOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.user != nil {
 		edges = append(edges, shoporder.EdgeUser)
 	}
 	if m.shipping_method != nil {
 		edges = append(edges, shoporder.EdgeShippingMethod)
+	}
+	if m.order_status != nil {
+		edges = append(edges, shoporder.EdgeOrderStatus)
 	}
 	if m.shipping_address != nil {
 		edges = append(edges, shoporder.EdgeShippingAddress)
@@ -7544,6 +7634,10 @@ func (m *ShopOrderMutation) AddedIDs(name string) []ent.Value {
 		if id := m.shipping_method; id != nil {
 			return []ent.Value{*id}
 		}
+	case shoporder.EdgeOrderStatus:
+		if id := m.order_status; id != nil {
+			return []ent.Value{*id}
+		}
 	case shoporder.EdgeShippingAddress:
 		if id := m.shipping_address; id != nil {
 			return []ent.Value{*id}
@@ -7554,7 +7648,7 @@ func (m *ShopOrderMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ShopOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	return edges
 }
 
@@ -7566,12 +7660,15 @@ func (m *ShopOrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ShopOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.cleareduser {
 		edges = append(edges, shoporder.EdgeUser)
 	}
 	if m.clearedshipping_method {
 		edges = append(edges, shoporder.EdgeShippingMethod)
+	}
+	if m.clearedorder_status {
+		edges = append(edges, shoporder.EdgeOrderStatus)
 	}
 	if m.clearedshipping_address {
 		edges = append(edges, shoporder.EdgeShippingAddress)
@@ -7587,6 +7684,8 @@ func (m *ShopOrderMutation) EdgeCleared(name string) bool {
 		return m.cleareduser
 	case shoporder.EdgeShippingMethod:
 		return m.clearedshipping_method
+	case shoporder.EdgeOrderStatus:
+		return m.clearedorder_status
 	case shoporder.EdgeShippingAddress:
 		return m.clearedshipping_address
 	}
@@ -7602,6 +7701,9 @@ func (m *ShopOrderMutation) ClearEdge(name string) error {
 		return nil
 	case shoporder.EdgeShippingMethod:
 		m.ClearShippingMethod()
+		return nil
+	case shoporder.EdgeOrderStatus:
+		m.ClearOrderStatus()
 		return nil
 	case shoporder.EdgeShippingAddress:
 		m.ClearShippingAddress()
@@ -7619,6 +7721,9 @@ func (m *ShopOrderMutation) ResetEdge(name string) error {
 		return nil
 	case shoporder.EdgeShippingMethod:
 		m.ResetShippingMethod()
+		return nil
+	case shoporder.EdgeOrderStatus:
+		m.ResetOrderStatus()
 		return nil
 	case shoporder.EdgeShippingAddress:
 		m.ResetShippingAddress()
