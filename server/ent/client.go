@@ -13,9 +13,14 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
+	"healthyshopper/ent/orderline"
+	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
+	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -39,12 +44,22 @@ type Client struct {
 	NutritionalInformation *NutritionalInformationClient
 	// NutritionalInformationTable is the client for interacting with the NutritionalInformationTable builders.
 	NutritionalInformationTable *NutritionalInformationTableClient
+	// OrderLine is the client for interacting with the OrderLine builders.
+	OrderLine *OrderLineClient
+	// OrderStatus is the client for interacting with the OrderStatus builders.
+	OrderStatus *OrderStatusClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// ProductItem is the client for interacting with the ProductItem builders.
 	ProductItem *ProductItemClient
 	// Promotion is the client for interacting with the Promotion builders.
 	Promotion *PromotionClient
+	// ShippingAddress is the client for interacting with the ShippingAddress builders.
+	ShippingAddress *ShippingAddressClient
+	// ShippingMethod is the client for interacting with the ShippingMethod builders.
+	ShippingMethod *ShippingMethodClient
+	// ShopOrder is the client for interacting with the ShopOrder builders.
+	ShopOrder *ShopOrderClient
 	// ShoppingCart is the client for interacting with the ShoppingCart builders.
 	ShoppingCart *ShoppingCartClient
 	// ShoppingCartItem is the client for interacting with the ShoppingCartItem builders.
@@ -73,9 +88,14 @@ func (c *Client) init() {
 	c.Address = NewAddressClient(c.config)
 	c.NutritionalInformation = NewNutritionalInformationClient(c.config)
 	c.NutritionalInformationTable = NewNutritionalInformationTableClient(c.config)
+	c.OrderLine = NewOrderLineClient(c.config)
+	c.OrderStatus = NewOrderStatusClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.ProductItem = NewProductItemClient(c.config)
 	c.Promotion = NewPromotionClient(c.config)
+	c.ShippingAddress = NewShippingAddressClient(c.config)
+	c.ShippingMethod = NewShippingMethodClient(c.config)
+	c.ShopOrder = NewShopOrderClient(c.config)
 	c.ShoppingCart = NewShoppingCartClient(c.config)
 	c.ShoppingCartItem = NewShoppingCartItemClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -166,9 +186,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Address:                     NewAddressClient(cfg),
 		NutritionalInformation:      NewNutritionalInformationClient(cfg),
 		NutritionalInformationTable: NewNutritionalInformationTableClient(cfg),
+		OrderLine:                   NewOrderLineClient(cfg),
+		OrderStatus:                 NewOrderStatusClient(cfg),
 		Product:                     NewProductClient(cfg),
 		ProductItem:                 NewProductItemClient(cfg),
 		Promotion:                   NewPromotionClient(cfg),
+		ShippingAddress:             NewShippingAddressClient(cfg),
+		ShippingMethod:              NewShippingMethodClient(cfg),
+		ShopOrder:                   NewShopOrderClient(cfg),
 		ShoppingCart:                NewShoppingCartClient(cfg),
 		ShoppingCartItem:            NewShoppingCartItemClient(cfg),
 		User:                        NewUserClient(cfg),
@@ -196,9 +221,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Address:                     NewAddressClient(cfg),
 		NutritionalInformation:      NewNutritionalInformationClient(cfg),
 		NutritionalInformationTable: NewNutritionalInformationTableClient(cfg),
+		OrderLine:                   NewOrderLineClient(cfg),
+		OrderStatus:                 NewOrderStatusClient(cfg),
 		Product:                     NewProductClient(cfg),
 		ProductItem:                 NewProductItemClient(cfg),
 		Promotion:                   NewPromotionClient(cfg),
+		ShippingAddress:             NewShippingAddressClient(cfg),
+		ShippingMethod:              NewShippingMethodClient(cfg),
+		ShopOrder:                   NewShopOrderClient(cfg),
 		ShoppingCart:                NewShoppingCartClient(cfg),
 		ShoppingCartItem:            NewShoppingCartItemClient(cfg),
 		User:                        NewUserClient(cfg),
@@ -233,8 +263,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.Product,
-		c.ProductItem, c.Promotion, c.ShoppingCart, c.ShoppingCartItem, c.User,
+		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.OrderLine,
+		c.OrderStatus, c.Product, c.ProductItem, c.Promotion, c.ShippingAddress,
+		c.ShippingMethod, c.ShopOrder, c.ShoppingCart, c.ShoppingCartItem, c.User,
 		c.UserAddress, c.UserReview,
 	} {
 		n.Use(hooks...)
@@ -245,8 +276,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.Product,
-		c.ProductItem, c.Promotion, c.ShoppingCart, c.ShoppingCartItem, c.User,
+		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.OrderLine,
+		c.OrderStatus, c.Product, c.ProductItem, c.Promotion, c.ShippingAddress,
+		c.ShippingMethod, c.ShopOrder, c.ShoppingCart, c.ShoppingCartItem, c.User,
 		c.UserAddress, c.UserReview,
 	} {
 		n.Intercept(interceptors...)
@@ -262,12 +294,22 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NutritionalInformation.mutate(ctx, m)
 	case *NutritionalInformationTableMutation:
 		return c.NutritionalInformationTable.mutate(ctx, m)
+	case *OrderLineMutation:
+		return c.OrderLine.mutate(ctx, m)
+	case *OrderStatusMutation:
+		return c.OrderStatus.mutate(ctx, m)
 	case *ProductMutation:
 		return c.Product.mutate(ctx, m)
 	case *ProductItemMutation:
 		return c.ProductItem.mutate(ctx, m)
 	case *PromotionMutation:
 		return c.Promotion.mutate(ctx, m)
+	case *ShippingAddressMutation:
+		return c.ShippingAddress.mutate(ctx, m)
+	case *ShippingMethodMutation:
+		return c.ShippingMethod.mutate(ctx, m)
+	case *ShopOrderMutation:
+		return c.ShopOrder.mutate(ctx, m)
 	case *ShoppingCartMutation:
 		return c.ShoppingCart.mutate(ctx, m)
 	case *ShoppingCartItemMutation:
@@ -698,6 +740,242 @@ func (c *NutritionalInformationTableClient) mutate(ctx context.Context, m *Nutri
 		return (&NutritionalInformationTableDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown NutritionalInformationTable mutation op: %q", m.Op())
+	}
+}
+
+// OrderLineClient is a client for the OrderLine schema.
+type OrderLineClient struct {
+	config
+}
+
+// NewOrderLineClient returns a client for the OrderLine from the given config.
+func NewOrderLineClient(c config) *OrderLineClient {
+	return &OrderLineClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderline.Hooks(f(g(h())))`.
+func (c *OrderLineClient) Use(hooks ...Hook) {
+	c.hooks.OrderLine = append(c.hooks.OrderLine, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderline.Intercept(f(g(h())))`.
+func (c *OrderLineClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderLine = append(c.inters.OrderLine, interceptors...)
+}
+
+// Create returns a builder for creating a OrderLine entity.
+func (c *OrderLineClient) Create() *OrderLineCreate {
+	mutation := newOrderLineMutation(c.config, OpCreate)
+	return &OrderLineCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderLine entities.
+func (c *OrderLineClient) CreateBulk(builders ...*OrderLineCreate) *OrderLineCreateBulk {
+	return &OrderLineCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderLine.
+func (c *OrderLineClient) Update() *OrderLineUpdate {
+	mutation := newOrderLineMutation(c.config, OpUpdate)
+	return &OrderLineUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderLineClient) UpdateOne(ol *OrderLine) *OrderLineUpdateOne {
+	mutation := newOrderLineMutation(c.config, OpUpdateOne, withOrderLine(ol))
+	return &OrderLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderLineClient) UpdateOneID(id int) *OrderLineUpdateOne {
+	mutation := newOrderLineMutation(c.config, OpUpdateOne, withOrderLineID(id))
+	return &OrderLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderLine.
+func (c *OrderLineClient) Delete() *OrderLineDelete {
+	mutation := newOrderLineMutation(c.config, OpDelete)
+	return &OrderLineDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderLineClient) DeleteOne(ol *OrderLine) *OrderLineDeleteOne {
+	return c.DeleteOneID(ol.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderLineClient) DeleteOneID(id int) *OrderLineDeleteOne {
+	builder := c.Delete().Where(orderline.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderLineDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderLine.
+func (c *OrderLineClient) Query() *OrderLineQuery {
+	return &OrderLineQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderLine},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderLine entity by its id.
+func (c *OrderLineClient) Get(ctx context.Context, id int) (*OrderLine, error) {
+	return c.Query().Where(orderline.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderLineClient) GetX(ctx context.Context, id int) *OrderLine {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OrderLineClient) Hooks() []Hook {
+	return c.hooks.OrderLine
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderLineClient) Interceptors() []Interceptor {
+	return c.inters.OrderLine
+}
+
+func (c *OrderLineClient) mutate(ctx context.Context, m *OrderLineMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderLineCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderLineUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderLineUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderLineDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderLine mutation op: %q", m.Op())
+	}
+}
+
+// OrderStatusClient is a client for the OrderStatus schema.
+type OrderStatusClient struct {
+	config
+}
+
+// NewOrderStatusClient returns a client for the OrderStatus from the given config.
+func NewOrderStatusClient(c config) *OrderStatusClient {
+	return &OrderStatusClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderstatus.Hooks(f(g(h())))`.
+func (c *OrderStatusClient) Use(hooks ...Hook) {
+	c.hooks.OrderStatus = append(c.hooks.OrderStatus, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderstatus.Intercept(f(g(h())))`.
+func (c *OrderStatusClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderStatus = append(c.inters.OrderStatus, interceptors...)
+}
+
+// Create returns a builder for creating a OrderStatus entity.
+func (c *OrderStatusClient) Create() *OrderStatusCreate {
+	mutation := newOrderStatusMutation(c.config, OpCreate)
+	return &OrderStatusCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderStatus entities.
+func (c *OrderStatusClient) CreateBulk(builders ...*OrderStatusCreate) *OrderStatusCreateBulk {
+	return &OrderStatusCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderStatus.
+func (c *OrderStatusClient) Update() *OrderStatusUpdate {
+	mutation := newOrderStatusMutation(c.config, OpUpdate)
+	return &OrderStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderStatusClient) UpdateOne(os *OrderStatus) *OrderStatusUpdateOne {
+	mutation := newOrderStatusMutation(c.config, OpUpdateOne, withOrderStatus(os))
+	return &OrderStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderStatusClient) UpdateOneID(id int) *OrderStatusUpdateOne {
+	mutation := newOrderStatusMutation(c.config, OpUpdateOne, withOrderStatusID(id))
+	return &OrderStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderStatus.
+func (c *OrderStatusClient) Delete() *OrderStatusDelete {
+	mutation := newOrderStatusMutation(c.config, OpDelete)
+	return &OrderStatusDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderStatusClient) DeleteOne(os *OrderStatus) *OrderStatusDeleteOne {
+	return c.DeleteOneID(os.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderStatusClient) DeleteOneID(id int) *OrderStatusDeleteOne {
+	builder := c.Delete().Where(orderstatus.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderStatusDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderStatus.
+func (c *OrderStatusClient) Query() *OrderStatusQuery {
+	return &OrderStatusQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderStatus},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderStatus entity by its id.
+func (c *OrderStatusClient) Get(ctx context.Context, id int) (*OrderStatus, error) {
+	return c.Query().Where(orderstatus.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderStatusClient) GetX(ctx context.Context, id int) *OrderStatus {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OrderStatusClient) Hooks() []Hook {
+	return c.hooks.OrderStatus
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderStatusClient) Interceptors() []Interceptor {
+	return c.inters.OrderStatus
+}
+
+func (c *OrderStatusClient) mutate(ctx context.Context, m *OrderStatusMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderStatusCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderStatusDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderStatus mutation op: %q", m.Op())
 	}
 }
 
@@ -1132,6 +1410,392 @@ func (c *PromotionClient) mutate(ctx context.Context, m *PromotionMutation) (Val
 		return (&PromotionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Promotion mutation op: %q", m.Op())
+	}
+}
+
+// ShippingAddressClient is a client for the ShippingAddress schema.
+type ShippingAddressClient struct {
+	config
+}
+
+// NewShippingAddressClient returns a client for the ShippingAddress from the given config.
+func NewShippingAddressClient(c config) *ShippingAddressClient {
+	return &ShippingAddressClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `shippingaddress.Hooks(f(g(h())))`.
+func (c *ShippingAddressClient) Use(hooks ...Hook) {
+	c.hooks.ShippingAddress = append(c.hooks.ShippingAddress, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `shippingaddress.Intercept(f(g(h())))`.
+func (c *ShippingAddressClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ShippingAddress = append(c.inters.ShippingAddress, interceptors...)
+}
+
+// Create returns a builder for creating a ShippingAddress entity.
+func (c *ShippingAddressClient) Create() *ShippingAddressCreate {
+	mutation := newShippingAddressMutation(c.config, OpCreate)
+	return &ShippingAddressCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ShippingAddress entities.
+func (c *ShippingAddressClient) CreateBulk(builders ...*ShippingAddressCreate) *ShippingAddressCreateBulk {
+	return &ShippingAddressCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ShippingAddress.
+func (c *ShippingAddressClient) Update() *ShippingAddressUpdate {
+	mutation := newShippingAddressMutation(c.config, OpUpdate)
+	return &ShippingAddressUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ShippingAddressClient) UpdateOne(sa *ShippingAddress) *ShippingAddressUpdateOne {
+	mutation := newShippingAddressMutation(c.config, OpUpdateOne, withShippingAddress(sa))
+	return &ShippingAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ShippingAddressClient) UpdateOneID(id int) *ShippingAddressUpdateOne {
+	mutation := newShippingAddressMutation(c.config, OpUpdateOne, withShippingAddressID(id))
+	return &ShippingAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ShippingAddress.
+func (c *ShippingAddressClient) Delete() *ShippingAddressDelete {
+	mutation := newShippingAddressMutation(c.config, OpDelete)
+	return &ShippingAddressDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ShippingAddressClient) DeleteOne(sa *ShippingAddress) *ShippingAddressDeleteOne {
+	return c.DeleteOneID(sa.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ShippingAddressClient) DeleteOneID(id int) *ShippingAddressDeleteOne {
+	builder := c.Delete().Where(shippingaddress.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ShippingAddressDeleteOne{builder}
+}
+
+// Query returns a query builder for ShippingAddress.
+func (c *ShippingAddressClient) Query() *ShippingAddressQuery {
+	return &ShippingAddressQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeShippingAddress},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ShippingAddress entity by its id.
+func (c *ShippingAddressClient) Get(ctx context.Context, id int) (*ShippingAddress, error) {
+	return c.Query().Where(shippingaddress.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ShippingAddressClient) GetX(ctx context.Context, id int) *ShippingAddress {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryShopOrder queries the shop_order edge of a ShippingAddress.
+func (c *ShippingAddressClient) QueryShopOrder(sa *ShippingAddress) *ShopOrderQuery {
+	query := (&ShopOrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sa.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingaddress.Table, shippingaddress.FieldID, id),
+			sqlgraph.To(shoporder.Table, shoporder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, shippingaddress.ShopOrderTable, shippingaddress.ShopOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(sa.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ShippingAddressClient) Hooks() []Hook {
+	return c.hooks.ShippingAddress
+}
+
+// Interceptors returns the client interceptors.
+func (c *ShippingAddressClient) Interceptors() []Interceptor {
+	return c.inters.ShippingAddress
+}
+
+func (c *ShippingAddressClient) mutate(ctx context.Context, m *ShippingAddressMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ShippingAddressCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ShippingAddressUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ShippingAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ShippingAddressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ShippingAddress mutation op: %q", m.Op())
+	}
+}
+
+// ShippingMethodClient is a client for the ShippingMethod schema.
+type ShippingMethodClient struct {
+	config
+}
+
+// NewShippingMethodClient returns a client for the ShippingMethod from the given config.
+func NewShippingMethodClient(c config) *ShippingMethodClient {
+	return &ShippingMethodClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `shippingmethod.Hooks(f(g(h())))`.
+func (c *ShippingMethodClient) Use(hooks ...Hook) {
+	c.hooks.ShippingMethod = append(c.hooks.ShippingMethod, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `shippingmethod.Intercept(f(g(h())))`.
+func (c *ShippingMethodClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ShippingMethod = append(c.inters.ShippingMethod, interceptors...)
+}
+
+// Create returns a builder for creating a ShippingMethod entity.
+func (c *ShippingMethodClient) Create() *ShippingMethodCreate {
+	mutation := newShippingMethodMutation(c.config, OpCreate)
+	return &ShippingMethodCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ShippingMethod entities.
+func (c *ShippingMethodClient) CreateBulk(builders ...*ShippingMethodCreate) *ShippingMethodCreateBulk {
+	return &ShippingMethodCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ShippingMethod.
+func (c *ShippingMethodClient) Update() *ShippingMethodUpdate {
+	mutation := newShippingMethodMutation(c.config, OpUpdate)
+	return &ShippingMethodUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ShippingMethodClient) UpdateOne(sm *ShippingMethod) *ShippingMethodUpdateOne {
+	mutation := newShippingMethodMutation(c.config, OpUpdateOne, withShippingMethod(sm))
+	return &ShippingMethodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ShippingMethodClient) UpdateOneID(id int) *ShippingMethodUpdateOne {
+	mutation := newShippingMethodMutation(c.config, OpUpdateOne, withShippingMethodID(id))
+	return &ShippingMethodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ShippingMethod.
+func (c *ShippingMethodClient) Delete() *ShippingMethodDelete {
+	mutation := newShippingMethodMutation(c.config, OpDelete)
+	return &ShippingMethodDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ShippingMethodClient) DeleteOne(sm *ShippingMethod) *ShippingMethodDeleteOne {
+	return c.DeleteOneID(sm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ShippingMethodClient) DeleteOneID(id int) *ShippingMethodDeleteOne {
+	builder := c.Delete().Where(shippingmethod.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ShippingMethodDeleteOne{builder}
+}
+
+// Query returns a query builder for ShippingMethod.
+func (c *ShippingMethodClient) Query() *ShippingMethodQuery {
+	return &ShippingMethodQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeShippingMethod},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ShippingMethod entity by its id.
+func (c *ShippingMethodClient) Get(ctx context.Context, id int) (*ShippingMethod, error) {
+	return c.Query().Where(shippingmethod.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ShippingMethodClient) GetX(ctx context.Context, id int) *ShippingMethod {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ShippingMethodClient) Hooks() []Hook {
+	return c.hooks.ShippingMethod
+}
+
+// Interceptors returns the client interceptors.
+func (c *ShippingMethodClient) Interceptors() []Interceptor {
+	return c.inters.ShippingMethod
+}
+
+func (c *ShippingMethodClient) mutate(ctx context.Context, m *ShippingMethodMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ShippingMethodCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ShippingMethodUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ShippingMethodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ShippingMethodDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ShippingMethod mutation op: %q", m.Op())
+	}
+}
+
+// ShopOrderClient is a client for the ShopOrder schema.
+type ShopOrderClient struct {
+	config
+}
+
+// NewShopOrderClient returns a client for the ShopOrder from the given config.
+func NewShopOrderClient(c config) *ShopOrderClient {
+	return &ShopOrderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `shoporder.Hooks(f(g(h())))`.
+func (c *ShopOrderClient) Use(hooks ...Hook) {
+	c.hooks.ShopOrder = append(c.hooks.ShopOrder, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `shoporder.Intercept(f(g(h())))`.
+func (c *ShopOrderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ShopOrder = append(c.inters.ShopOrder, interceptors...)
+}
+
+// Create returns a builder for creating a ShopOrder entity.
+func (c *ShopOrderClient) Create() *ShopOrderCreate {
+	mutation := newShopOrderMutation(c.config, OpCreate)
+	return &ShopOrderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ShopOrder entities.
+func (c *ShopOrderClient) CreateBulk(builders ...*ShopOrderCreate) *ShopOrderCreateBulk {
+	return &ShopOrderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ShopOrder.
+func (c *ShopOrderClient) Update() *ShopOrderUpdate {
+	mutation := newShopOrderMutation(c.config, OpUpdate)
+	return &ShopOrderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ShopOrderClient) UpdateOne(so *ShopOrder) *ShopOrderUpdateOne {
+	mutation := newShopOrderMutation(c.config, OpUpdateOne, withShopOrder(so))
+	return &ShopOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ShopOrderClient) UpdateOneID(id int) *ShopOrderUpdateOne {
+	mutation := newShopOrderMutation(c.config, OpUpdateOne, withShopOrderID(id))
+	return &ShopOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ShopOrder.
+func (c *ShopOrderClient) Delete() *ShopOrderDelete {
+	mutation := newShopOrderMutation(c.config, OpDelete)
+	return &ShopOrderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ShopOrderClient) DeleteOne(so *ShopOrder) *ShopOrderDeleteOne {
+	return c.DeleteOneID(so.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ShopOrderClient) DeleteOneID(id int) *ShopOrderDeleteOne {
+	builder := c.Delete().Where(shoporder.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ShopOrderDeleteOne{builder}
+}
+
+// Query returns a query builder for ShopOrder.
+func (c *ShopOrderClient) Query() *ShopOrderQuery {
+	return &ShopOrderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeShopOrder},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ShopOrder entity by its id.
+func (c *ShopOrderClient) Get(ctx context.Context, id int) (*ShopOrder, error) {
+	return c.Query().Where(shoporder.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ShopOrderClient) GetX(ctx context.Context, id int) *ShopOrder {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryShippingAddress queries the shipping_address edge of a ShopOrder.
+func (c *ShopOrderClient) QueryShippingAddress(so *ShopOrder) *ShippingAddressQuery {
+	query := (&ShippingAddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := so.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoporder.Table, shoporder.FieldID, id),
+			sqlgraph.To(shippingaddress.Table, shippingaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, shoporder.ShippingAddressTable, shoporder.ShippingAddressColumn),
+		)
+		fromV = sqlgraph.Neighbors(so.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ShopOrderClient) Hooks() []Hook {
+	return c.hooks.ShopOrder
+}
+
+// Interceptors returns the client interceptors.
+func (c *ShopOrderClient) Interceptors() []Interceptor {
+	return c.inters.ShopOrder
+}
+
+func (c *ShopOrderClient) mutate(ctx context.Context, m *ShopOrderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ShopOrderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ShopOrderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ShopOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ShopOrderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ShopOrder mutation op: %q", m.Op())
 	}
 }
 
@@ -1872,13 +2536,15 @@ func (c *UserReviewClient) mutate(ctx context.Context, m *UserReviewMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, NutritionalInformation, NutritionalInformationTable, Product,
-		ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		Address, NutritionalInformation, NutritionalInformationTable, OrderLine,
+		OrderStatus, Product, ProductItem, Promotion, ShippingAddress, ShippingMethod,
+		ShopOrder, ShoppingCart, ShoppingCartItem, User, UserAddress,
 		UserReview []ent.Hook
 	}
 	inters struct {
-		Address, NutritionalInformation, NutritionalInformationTable, Product,
-		ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		Address, NutritionalInformation, NutritionalInformationTable, OrderLine,
+		OrderStatus, Product, ProductItem, Promotion, ShippingAddress, ShippingMethod,
+		ShopOrder, ShoppingCart, ShoppingCartItem, User, UserAddress,
 		UserReview []ent.Interceptor
 	}
 )

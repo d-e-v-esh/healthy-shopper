@@ -59,6 +59,31 @@ var (
 		Columns:    NutritionalInformationTablesColumns,
 		PrimaryKey: []*schema.Column{NutritionalInformationTablesColumns[0]},
 	}
+	// OrderLinesColumns holds the columns for the "order_lines" table.
+	OrderLinesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "product_item_id", Type: field.TypeInt, Unique: true},
+		{Name: "shop_order_id", Type: field.TypeInt, Unique: true},
+		{Name: "quantity", Type: field.TypeInt},
+		{Name: "price", Type: field.TypeFloat64},
+	}
+	// OrderLinesTable holds the schema information for the "order_lines" table.
+	OrderLinesTable = &schema.Table{
+		Name:       "order_lines",
+		Columns:    OrderLinesColumns,
+		PrimaryKey: []*schema.Column{OrderLinesColumns[0]},
+	}
+	// OrderStatusColumns holds the columns for the "order_status" table.
+	OrderStatusColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "status", Type: field.TypeString, Size: 20},
+	}
+	// OrderStatusTable holds the schema information for the "order_status" table.
+	OrderStatusTable = &schema.Table{
+		Name:       "order_status",
+		Columns:    OrderStatusColumns,
+		PrimaryKey: []*schema.Column{OrderStatusColumns[0]},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -131,6 +156,60 @@ var (
 		Name:       "promotions",
 		Columns:    PromotionsColumns,
 		PrimaryKey: []*schema.Column{PromotionsColumns[0]},
+	}
+	// ShippingAddressesColumns holds the columns for the "shipping_addresses" table.
+	ShippingAddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "phone_number", Type: field.TypeString, Size: 20},
+		{Name: "address_line1", Type: field.TypeString, Size: 100},
+		{Name: "address_line2", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "city", Type: field.TypeString, Size: 50},
+		{Name: "state", Type: field.TypeString, Size: 50},
+		{Name: "country", Type: field.TypeString, Size: 50},
+		{Name: "postal_code", Type: field.TypeString, Size: 20},
+	}
+	// ShippingAddressesTable holds the schema information for the "shipping_addresses" table.
+	ShippingAddressesTable = &schema.Table{
+		Name:       "shipping_addresses",
+		Columns:    ShippingAddressesColumns,
+		PrimaryKey: []*schema.Column{ShippingAddressesColumns[0]},
+	}
+	// ShippingMethodsColumns holds the columns for the "shipping_methods" table.
+	ShippingMethodsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "shipping_method", Type: field.TypeString, Size: 25},
+		{Name: "shipping_cost", Type: field.TypeFloat64},
+	}
+	// ShippingMethodsTable holds the schema information for the "shipping_methods" table.
+	ShippingMethodsTable = &schema.Table{
+		Name:       "shipping_methods",
+		Columns:    ShippingMethodsColumns,
+		PrimaryKey: []*schema.Column{ShippingMethodsColumns[0]},
+	}
+	// ShopOrdersColumns holds the columns for the "shop_orders" table.
+	ShopOrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "order_date_and_time", Type: field.TypeTime},
+		{Name: "payment_method", Type: field.TypeString, Size: 20},
+		{Name: "total_price", Type: field.TypeFloat64},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
+		{Name: "shipping_method_id", Type: field.TypeInt, Unique: true},
+		{Name: "order_status_id", Type: field.TypeInt, Unique: true},
+		{Name: "shipping_address_id", Type: field.TypeInt},
+	}
+	// ShopOrdersTable holds the schema information for the "shop_orders" table.
+	ShopOrdersTable = &schema.Table{
+		Name:       "shop_orders",
+		Columns:    ShopOrdersColumns,
+		PrimaryKey: []*schema.Column{ShopOrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shop_orders_shipping_addresses_shipping_address",
+				Columns:    []*schema.Column{ShopOrdersColumns[7]},
+				RefColumns: []*schema.Column{ShippingAddressesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// ShoppingCartsColumns holds the columns for the "shopping_carts" table.
 	ShoppingCartsColumns = []*schema.Column{
@@ -245,9 +324,14 @@ var (
 		AddressesTable,
 		NutritionalInformationsTable,
 		NutritionalInformationTablesTable,
+		OrderLinesTable,
+		OrderStatusTable,
 		ProductsTable,
 		ProductItemsTable,
 		PromotionsTable,
+		ShippingAddressesTable,
+		ShippingMethodsTable,
+		ShopOrdersTable,
 		ShoppingCartsTable,
 		ShoppingCartItemsTable,
 		UsersTable,
@@ -261,6 +345,7 @@ func init() {
 	ProductsTable.ForeignKeys[0].RefTable = PromotionsTable
 	ProductsTable.ForeignKeys[1].RefTable = NutritionalInformationsTable
 	ProductItemsTable.ForeignKeys[0].RefTable = ProductsTable
+	ShopOrdersTable.ForeignKeys[0].RefTable = ShippingAddressesTable
 	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
 	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable

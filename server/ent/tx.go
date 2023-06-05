@@ -18,12 +18,22 @@ type Tx struct {
 	NutritionalInformation *NutritionalInformationClient
 	// NutritionalInformationTable is the client for interacting with the NutritionalInformationTable builders.
 	NutritionalInformationTable *NutritionalInformationTableClient
+	// OrderLine is the client for interacting with the OrderLine builders.
+	OrderLine *OrderLineClient
+	// OrderStatus is the client for interacting with the OrderStatus builders.
+	OrderStatus *OrderStatusClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// ProductItem is the client for interacting with the ProductItem builders.
 	ProductItem *ProductItemClient
 	// Promotion is the client for interacting with the Promotion builders.
 	Promotion *PromotionClient
+	// ShippingAddress is the client for interacting with the ShippingAddress builders.
+	ShippingAddress *ShippingAddressClient
+	// ShippingMethod is the client for interacting with the ShippingMethod builders.
+	ShippingMethod *ShippingMethodClient
+	// ShopOrder is the client for interacting with the ShopOrder builders.
+	ShopOrder *ShopOrderClient
 	// ShoppingCart is the client for interacting with the ShoppingCart builders.
 	ShoppingCart *ShoppingCartClient
 	// ShoppingCartItem is the client for interacting with the ShoppingCartItem builders.
@@ -168,9 +178,14 @@ func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
 	tx.NutritionalInformation = NewNutritionalInformationClient(tx.config)
 	tx.NutritionalInformationTable = NewNutritionalInformationTableClient(tx.config)
+	tx.OrderLine = NewOrderLineClient(tx.config)
+	tx.OrderStatus = NewOrderStatusClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.ProductItem = NewProductItemClient(tx.config)
 	tx.Promotion = NewPromotionClient(tx.config)
+	tx.ShippingAddress = NewShippingAddressClient(tx.config)
+	tx.ShippingMethod = NewShippingMethodClient(tx.config)
+	tx.ShopOrder = NewShopOrderClient(tx.config)
 	tx.ShoppingCart = NewShoppingCartClient(tx.config)
 	tx.ShoppingCartItem = NewShoppingCartItemClient(tx.config)
 	tx.User = NewUserClient(tx.config)

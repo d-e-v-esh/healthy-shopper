@@ -7,9 +7,14 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
+	"healthyshopper/ent/orderline"
+	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
+	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -294,6 +299,149 @@ type nutritionalinformationtablePaginateArgs struct {
 
 func newNutritionalInformationTablePaginateArgs(rv map[string]any) *nutritionalinformationtablePaginateArgs {
 	args := &nutritionalinformationtablePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ol *OrderLineQuery) CollectFields(ctx context.Context, satisfies ...string) (*OrderLineQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ol, nil
+	}
+	if err := ol.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ol, nil
+}
+
+func (ol *OrderLineQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(orderline.Columns))
+		selectedFields = []string{orderline.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "productItemID":
+			if _, ok := fieldSeen[orderline.FieldProductItemID]; !ok {
+				selectedFields = append(selectedFields, orderline.FieldProductItemID)
+				fieldSeen[orderline.FieldProductItemID] = struct{}{}
+			}
+		case "shopOrderID":
+			if _, ok := fieldSeen[orderline.FieldShopOrderID]; !ok {
+				selectedFields = append(selectedFields, orderline.FieldShopOrderID)
+				fieldSeen[orderline.FieldShopOrderID] = struct{}{}
+			}
+		case "quantity":
+			if _, ok := fieldSeen[orderline.FieldQuantity]; !ok {
+				selectedFields = append(selectedFields, orderline.FieldQuantity)
+				fieldSeen[orderline.FieldQuantity] = struct{}{}
+			}
+		case "price":
+			if _, ok := fieldSeen[orderline.FieldPrice]; !ok {
+				selectedFields = append(selectedFields, orderline.FieldPrice)
+				fieldSeen[orderline.FieldPrice] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ol.Select(selectedFields...)
+	}
+	return nil
+}
+
+type orderlinePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []OrderLinePaginateOption
+}
+
+func newOrderLinePaginateArgs(rv map[string]any) *orderlinePaginateArgs {
+	args := &orderlinePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (os *OrderStatusQuery) CollectFields(ctx context.Context, satisfies ...string) (*OrderStatusQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return os, nil
+	}
+	if err := os.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return os, nil
+}
+
+func (os *OrderStatusQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(orderstatus.Columns))
+		selectedFields = []string{orderstatus.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "status":
+			if _, ok := fieldSeen[orderstatus.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, orderstatus.FieldStatus)
+				fieldSeen[orderstatus.FieldStatus] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		os.Select(selectedFields...)
+	}
+	return nil
+}
+
+type orderstatusPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []OrderStatusPaginateOption
+}
+
+func newOrderStatusPaginateArgs(rv map[string]any) *orderstatusPaginateArgs {
+	args := &orderstatusPaginateArgs{}
 	if rv == nil {
 		return args
 	}
@@ -640,6 +788,289 @@ type promotionPaginateArgs struct {
 
 func newPromotionPaginateArgs(rv map[string]any) *promotionPaginateArgs {
 	args := &promotionPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (sa *ShippingAddressQuery) CollectFields(ctx context.Context, satisfies ...string) (*ShippingAddressQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return sa, nil
+	}
+	if err := sa.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return sa, nil
+}
+
+func (sa *ShippingAddressQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(shippingaddress.Columns))
+		selectedFields = []string{shippingaddress.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "shopOrder":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShopOrderClient{config: sa.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shoporderImplementors)...); err != nil {
+				return err
+			}
+			sa.WithNamedShopOrder(alias, func(wq *ShopOrderQuery) {
+				*wq = *query
+			})
+		case "phoneNumber":
+			if _, ok := fieldSeen[shippingaddress.FieldPhoneNumber]; !ok {
+				selectedFields = append(selectedFields, shippingaddress.FieldPhoneNumber)
+				fieldSeen[shippingaddress.FieldPhoneNumber] = struct{}{}
+			}
+		case "addressLine1":
+			if _, ok := fieldSeen[shippingaddress.FieldAddressLine1]; !ok {
+				selectedFields = append(selectedFields, shippingaddress.FieldAddressLine1)
+				fieldSeen[shippingaddress.FieldAddressLine1] = struct{}{}
+			}
+		case "addressLine2":
+			if _, ok := fieldSeen[shippingaddress.FieldAddressLine2]; !ok {
+				selectedFields = append(selectedFields, shippingaddress.FieldAddressLine2)
+				fieldSeen[shippingaddress.FieldAddressLine2] = struct{}{}
+			}
+		case "city":
+			if _, ok := fieldSeen[shippingaddress.FieldCity]; !ok {
+				selectedFields = append(selectedFields, shippingaddress.FieldCity)
+				fieldSeen[shippingaddress.FieldCity] = struct{}{}
+			}
+		case "state":
+			if _, ok := fieldSeen[shippingaddress.FieldState]; !ok {
+				selectedFields = append(selectedFields, shippingaddress.FieldState)
+				fieldSeen[shippingaddress.FieldState] = struct{}{}
+			}
+		case "country":
+			if _, ok := fieldSeen[shippingaddress.FieldCountry]; !ok {
+				selectedFields = append(selectedFields, shippingaddress.FieldCountry)
+				fieldSeen[shippingaddress.FieldCountry] = struct{}{}
+			}
+		case "postalCode":
+			if _, ok := fieldSeen[shippingaddress.FieldPostalCode]; !ok {
+				selectedFields = append(selectedFields, shippingaddress.FieldPostalCode)
+				fieldSeen[shippingaddress.FieldPostalCode] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		sa.Select(selectedFields...)
+	}
+	return nil
+}
+
+type shippingaddressPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ShippingAddressPaginateOption
+}
+
+func newShippingAddressPaginateArgs(rv map[string]any) *shippingaddressPaginateArgs {
+	args := &shippingaddressPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (sm *ShippingMethodQuery) CollectFields(ctx context.Context, satisfies ...string) (*ShippingMethodQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return sm, nil
+	}
+	if err := sm.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return sm, nil
+}
+
+func (sm *ShippingMethodQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(shippingmethod.Columns))
+		selectedFields = []string{shippingmethod.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "shippingMethod":
+			if _, ok := fieldSeen[shippingmethod.FieldShippingMethod]; !ok {
+				selectedFields = append(selectedFields, shippingmethod.FieldShippingMethod)
+				fieldSeen[shippingmethod.FieldShippingMethod] = struct{}{}
+			}
+		case "shippingCost":
+			if _, ok := fieldSeen[shippingmethod.FieldShippingCost]; !ok {
+				selectedFields = append(selectedFields, shippingmethod.FieldShippingCost)
+				fieldSeen[shippingmethod.FieldShippingCost] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		sm.Select(selectedFields...)
+	}
+	return nil
+}
+
+type shippingmethodPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ShippingMethodPaginateOption
+}
+
+func newShippingMethodPaginateArgs(rv map[string]any) *shippingmethodPaginateArgs {
+	args := &shippingmethodPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (so *ShopOrderQuery) CollectFields(ctx context.Context, satisfies ...string) (*ShopOrderQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return so, nil
+	}
+	if err := so.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return so, nil
+}
+
+func (so *ShopOrderQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(shoporder.Columns))
+		selectedFields = []string{shoporder.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "shippingAddress":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShippingAddressClient{config: so.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shippingaddressImplementors)...); err != nil {
+				return err
+			}
+			so.withShippingAddress = query
+			if _, ok := fieldSeen[shoporder.FieldShippingAddressID]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldShippingAddressID)
+				fieldSeen[shoporder.FieldShippingAddressID] = struct{}{}
+			}
+		case "orderDateAndTime":
+			if _, ok := fieldSeen[shoporder.FieldOrderDateAndTime]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldOrderDateAndTime)
+				fieldSeen[shoporder.FieldOrderDateAndTime] = struct{}{}
+			}
+		case "paymentMethod":
+			if _, ok := fieldSeen[shoporder.FieldPaymentMethod]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldPaymentMethod)
+				fieldSeen[shoporder.FieldPaymentMethod] = struct{}{}
+			}
+		case "totalPrice":
+			if _, ok := fieldSeen[shoporder.FieldTotalPrice]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldTotalPrice)
+				fieldSeen[shoporder.FieldTotalPrice] = struct{}{}
+			}
+		case "userID":
+			if _, ok := fieldSeen[shoporder.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldUserID)
+				fieldSeen[shoporder.FieldUserID] = struct{}{}
+			}
+		case "shippingAddressID":
+			if _, ok := fieldSeen[shoporder.FieldShippingAddressID]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldShippingAddressID)
+				fieldSeen[shoporder.FieldShippingAddressID] = struct{}{}
+			}
+		case "shippingMethodID":
+			if _, ok := fieldSeen[shoporder.FieldShippingMethodID]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldShippingMethodID)
+				fieldSeen[shoporder.FieldShippingMethodID] = struct{}{}
+			}
+		case "orderStatusID":
+			if _, ok := fieldSeen[shoporder.FieldOrderStatusID]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldOrderStatusID)
+				fieldSeen[shoporder.FieldOrderStatusID] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		so.Select(selectedFields...)
+	}
+	return nil
+}
+
+type shoporderPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ShopOrderPaginateOption
+}
+
+func newShopOrderPaginateArgs(rv map[string]any) *shoporderPaginateArgs {
+	args := &shoporderPaginateArgs{}
 	if rv == nil {
 		return args
 	}

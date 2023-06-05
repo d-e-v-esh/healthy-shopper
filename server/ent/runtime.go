@@ -6,10 +6,15 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
+	"healthyshopper/ent/orderline"
+	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
 	"healthyshopper/ent/schema"
+	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
@@ -201,6 +206,36 @@ func init() {
 			return nil
 		}
 	}()
+	orderlineFields := schema.OrderLine{}.Fields()
+	_ = orderlineFields
+	// orderlineDescQuantity is the schema descriptor for quantity field.
+	orderlineDescQuantity := orderlineFields[2].Descriptor()
+	// orderline.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
+	orderline.QuantityValidator = orderlineDescQuantity.Validators[0].(func(int) error)
+	// orderlineDescPrice is the schema descriptor for price field.
+	orderlineDescPrice := orderlineFields[3].Descriptor()
+	// orderline.PriceValidator is a validator for the "price" field. It is called by the builders before save.
+	orderline.PriceValidator = orderlineDescPrice.Validators[0].(func(float64) error)
+	orderstatusFields := schema.OrderStatus{}.Fields()
+	_ = orderstatusFields
+	// orderstatusDescStatus is the schema descriptor for status field.
+	orderstatusDescStatus := orderstatusFields[0].Descriptor()
+	// orderstatus.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	orderstatus.StatusValidator = func() func(string) error {
+		validators := orderstatusDescStatus.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(status string) error {
+			for _, fn := range fns {
+				if err := fn(status); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	productFields := schema.Product{}.Fields()
 	_ = productFields
 	// productDescName is the schema descriptor for name field.
@@ -353,6 +388,172 @@ func init() {
 	promotionDescDiscountPercentage := promotionFields[2].Descriptor()
 	// promotion.DiscountPercentageValidator is a validator for the "discount_percentage" field. It is called by the builders before save.
 	promotion.DiscountPercentageValidator = promotionDescDiscountPercentage.Validators[0].(func(int) error)
+	shippingaddressFields := schema.ShippingAddress{}.Fields()
+	_ = shippingaddressFields
+	// shippingaddressDescPhoneNumber is the schema descriptor for phone_number field.
+	shippingaddressDescPhoneNumber := shippingaddressFields[0].Descriptor()
+	// shippingaddress.PhoneNumberValidator is a validator for the "phone_number" field. It is called by the builders before save.
+	shippingaddress.PhoneNumberValidator = func() func(string) error {
+		validators := shippingaddressDescPhoneNumber.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(phone_number string) error {
+			for _, fn := range fns {
+				if err := fn(phone_number); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippingaddressDescAddressLine1 is the schema descriptor for address_line1 field.
+	shippingaddressDescAddressLine1 := shippingaddressFields[1].Descriptor()
+	// shippingaddress.AddressLine1Validator is a validator for the "address_line1" field. It is called by the builders before save.
+	shippingaddress.AddressLine1Validator = func() func(string) error {
+		validators := shippingaddressDescAddressLine1.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(address_line1 string) error {
+			for _, fn := range fns {
+				if err := fn(address_line1); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippingaddressDescAddressLine2 is the schema descriptor for address_line2 field.
+	shippingaddressDescAddressLine2 := shippingaddressFields[2].Descriptor()
+	// shippingaddress.AddressLine2Validator is a validator for the "address_line2" field. It is called by the builders before save.
+	shippingaddress.AddressLine2Validator = shippingaddressDescAddressLine2.Validators[0].(func(string) error)
+	// shippingaddressDescCity is the schema descriptor for city field.
+	shippingaddressDescCity := shippingaddressFields[3].Descriptor()
+	// shippingaddress.CityValidator is a validator for the "city" field. It is called by the builders before save.
+	shippingaddress.CityValidator = func() func(string) error {
+		validators := shippingaddressDescCity.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(city string) error {
+			for _, fn := range fns {
+				if err := fn(city); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippingaddressDescState is the schema descriptor for state field.
+	shippingaddressDescState := shippingaddressFields[4].Descriptor()
+	// shippingaddress.StateValidator is a validator for the "state" field. It is called by the builders before save.
+	shippingaddress.StateValidator = func() func(string) error {
+		validators := shippingaddressDescState.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(state string) error {
+			for _, fn := range fns {
+				if err := fn(state); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippingaddressDescCountry is the schema descriptor for country field.
+	shippingaddressDescCountry := shippingaddressFields[5].Descriptor()
+	// shippingaddress.CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	shippingaddress.CountryValidator = func() func(string) error {
+		validators := shippingaddressDescCountry.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country string) error {
+			for _, fn := range fns {
+				if err := fn(country); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippingaddressDescPostalCode is the schema descriptor for postal_code field.
+	shippingaddressDescPostalCode := shippingaddressFields[6].Descriptor()
+	// shippingaddress.PostalCodeValidator is a validator for the "postal_code" field. It is called by the builders before save.
+	shippingaddress.PostalCodeValidator = func() func(string) error {
+		validators := shippingaddressDescPostalCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(postal_code string) error {
+			for _, fn := range fns {
+				if err := fn(postal_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	shippingmethodFields := schema.ShippingMethod{}.Fields()
+	_ = shippingmethodFields
+	// shippingmethodDescShippingMethod is the schema descriptor for shipping_method field.
+	shippingmethodDescShippingMethod := shippingmethodFields[0].Descriptor()
+	// shippingmethod.ShippingMethodValidator is a validator for the "shipping_method" field. It is called by the builders before save.
+	shippingmethod.ShippingMethodValidator = func() func(string) error {
+		validators := shippingmethodDescShippingMethod.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(shipping_method string) error {
+			for _, fn := range fns {
+				if err := fn(shipping_method); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shippingmethodDescShippingCost is the schema descriptor for shipping_cost field.
+	shippingmethodDescShippingCost := shippingmethodFields[1].Descriptor()
+	// shippingmethod.ShippingCostValidator is a validator for the "shipping_cost" field. It is called by the builders before save.
+	shippingmethod.ShippingCostValidator = shippingmethodDescShippingCost.Validators[0].(func(float64) error)
+	shoporderFields := schema.ShopOrder{}.Fields()
+	_ = shoporderFields
+	// shoporderDescOrderDateAndTime is the schema descriptor for order_date_and_time field.
+	shoporderDescOrderDateAndTime := shoporderFields[0].Descriptor()
+	// shoporder.DefaultOrderDateAndTime holds the default value on creation for the order_date_and_time field.
+	shoporder.DefaultOrderDateAndTime = shoporderDescOrderDateAndTime.Default.(func() time.Time)
+	// shoporderDescPaymentMethod is the schema descriptor for payment_method field.
+	shoporderDescPaymentMethod := shoporderFields[1].Descriptor()
+	// shoporder.PaymentMethodValidator is a validator for the "payment_method" field. It is called by the builders before save.
+	shoporder.PaymentMethodValidator = func() func(string) error {
+		validators := shoporderDescPaymentMethod.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(payment_method string) error {
+			for _, fn := range fns {
+				if err := fn(payment_method); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// shoporderDescTotalPrice is the schema descriptor for total_price field.
+	shoporderDescTotalPrice := shoporderFields[2].Descriptor()
+	// shoporder.TotalPriceValidator is a validator for the "total_price" field. It is called by the builders before save.
+	shoporder.TotalPriceValidator = shoporderDescTotalPrice.Validators[0].(func(float64) error)
 	shoppingcartitemFields := schema.ShoppingCartItem{}.Fields()
 	_ = shoppingcartitemFields
 	// shoppingcartitemDescQuantity is the schema descriptor for quantity field.

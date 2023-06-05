@@ -100,6 +100,17 @@ enum OrderDirection {
   """Specifies a descending order for a given `orderBy` argument."""
   DESC
 }
+type OrderLine implements Node {
+  id: ID!
+  productItemID: Int!
+  shopOrderID: Int!
+  quantity: Int!
+  price: Float!
+}
+type OrderStatus implements Node {
+  id: ID!
+  status: String!
+}
 """
 Information about pagination in a connection.
 https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
@@ -164,6 +175,33 @@ type Query {
   productItems: [ProductItem!]!
   users: [User!]!
   userAddresses: [UserAddress!]!
+}
+type ShippingAddress implements Node {
+  id: ID!
+  phoneNumber: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String!
+  country: String!
+  postalCode: String!
+  shopOrder: [ShopOrder!]
+}
+type ShippingMethod implements Node {
+  id: ID!
+  shippingMethod: String!
+  shippingCost: Float!
+}
+type ShopOrder implements Node {
+  id: ID!
+  orderDateAndTime: Time!
+  paymentMethod: String!
+  totalPrice: Float!
+  userID: Int!
+  shippingAddressID: ID!
+  shippingMethodID: Int!
+  orderStatusID: Int!
+  shippingAddress: ShippingAddress!
 }
 type ShoppingCart implements Node {
   id: ID!

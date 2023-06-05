@@ -96,6 +96,26 @@ func (pr *Promotion) Product(ctx context.Context) (result []*Product, err error)
 	return result, err
 }
 
+func (sa *ShippingAddress) ShopOrder(ctx context.Context) (result []*ShopOrder, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = sa.NamedShopOrder(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = sa.Edges.ShopOrderOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = sa.QueryShopOrder().All(ctx)
+	}
+	return result, err
+}
+
+func (so *ShopOrder) ShippingAddress(ctx context.Context) (*ShippingAddress, error) {
+	result, err := so.Edges.ShippingAddressOrErr()
+	if IsNotLoaded(err) {
+		result, err = so.QueryShippingAddress().Only(ctx)
+	}
+	return result, err
+}
+
 func (sc *ShoppingCart) User(ctx context.Context) (*User, error) {
 	result, err := sc.Edges.UserOrErr()
 	if IsNotLoaded(err) {

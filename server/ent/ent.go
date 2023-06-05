@@ -9,9 +9,14 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
+	"healthyshopper/ent/orderline"
+	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
+	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -86,9 +91,14 @@ func checkColumn(table, column string) error {
 			address.Table:                     address.ValidColumn,
 			nutritionalinformation.Table:      nutritionalinformation.ValidColumn,
 			nutritionalinformationtable.Table: nutritionalinformationtable.ValidColumn,
+			orderline.Table:                   orderline.ValidColumn,
+			orderstatus.Table:                 orderstatus.ValidColumn,
 			product.Table:                     product.ValidColumn,
 			productitem.Table:                 productitem.ValidColumn,
 			promotion.Table:                   promotion.ValidColumn,
+			shippingaddress.Table:             shippingaddress.ValidColumn,
+			shippingmethod.Table:              shippingmethod.ValidColumn,
+			shoporder.Table:                   shoporder.ValidColumn,
 			shoppingcart.Table:                shoppingcart.ValidColumn,
 			shoppingcartitem.Table:            shoppingcartitem.ValidColumn,
 			user.Table:                        user.ValidColumn,

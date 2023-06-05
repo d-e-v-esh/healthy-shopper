@@ -15,6 +15,12 @@ type NutritionalInformation func(*sql.Selector)
 // NutritionalInformationTable is the predicate function for nutritionalinformationtable builders.
 type NutritionalInformationTable func(*sql.Selector)
 
+// OrderLine is the predicate function for orderline builders.
+type OrderLine func(*sql.Selector)
+
+// OrderStatus is the predicate function for orderstatus builders.
+type OrderStatus func(*sql.Selector)
+
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)
 
@@ -23,6 +29,15 @@ type ProductItem func(*sql.Selector)
 
 // Promotion is the predicate function for promotion builders.
 type Promotion func(*sql.Selector)
+
+// ShippingAddress is the predicate function for shippingaddress builders.
+type ShippingAddress func(*sql.Selector)
+
+// ShippingMethod is the predicate function for shippingmethod builders.
+type ShippingMethod func(*sql.Selector)
+
+// ShopOrder is the predicate function for shoporder builders.
+type ShopOrder func(*sql.Selector)
 
 // ShoppingCart is the predicate function for shoppingcart builders.
 type ShoppingCart func(*sql.Selector)

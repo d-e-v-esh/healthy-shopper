@@ -8,9 +8,14 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
+	"healthyshopper/ent/orderline"
+	"healthyshopper/ent/orderstatus"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
+	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -48,6 +53,16 @@ var nutritionalinformationtableImplementors = []string{"NutritionalInformationTa
 // IsNode implements the Node interface check for GQLGen.
 func (*NutritionalInformationTable) IsNode() {}
 
+var orderlineImplementors = []string{"OrderLine", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*OrderLine) IsNode() {}
+
+var orderstatusImplementors = []string{"OrderStatus", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*OrderStatus) IsNode() {}
+
 var productImplementors = []string{"Product", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
@@ -62,6 +77,21 @@ var promotionImplementors = []string{"Promotion", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Promotion) IsNode() {}
+
+var shippingaddressImplementors = []string{"ShippingAddress", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ShippingAddress) IsNode() {}
+
+var shippingmethodImplementors = []string{"ShippingMethod", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ShippingMethod) IsNode() {}
+
+var shoporderImplementors = []string{"ShopOrder", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ShopOrder) IsNode() {}
 
 var shoppingcartImplementors = []string{"ShoppingCart", "Node"}
 
@@ -182,6 +212,30 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 			return nil, err
 		}
 		return n, nil
+	case orderline.Table:
+		query := c.OrderLine.Query().
+			Where(orderline.ID(id))
+		query, err := query.CollectFields(ctx, orderlineImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case orderstatus.Table:
+		query := c.OrderStatus.Query().
+			Where(orderstatus.ID(id))
+		query, err := query.CollectFields(ctx, orderstatusImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case product.Table:
 		query := c.Product.Query().
 			Where(product.ID(id))
@@ -210,6 +264,42 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.Promotion.Query().
 			Where(promotion.ID(id))
 		query, err := query.CollectFields(ctx, promotionImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case shippingaddress.Table:
+		query := c.ShippingAddress.Query().
+			Where(shippingaddress.ID(id))
+		query, err := query.CollectFields(ctx, shippingaddressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case shippingmethod.Table:
+		query := c.ShippingMethod.Query().
+			Where(shippingmethod.ID(id))
+		query, err := query.CollectFields(ctx, shippingmethodImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case shoporder.Table:
+		query := c.ShopOrder.Query().
+			Where(shoporder.ID(id))
+		query, err := query.CollectFields(ctx, shoporderImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -399,6 +489,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 				*noder = node
 			}
 		}
+	case orderline.Table:
+		query := c.OrderLine.Query().
+			Where(orderline.IDIn(ids...))
+		query, err := query.CollectFields(ctx, orderlineImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case orderstatus.Table:
+		query := c.OrderStatus.Query().
+			Where(orderstatus.IDIn(ids...))
+		query, err := query.CollectFields(ctx, orderstatusImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case product.Table:
 		query := c.Product.Query().
 			Where(product.IDIn(ids...))
@@ -435,6 +557,54 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Promotion.Query().
 			Where(promotion.IDIn(ids...))
 		query, err := query.CollectFields(ctx, promotionImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case shippingaddress.Table:
+		query := c.ShippingAddress.Query().
+			Where(shippingaddress.IDIn(ids...))
+		query, err := query.CollectFields(ctx, shippingaddressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case shippingmethod.Table:
+		query := c.ShippingMethod.Query().
+			Where(shippingmethod.IDIn(ids...))
+		query, err := query.CollectFields(ctx, shippingmethodImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case shoporder.Table:
+		query := c.ShopOrder.Query().
+			Where(shoporder.IDIn(ids...))
+		query, err := query.CollectFields(ctx, shoporderImplementors...)
 		if err != nil {
 			return nil, err
 		}
