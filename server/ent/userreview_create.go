@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/userreview"
 	"time"
@@ -76,6 +77,11 @@ func (urc *UserReviewCreate) SetNillableUpdatedAt(t *time.Time) *UserReviewCreat
 // SetUser sets the "user" edge to the User entity.
 func (urc *UserReviewCreate) SetUser(u *User) *UserReviewCreate {
 	return urc.SetUserID(u.ID)
+}
+
+// SetOrderedProduct sets the "ordered_product" edge to the OrderLine entity.
+func (urc *UserReviewCreate) SetOrderedProduct(o *OrderLine) *UserReviewCreate {
+	return urc.SetOrderedProductID(o.ID)
 }
 
 // Mutation returns the UserReviewMutation object of the builder.
@@ -156,6 +162,9 @@ func (urc *UserReviewCreate) check() error {
 	if _, ok := urc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "UserReview.user"`)}
 	}
+	if _, ok := urc.mutation.OrderedProductID(); !ok {
+		return &ValidationError{Name: "ordered_product", err: errors.New(`ent: missing required edge "UserReview.ordered_product"`)}
+	}
 	return nil
 }
 
@@ -182,10 +191,6 @@ func (urc *UserReviewCreate) createSpec() (*UserReview, *sqlgraph.CreateSpec) {
 		_node = &UserReview{config: urc.config}
 		_spec = sqlgraph.NewCreateSpec(userreview.Table, sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt))
 	)
-	if value, ok := urc.mutation.OrderedProductID(); ok {
-		_spec.SetField(userreview.FieldOrderedProductID, field.TypeInt, value)
-		_node.OrderedProductID = value
-	}
 	if value, ok := urc.mutation.Rating(); ok {
 		_spec.SetField(userreview.FieldRating, field.TypeInt, value)
 		_node.Rating = value
@@ -217,6 +222,23 @@ func (urc *UserReviewCreate) createSpec() (*UserReview, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := urc.mutation.OrderedProductIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userreview.OrderedProductTable,
+			Columns: []string{userreview.OrderedProductColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.OrderedProductID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

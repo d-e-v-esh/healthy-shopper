@@ -6,6 +6,7 @@ import (
 	"healthyshopper/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -91,26 +92,6 @@ func ProductItemIDIn(vs ...int) predicate.OrderLine {
 // ProductItemIDNotIn applies the NotIn predicate on the "product_item_id" field.
 func ProductItemIDNotIn(vs ...int) predicate.OrderLine {
 	return predicate.OrderLine(sql.FieldNotIn(FieldProductItemID, vs...))
-}
-
-// ProductItemIDGT applies the GT predicate on the "product_item_id" field.
-func ProductItemIDGT(v int) predicate.OrderLine {
-	return predicate.OrderLine(sql.FieldGT(FieldProductItemID, v))
-}
-
-// ProductItemIDGTE applies the GTE predicate on the "product_item_id" field.
-func ProductItemIDGTE(v int) predicate.OrderLine {
-	return predicate.OrderLine(sql.FieldGTE(FieldProductItemID, v))
-}
-
-// ProductItemIDLT applies the LT predicate on the "product_item_id" field.
-func ProductItemIDLT(v int) predicate.OrderLine {
-	return predicate.OrderLine(sql.FieldLT(FieldProductItemID, v))
-}
-
-// ProductItemIDLTE applies the LTE predicate on the "product_item_id" field.
-func ProductItemIDLTE(v int) predicate.OrderLine {
-	return predicate.OrderLine(sql.FieldLTE(FieldProductItemID, v))
 }
 
 // ShopOrderIDEQ applies the EQ predicate on the "shop_order_id" field.
@@ -231,6 +212,52 @@ func PriceLT(v float64) predicate.OrderLine {
 // PriceLTE applies the LTE predicate on the "price" field.
 func PriceLTE(v float64) predicate.OrderLine {
 	return predicate.OrderLine(sql.FieldLTE(FieldPrice, v))
+}
+
+// HasProductItem applies the HasEdge predicate on the "product_item" edge.
+func HasProductItem() predicate.OrderLine {
+	return predicate.OrderLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ProductItemTable, ProductItemColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProductItemWith applies the HasEdge predicate on the "product_item" edge with a given conditions (other predicates).
+func HasProductItemWith(preds ...predicate.ProductItem) predicate.OrderLine {
+	return predicate.OrderLine(func(s *sql.Selector) {
+		step := newProductItemStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserReview applies the HasEdge predicate on the "user_review" edge.
+func HasUserReview() predicate.OrderLine {
+	return predicate.OrderLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserReviewTable, UserReviewColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserReviewWith applies the HasEdge predicate on the "user_review" edge with a given conditions (other predicates).
+func HasUserReviewWith(preds ...predicate.UserReview) predicate.OrderLine {
+	return predicate.OrderLine(func(s *sql.Selector) {
+		step := newUserReviewStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

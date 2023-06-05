@@ -111,10 +111,12 @@ enum OrderDirection {
 }
 type OrderLine implements Node {
   id: ID!
-  productItemID: Int!
+  productItemID: ID!
   shopOrderID: Int!
   quantity: Int!
   price: Float!
+  productItem: ProductItem!
+  userReview: [UserReview!]
 }
 type OrderStatus implements Node {
   id: ID!
@@ -261,10 +263,11 @@ type UserAddress implements Node {
 type UserReview implements Node {
   id: ID!
   userID: ID!
-  orderedProductID: Int!
+  orderedProductID: ID!
   rating: Int!
   review: String!
   createdAt: Time!
   updatedAt: Time!
   user: User!
+  orderedProduct: OrderLine!
 }

@@ -29,5 +29,7 @@ func (UserReview) Fields() []ent.Field {
 func (UserReview) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).Ref("user_review").Unique().Field("user_id").Required(),
+
+		edge.From("ordered_product", OrderLine.Type).Ref("user_review").Unique().Field("ordered_product_id").Required(),
 	}
 }

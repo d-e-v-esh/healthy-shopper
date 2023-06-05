@@ -28,6 +28,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeOrderedProduct holds the string denoting the ordered_product edge name in mutations.
+	EdgeOrderedProduct = "ordered_product"
 	// Table holds the table name of the userreview in the database.
 	Table = "user_reviews"
 	// UserTable is the table that holds the user relation/edge.
@@ -37,6 +39,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// OrderedProductTable is the table that holds the ordered_product relation/edge.
+	OrderedProductTable = "user_reviews"
+	// OrderedProductInverseTable is the table name for the OrderLine entity.
+	// It exists in this package in order to avoid circular dependency with the "orderline" package.
+	OrderedProductInverseTable = "order_lines"
+	// OrderedProductColumn is the table column denoting the ordered_product relation/edge.
+	OrderedProductColumn = "ordered_product_id"
 )
 
 // Columns holds all SQL columns for userreview fields.
@@ -117,10 +126,24 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByOrderedProductField orders the results by ordered_product field.
+func ByOrderedProductField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderedProductStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newOrderedProductStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderedProductInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, OrderedProductTable, OrderedProductColumn),
 	)
 }

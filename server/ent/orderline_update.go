@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/userreview"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -29,14 +31,7 @@ func (olu *OrderLineUpdate) Where(ps ...predicate.OrderLine) *OrderLineUpdate {
 
 // SetProductItemID sets the "product_item_id" field.
 func (olu *OrderLineUpdate) SetProductItemID(i int) *OrderLineUpdate {
-	olu.mutation.ResetProductItemID()
 	olu.mutation.SetProductItemID(i)
-	return olu
-}
-
-// AddProductItemID adds i to the "product_item_id" field.
-func (olu *OrderLineUpdate) AddProductItemID(i int) *OrderLineUpdate {
-	olu.mutation.AddProductItemID(i)
 	return olu
 }
 
@@ -79,9 +74,56 @@ func (olu *OrderLineUpdate) AddPrice(f float64) *OrderLineUpdate {
 	return olu
 }
 
+// SetProductItem sets the "product_item" edge to the ProductItem entity.
+func (olu *OrderLineUpdate) SetProductItem(p *ProductItem) *OrderLineUpdate {
+	return olu.SetProductItemID(p.ID)
+}
+
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by IDs.
+func (olu *OrderLineUpdate) AddUserReviewIDs(ids ...int) *OrderLineUpdate {
+	olu.mutation.AddUserReviewIDs(ids...)
+	return olu
+}
+
+// AddUserReview adds the "user_review" edges to the UserReview entity.
+func (olu *OrderLineUpdate) AddUserReview(u ...*UserReview) *OrderLineUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return olu.AddUserReviewIDs(ids...)
+}
+
 // Mutation returns the OrderLineMutation object of the builder.
 func (olu *OrderLineUpdate) Mutation() *OrderLineMutation {
 	return olu.mutation
+}
+
+// ClearProductItem clears the "product_item" edge to the ProductItem entity.
+func (olu *OrderLineUpdate) ClearProductItem() *OrderLineUpdate {
+	olu.mutation.ClearProductItem()
+	return olu
+}
+
+// ClearUserReview clears all "user_review" edges to the UserReview entity.
+func (olu *OrderLineUpdate) ClearUserReview() *OrderLineUpdate {
+	olu.mutation.ClearUserReview()
+	return olu
+}
+
+// RemoveUserReviewIDs removes the "user_review" edge to UserReview entities by IDs.
+func (olu *OrderLineUpdate) RemoveUserReviewIDs(ids ...int) *OrderLineUpdate {
+	olu.mutation.RemoveUserReviewIDs(ids...)
+	return olu
+}
+
+// RemoveUserReview removes "user_review" edges to UserReview entities.
+func (olu *OrderLineUpdate) RemoveUserReview(u ...*UserReview) *OrderLineUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return olu.RemoveUserReviewIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -123,6 +165,9 @@ func (olu *OrderLineUpdate) check() error {
 			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "OrderLine.price": %w`, err)}
 		}
 	}
+	if _, ok := olu.mutation.ProductItemID(); olu.mutation.ProductItemCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "OrderLine.product_item"`)
+	}
 	return nil
 }
 
@@ -137,12 +182,6 @@ func (olu *OrderLineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := olu.mutation.ProductItemID(); ok {
-		_spec.SetField(orderline.FieldProductItemID, field.TypeInt, value)
-	}
-	if value, ok := olu.mutation.AddedProductItemID(); ok {
-		_spec.AddField(orderline.FieldProductItemID, field.TypeInt, value)
 	}
 	if value, ok := olu.mutation.ShopOrderID(); ok {
 		_spec.SetField(orderline.FieldShopOrderID, field.TypeInt, value)
@@ -161,6 +200,80 @@ func (olu *OrderLineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := olu.mutation.AddedPrice(); ok {
 		_spec.AddField(orderline.FieldPrice, field.TypeFloat64, value)
+	}
+	if olu.mutation.ProductItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderline.ProductItemTable,
+			Columns: []string{orderline.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := olu.mutation.ProductItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderline.ProductItemTable,
+			Columns: []string{orderline.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if olu.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderline.UserReviewTable,
+			Columns: []string{orderline.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := olu.mutation.RemovedUserReviewIDs(); len(nodes) > 0 && !olu.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderline.UserReviewTable,
+			Columns: []string{orderline.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := olu.mutation.UserReviewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderline.UserReviewTable,
+			Columns: []string{orderline.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, olu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -184,14 +297,7 @@ type OrderLineUpdateOne struct {
 
 // SetProductItemID sets the "product_item_id" field.
 func (oluo *OrderLineUpdateOne) SetProductItemID(i int) *OrderLineUpdateOne {
-	oluo.mutation.ResetProductItemID()
 	oluo.mutation.SetProductItemID(i)
-	return oluo
-}
-
-// AddProductItemID adds i to the "product_item_id" field.
-func (oluo *OrderLineUpdateOne) AddProductItemID(i int) *OrderLineUpdateOne {
-	oluo.mutation.AddProductItemID(i)
 	return oluo
 }
 
@@ -234,9 +340,56 @@ func (oluo *OrderLineUpdateOne) AddPrice(f float64) *OrderLineUpdateOne {
 	return oluo
 }
 
+// SetProductItem sets the "product_item" edge to the ProductItem entity.
+func (oluo *OrderLineUpdateOne) SetProductItem(p *ProductItem) *OrderLineUpdateOne {
+	return oluo.SetProductItemID(p.ID)
+}
+
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by IDs.
+func (oluo *OrderLineUpdateOne) AddUserReviewIDs(ids ...int) *OrderLineUpdateOne {
+	oluo.mutation.AddUserReviewIDs(ids...)
+	return oluo
+}
+
+// AddUserReview adds the "user_review" edges to the UserReview entity.
+func (oluo *OrderLineUpdateOne) AddUserReview(u ...*UserReview) *OrderLineUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return oluo.AddUserReviewIDs(ids...)
+}
+
 // Mutation returns the OrderLineMutation object of the builder.
 func (oluo *OrderLineUpdateOne) Mutation() *OrderLineMutation {
 	return oluo.mutation
+}
+
+// ClearProductItem clears the "product_item" edge to the ProductItem entity.
+func (oluo *OrderLineUpdateOne) ClearProductItem() *OrderLineUpdateOne {
+	oluo.mutation.ClearProductItem()
+	return oluo
+}
+
+// ClearUserReview clears all "user_review" edges to the UserReview entity.
+func (oluo *OrderLineUpdateOne) ClearUserReview() *OrderLineUpdateOne {
+	oluo.mutation.ClearUserReview()
+	return oluo
+}
+
+// RemoveUserReviewIDs removes the "user_review" edge to UserReview entities by IDs.
+func (oluo *OrderLineUpdateOne) RemoveUserReviewIDs(ids ...int) *OrderLineUpdateOne {
+	oluo.mutation.RemoveUserReviewIDs(ids...)
+	return oluo
+}
+
+// RemoveUserReview removes "user_review" edges to UserReview entities.
+func (oluo *OrderLineUpdateOne) RemoveUserReview(u ...*UserReview) *OrderLineUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return oluo.RemoveUserReviewIDs(ids...)
 }
 
 // Where appends a list predicates to the OrderLineUpdate builder.
@@ -291,6 +444,9 @@ func (oluo *OrderLineUpdateOne) check() error {
 			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "OrderLine.price": %w`, err)}
 		}
 	}
+	if _, ok := oluo.mutation.ProductItemID(); oluo.mutation.ProductItemCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "OrderLine.product_item"`)
+	}
 	return nil
 }
 
@@ -323,12 +479,6 @@ func (oluo *OrderLineUpdateOne) sqlSave(ctx context.Context) (_node *OrderLine, 
 			}
 		}
 	}
-	if value, ok := oluo.mutation.ProductItemID(); ok {
-		_spec.SetField(orderline.FieldProductItemID, field.TypeInt, value)
-	}
-	if value, ok := oluo.mutation.AddedProductItemID(); ok {
-		_spec.AddField(orderline.FieldProductItemID, field.TypeInt, value)
-	}
 	if value, ok := oluo.mutation.ShopOrderID(); ok {
 		_spec.SetField(orderline.FieldShopOrderID, field.TypeInt, value)
 	}
@@ -346,6 +496,80 @@ func (oluo *OrderLineUpdateOne) sqlSave(ctx context.Context) (_node *OrderLine, 
 	}
 	if value, ok := oluo.mutation.AddedPrice(); ok {
 		_spec.AddField(orderline.FieldPrice, field.TypeFloat64, value)
+	}
+	if oluo.mutation.ProductItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderline.ProductItemTable,
+			Columns: []string{orderline.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := oluo.mutation.ProductItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderline.ProductItemTable,
+			Columns: []string{orderline.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if oluo.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderline.UserReviewTable,
+			Columns: []string{orderline.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := oluo.mutation.RemovedUserReviewIDs(); len(nodes) > 0 && !oluo.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderline.UserReviewTable,
+			Columns: []string{orderline.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := oluo.mutation.UserReviewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderline.UserReviewTable,
+			Columns: []string{orderline.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &OrderLine{config: oluo.config}
 	_spec.Assign = _node.assignValues

@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"healthyshopper/ent/orderline"
+	"healthyshopper/ent/productitem"
 	"strings"
 
 	"entgo.io/ent"
@@ -23,9 +24,48 @@ type OrderLine struct {
 	// Quantity holds the value of the "quantity" field.
 	Quantity int `json:"quantity,omitempty"`
 	// Price holds the value of the "price" field.
-	Price                   float64 `json:"price,omitempty"`
-	product_item_order_line *int
-	selectValues            sql.SelectValues
+	Price float64 `json:"price,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the OrderLineQuery when eager-loading is set.
+	Edges        OrderLineEdges `json:"edges"`
+	selectValues sql.SelectValues
+}
+
+// OrderLineEdges holds the relations/edges for other nodes in the graph.
+type OrderLineEdges struct {
+	// ProductItem holds the value of the product_item edge.
+	ProductItem *ProductItem `json:"product_item,omitempty"`
+	// UserReview holds the value of the user_review edge.
+	UserReview []*UserReview `json:"user_review,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+
+	namedUserReview map[string][]*UserReview
+}
+
+// ProductItemOrErr returns the ProductItem value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderLineEdges) ProductItemOrErr() (*ProductItem, error) {
+	if e.loadedTypes[0] {
+		if e.ProductItem == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: productitem.Label}
+		}
+		return e.ProductItem, nil
+	}
+	return nil, &NotLoadedError{edge: "product_item"}
+}
+
+// UserReviewOrErr returns the UserReview value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderLineEdges) UserReviewOrErr() ([]*UserReview, error) {
+	if e.loadedTypes[1] {
+		return e.UserReview, nil
+	}
+	return nil, &NotLoadedError{edge: "user_review"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -36,8 +76,6 @@ func (*OrderLine) scanValues(columns []string) ([]any, error) {
 		case orderline.FieldPrice:
 			values[i] = new(sql.NullFloat64)
 		case orderline.FieldID, orderline.FieldProductItemID, orderline.FieldShopOrderID, orderline.FieldQuantity:
-			values[i] = new(sql.NullInt64)
-		case orderline.ForeignKeys[0]: // product_item_order_line
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -84,13 +122,6 @@ func (ol *OrderLine) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ol.Price = value.Float64
 			}
-		case orderline.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field product_item_order_line", value)
-			} else if value.Valid {
-				ol.product_item_order_line = new(int)
-				*ol.product_item_order_line = int(value.Int64)
-			}
 		default:
 			ol.selectValues.Set(columns[i], values[i])
 		}
@@ -102,6 +133,16 @@ func (ol *OrderLine) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (ol *OrderLine) Value(name string) (ent.Value, error) {
 	return ol.selectValues.Get(name)
+}
+
+// QueryProductItem queries the "product_item" edge of the OrderLine entity.
+func (ol *OrderLine) QueryProductItem() *ProductItemQuery {
+	return NewOrderLineClient(ol.config).QueryProductItem(ol)
+}
+
+// QueryUserReview queries the "user_review" edge of the OrderLine entity.
+func (ol *OrderLine) QueryUserReview() *UserReviewQuery {
+	return NewOrderLineClient(ol.config).QueryUserReview(ol)
 }
 
 // Update returns a builder for updating this OrderLine.
@@ -140,6 +181,30 @@ func (ol *OrderLine) String() string {
 	builder.WriteString(fmt.Sprintf("%v", ol.Price))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedUserReview returns the UserReview named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (ol *OrderLine) NamedUserReview(name string) ([]*UserReview, error) {
+	if ol.Edges.namedUserReview == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := ol.Edges.namedUserReview[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (ol *OrderLine) appendNamedUserReview(name string, edges ...*UserReview) {
+	if ol.Edges.namedUserReview == nil {
+		ol.Edges.namedUserReview = make(map[string][]*UserReview)
+	}
+	if len(edges) == 0 {
+		ol.Edges.namedUserReview[name] = []*UserReview{}
+	} else {
+		ol.Edges.namedUserReview[name] = append(ol.Edges.namedUserReview[name], edges...)
+	}
 }
 
 // OrderLines is a parsable slice of OrderLine.

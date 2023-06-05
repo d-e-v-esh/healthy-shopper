@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/userreview"
@@ -18,13 +19,14 @@ import (
 // UserReviewQuery is the builder for querying UserReview entities.
 type UserReviewQuery struct {
 	config
-	ctx        *QueryContext
-	order      []userreview.OrderOption
-	inters     []Interceptor
-	predicates []predicate.UserReview
-	withUser   *UserQuery
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*UserReview) error
+	ctx                *QueryContext
+	order              []userreview.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.UserReview
+	withUser           *UserQuery
+	withOrderedProduct *OrderLineQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*UserReview) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (urq *UserReviewQuery) QueryUser() *UserQuery {
 			sqlgraph.From(userreview.Table, userreview.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, userreview.UserTable, userreview.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(urq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderedProduct chains the current query on the "ordered_product" edge.
+func (urq *UserReviewQuery) QueryOrderedProduct() *OrderLineQuery {
+	query := (&OrderLineClient{config: urq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := urq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := urq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userreview.Table, userreview.FieldID, selector),
+			sqlgraph.To(orderline.Table, orderline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userreview.OrderedProductTable, userreview.OrderedProductColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(urq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +294,13 @@ func (urq *UserReviewQuery) Clone() *UserReviewQuery {
 		return nil
 	}
 	return &UserReviewQuery{
-		config:     urq.config,
-		ctx:        urq.ctx.Clone(),
-		order:      append([]userreview.OrderOption{}, urq.order...),
-		inters:     append([]Interceptor{}, urq.inters...),
-		predicates: append([]predicate.UserReview{}, urq.predicates...),
-		withUser:   urq.withUser.Clone(),
+		config:             urq.config,
+		ctx:                urq.ctx.Clone(),
+		order:              append([]userreview.OrderOption{}, urq.order...),
+		inters:             append([]Interceptor{}, urq.inters...),
+		predicates:         append([]predicate.UserReview{}, urq.predicates...),
+		withUser:           urq.withUser.Clone(),
+		withOrderedProduct: urq.withOrderedProduct.Clone(),
 		// clone intermediate query.
 		sql:  urq.sql.Clone(),
 		path: urq.path,
@@ -290,6 +315,17 @@ func (urq *UserReviewQuery) WithUser(opts ...func(*UserQuery)) *UserReviewQuery 
 		opt(query)
 	}
 	urq.withUser = query
+	return urq
+}
+
+// WithOrderedProduct tells the query-builder to eager-load the nodes that are connected to
+// the "ordered_product" edge. The optional arguments are used to configure the query builder of the edge.
+func (urq *UserReviewQuery) WithOrderedProduct(opts ...func(*OrderLineQuery)) *UserReviewQuery {
+	query := (&OrderLineClient{config: urq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	urq.withOrderedProduct = query
 	return urq
 }
 
@@ -371,8 +407,9 @@ func (urq *UserReviewQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*UserReview{}
 		_spec       = urq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			urq.withUser != nil,
+			urq.withOrderedProduct != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -399,6 +436,12 @@ func (urq *UserReviewQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if query := urq.withUser; query != nil {
 		if err := urq.loadUser(ctx, query, nodes, nil,
 			func(n *UserReview, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := urq.withOrderedProduct; query != nil {
+		if err := urq.loadOrderedProduct(ctx, query, nodes, nil,
+			func(n *UserReview, e *OrderLine) { n.Edges.OrderedProduct = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -439,6 +482,35 @@ func (urq *UserReviewQuery) loadUser(ctx context.Context, query *UserQuery, node
 	}
 	return nil
 }
+func (urq *UserReviewQuery) loadOrderedProduct(ctx context.Context, query *OrderLineQuery, nodes []*UserReview, init func(*UserReview), assign func(*UserReview, *OrderLine)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*UserReview)
+	for i := range nodes {
+		fk := nodes[i].OrderedProductID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderline.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "ordered_product_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (urq *UserReviewQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := urq.querySpec()
@@ -470,6 +542,9 @@ func (urq *UserReviewQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if urq.withUser != nil {
 			_spec.Node.AddColumnOnce(userreview.FieldUserID)
+		}
+		if urq.withOrderedProduct != nil {
+			_spec.Node.AddColumnOnce(userreview.FieldOrderedProductID)
 		}
 	}
 	if ps := urq.predicates; len(ps) > 0 {

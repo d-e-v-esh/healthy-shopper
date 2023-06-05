@@ -49,7 +49,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "orderline" package.
 	OrderLineInverseTable = "order_lines"
 	// OrderLineColumn is the table column denoting the order_line relation/edge.
-	OrderLineColumn = "product_item_order_line"
+	OrderLineColumn = "product_item_id"
 	// ShoppingCartItemTable is the table that holds the shopping_cart_item relation/edge.
 	ShoppingCartItemTable = "shopping_cart_items"
 	// ShoppingCartItemInverseTable is the table name for the ShoppingCartItem entity.

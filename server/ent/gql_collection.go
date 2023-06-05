@@ -420,6 +420,32 @@ func (ol *OrderLineQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "productItem":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProductItemClient{config: ol.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, productitemImplementors)...); err != nil {
+				return err
+			}
+			ol.withProductItem = query
+			if _, ok := fieldSeen[orderline.FieldProductItemID]; !ok {
+				selectedFields = append(selectedFields, orderline.FieldProductItemID)
+				fieldSeen[orderline.FieldProductItemID] = struct{}{}
+			}
+		case "userReview":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserReviewClient{config: ol.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userreviewImplementors)...); err != nil {
+				return err
+			}
+			ol.WithNamedUserReview(alias, func(wq *UserReviewQuery) {
+				*wq = *query
+			})
 		case "productItemID":
 			if _, ok := fieldSeen[orderline.FieldProductItemID]; !ok {
 				selectedFields = append(selectedFields, orderline.FieldProductItemID)
@@ -1743,6 +1769,20 @@ func (ur *UserReviewQuery) collectField(ctx context.Context, opCtx *graphql.Oper
 			if _, ok := fieldSeen[userreview.FieldUserID]; !ok {
 				selectedFields = append(selectedFields, userreview.FieldUserID)
 				fieldSeen[userreview.FieldUserID] = struct{}{}
+			}
+		case "orderedProduct":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&OrderLineClient{config: ur.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, orderlineImplementors)...); err != nil {
+				return err
+			}
+			ur.withOrderedProduct = query
+			if _, ok := fieldSeen[userreview.FieldOrderedProductID]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldOrderedProductID)
+				fieldSeen[userreview.FieldOrderedProductID] = struct{}{}
 			}
 		case "userID":
 			if _, ok := fieldSeen[userreview.FieldUserID]; !ok {

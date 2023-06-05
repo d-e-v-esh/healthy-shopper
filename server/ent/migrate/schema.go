@@ -74,11 +74,10 @@ var (
 	// OrderLinesColumns holds the columns for the "order_lines" table.
 	OrderLinesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "product_item_id", Type: field.TypeInt, Unique: true},
 		{Name: "shop_order_id", Type: field.TypeInt, Unique: true},
 		{Name: "quantity", Type: field.TypeInt},
 		{Name: "price", Type: field.TypeFloat64},
-		{Name: "product_item_order_line", Type: field.TypeInt, Nullable: true},
+		{Name: "product_item_id", Type: field.TypeInt},
 	}
 	// OrderLinesTable holds the schema information for the "order_lines" table.
 	OrderLinesTable = &schema.Table{
@@ -88,9 +87,9 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_lines_product_items_order_line",
-				Columns:    []*schema.Column{OrderLinesColumns[5]},
+				Columns:    []*schema.Column{OrderLinesColumns[4]},
 				RefColumns: []*schema.Column{ProductItemsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -349,11 +348,11 @@ var (
 	// UserReviewsColumns holds the columns for the "user_reviews" table.
 	UserReviewsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "ordered_product_id", Type: field.TypeInt, Unique: true},
 		{Name: "rating", Type: field.TypeInt},
 		{Name: "review", Type: field.TypeString, Size: 500},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "ordered_product_id", Type: field.TypeInt},
 		{Name: "user_id", Type: field.TypeInt},
 	}
 	// UserReviewsTable holds the schema information for the "user_reviews" table.
@@ -362,6 +361,12 @@ var (
 		Columns:    UserReviewsColumns,
 		PrimaryKey: []*schema.Column{UserReviewsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_reviews_order_lines_user_review",
+				Columns:    []*schema.Column{UserReviewsColumns[5]},
+				RefColumns: []*schema.Column{OrderLinesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
 			{
 				Symbol:     "user_reviews_users_user_review",
 				Columns:    []*schema.Column{UserReviewsColumns[6]},
@@ -408,5 +413,6 @@ func init() {
 	ShoppingCartItemsTable.ForeignKeys[1].RefTable = ShoppingCartsTable
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable
 	UserAddressesTable.ForeignKeys[1].RefTable = AddressesTable
-	UserReviewsTable.ForeignKeys[0].RefTable = UsersTable
+	UserReviewsTable.ForeignKeys[0].RefTable = OrderLinesTable
+	UserReviewsTable.ForeignKeys[1].RefTable = UsersTable
 }

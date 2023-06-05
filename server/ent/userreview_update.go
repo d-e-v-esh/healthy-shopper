@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/userreview"
@@ -37,14 +38,7 @@ func (uru *UserReviewUpdate) SetUserID(i int) *UserReviewUpdate {
 
 // SetOrderedProductID sets the "ordered_product_id" field.
 func (uru *UserReviewUpdate) SetOrderedProductID(i int) *UserReviewUpdate {
-	uru.mutation.ResetOrderedProductID()
 	uru.mutation.SetOrderedProductID(i)
-	return uru
-}
-
-// AddOrderedProductID adds i to the "ordered_product_id" field.
-func (uru *UserReviewUpdate) AddOrderedProductID(i int) *UserReviewUpdate {
-	uru.mutation.AddOrderedProductID(i)
 	return uru
 }
 
@@ -92,6 +86,11 @@ func (uru *UserReviewUpdate) SetUser(u *User) *UserReviewUpdate {
 	return uru.SetUserID(u.ID)
 }
 
+// SetOrderedProduct sets the "ordered_product" edge to the OrderLine entity.
+func (uru *UserReviewUpdate) SetOrderedProduct(o *OrderLine) *UserReviewUpdate {
+	return uru.SetOrderedProductID(o.ID)
+}
+
 // Mutation returns the UserReviewMutation object of the builder.
 func (uru *UserReviewUpdate) Mutation() *UserReviewMutation {
 	return uru.mutation
@@ -100,6 +99,12 @@ func (uru *UserReviewUpdate) Mutation() *UserReviewMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (uru *UserReviewUpdate) ClearUser() *UserReviewUpdate {
 	uru.mutation.ClearUser()
+	return uru
+}
+
+// ClearOrderedProduct clears the "ordered_product" edge to the OrderLine entity.
+func (uru *UserReviewUpdate) ClearOrderedProduct() *UserReviewUpdate {
+	uru.mutation.ClearOrderedProduct()
 	return uru
 }
 
@@ -154,6 +159,9 @@ func (uru *UserReviewUpdate) check() error {
 	if _, ok := uru.mutation.UserID(); uru.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "UserReview.user"`)
 	}
+	if _, ok := uru.mutation.OrderedProductID(); uru.mutation.OrderedProductCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "UserReview.ordered_product"`)
+	}
 	return nil
 }
 
@@ -168,12 +176,6 @@ func (uru *UserReviewUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := uru.mutation.OrderedProductID(); ok {
-		_spec.SetField(userreview.FieldOrderedProductID, field.TypeInt, value)
-	}
-	if value, ok := uru.mutation.AddedOrderedProductID(); ok {
-		_spec.AddField(userreview.FieldOrderedProductID, field.TypeInt, value)
 	}
 	if value, ok := uru.mutation.Rating(); ok {
 		_spec.SetField(userreview.FieldRating, field.TypeInt, value)
@@ -219,6 +221,35 @@ func (uru *UserReviewUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uru.mutation.OrderedProductCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userreview.OrderedProductTable,
+			Columns: []string{userreview.OrderedProductColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uru.mutation.OrderedProductIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userreview.OrderedProductTable,
+			Columns: []string{userreview.OrderedProductColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{userreview.Label}
@@ -247,14 +278,7 @@ func (uruo *UserReviewUpdateOne) SetUserID(i int) *UserReviewUpdateOne {
 
 // SetOrderedProductID sets the "ordered_product_id" field.
 func (uruo *UserReviewUpdateOne) SetOrderedProductID(i int) *UserReviewUpdateOne {
-	uruo.mutation.ResetOrderedProductID()
 	uruo.mutation.SetOrderedProductID(i)
-	return uruo
-}
-
-// AddOrderedProductID adds i to the "ordered_product_id" field.
-func (uruo *UserReviewUpdateOne) AddOrderedProductID(i int) *UserReviewUpdateOne {
-	uruo.mutation.AddOrderedProductID(i)
 	return uruo
 }
 
@@ -302,6 +326,11 @@ func (uruo *UserReviewUpdateOne) SetUser(u *User) *UserReviewUpdateOne {
 	return uruo.SetUserID(u.ID)
 }
 
+// SetOrderedProduct sets the "ordered_product" edge to the OrderLine entity.
+func (uruo *UserReviewUpdateOne) SetOrderedProduct(o *OrderLine) *UserReviewUpdateOne {
+	return uruo.SetOrderedProductID(o.ID)
+}
+
 // Mutation returns the UserReviewMutation object of the builder.
 func (uruo *UserReviewUpdateOne) Mutation() *UserReviewMutation {
 	return uruo.mutation
@@ -310,6 +339,12 @@ func (uruo *UserReviewUpdateOne) Mutation() *UserReviewMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (uruo *UserReviewUpdateOne) ClearUser() *UserReviewUpdateOne {
 	uruo.mutation.ClearUser()
+	return uruo
+}
+
+// ClearOrderedProduct clears the "ordered_product" edge to the OrderLine entity.
+func (uruo *UserReviewUpdateOne) ClearOrderedProduct() *UserReviewUpdateOne {
+	uruo.mutation.ClearOrderedProduct()
 	return uruo
 }
 
@@ -377,6 +412,9 @@ func (uruo *UserReviewUpdateOne) check() error {
 	if _, ok := uruo.mutation.UserID(); uruo.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "UserReview.user"`)
 	}
+	if _, ok := uruo.mutation.OrderedProductID(); uruo.mutation.OrderedProductCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "UserReview.ordered_product"`)
+	}
 	return nil
 }
 
@@ -408,12 +446,6 @@ func (uruo *UserReviewUpdateOne) sqlSave(ctx context.Context) (_node *UserReview
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := uruo.mutation.OrderedProductID(); ok {
-		_spec.SetField(userreview.FieldOrderedProductID, field.TypeInt, value)
-	}
-	if value, ok := uruo.mutation.AddedOrderedProductID(); ok {
-		_spec.AddField(userreview.FieldOrderedProductID, field.TypeInt, value)
 	}
 	if value, ok := uruo.mutation.Rating(); ok {
 		_spec.SetField(userreview.FieldRating, field.TypeInt, value)
@@ -452,6 +484,35 @@ func (uruo *UserReviewUpdateOne) sqlSave(ctx context.Context) (_node *UserReview
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uruo.mutation.OrderedProductCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userreview.OrderedProductTable,
+			Columns: []string{userreview.OrderedProductColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uruo.mutation.OrderedProductIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   userreview.OrderedProductTable,
+			Columns: []string{userreview.OrderedProductColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

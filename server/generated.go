@@ -93,9 +93,11 @@ type ComplexityRoot struct {
 	OrderLine struct {
 		ID            func(childComplexity int) int
 		Price         func(childComplexity int) int
+		ProductItem   func(childComplexity int) int
 		ProductItemID func(childComplexity int) int
 		Quantity      func(childComplexity int) int
 		ShopOrderID   func(childComplexity int) int
+		UserReview    func(childComplexity int) int
 	}
 
 	OrderStatus struct {
@@ -238,6 +240,7 @@ type ComplexityRoot struct {
 	UserReview struct {
 		CreatedAt        func(childComplexity int) int
 		ID               func(childComplexity int) int
+		OrderedProduct   func(childComplexity int) int
 		OrderedProductID func(childComplexity int) int
 		Rating           func(childComplexity int) int
 		Review           func(childComplexity int) int
@@ -488,6 +491,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OrderLine.Price(childComplexity), true
 
+	case "OrderLine.productItem":
+		if e.complexity.OrderLine.ProductItem == nil {
+			break
+		}
+
+		return e.complexity.OrderLine.ProductItem(childComplexity), true
+
 	case "OrderLine.productItemID":
 		if e.complexity.OrderLine.ProductItemID == nil {
 			break
@@ -508,6 +518,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OrderLine.ShopOrderID(childComplexity), true
+
+	case "OrderLine.userReview":
+		if e.complexity.OrderLine.UserReview == nil {
+			break
+		}
+
+		return e.complexity.OrderLine.UserReview(childComplexity), true
 
 	case "OrderStatus.id":
 		if e.complexity.OrderStatus.ID == nil {
@@ -1218,6 +1235,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserReview.ID(childComplexity), true
+
+	case "UserReview.orderedProduct":
+		if e.complexity.UserReview.OrderedProduct == nil {
+			break
+		}
+
+		return e.complexity.UserReview.OrderedProduct(childComplexity), true
 
 	case "UserReview.orderedProductID":
 		if e.complexity.UserReview.OrderedProductID == nil {
@@ -2852,7 +2876,7 @@ func (ec *executionContext) _OrderLine_productItemID(ctx context.Context, field 
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OrderLine_productItemID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2862,7 +2886,7 @@ func (ec *executionContext) fieldContext_OrderLine_productItemID(ctx context.Con
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2995,6 +3019,135 @@ func (ec *executionContext) fieldContext_OrderLine_price(ctx context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OrderLine_productItem(ctx context.Context, field graphql.CollectedField, obj *ent.OrderLine) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OrderLine_productItem(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductItem(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProductItem)
+	fc.Result = res
+	return ec.marshalNProductItem2ᚖhealthyshopperᚋentᚐProductItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OrderLine_productItem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OrderLine",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProductItem_id(ctx, field)
+			case "productID":
+				return ec.fieldContext_ProductItem_productID(ctx, field)
+			case "stockKeepingUnit":
+				return ec.fieldContext_ProductItem_stockKeepingUnit(ctx, field)
+			case "quantityInStock":
+				return ec.fieldContext_ProductItem_quantityInStock(ctx, field)
+			case "productImage":
+				return ec.fieldContext_ProductItem_productImage(ctx, field)
+			case "price":
+				return ec.fieldContext_ProductItem_price(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ProductItem_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ProductItem_updatedAt(ctx, field)
+			case "product":
+				return ec.fieldContext_ProductItem_product(ctx, field)
+			case "orderLine":
+				return ec.fieldContext_ProductItem_orderLine(ctx, field)
+			case "shoppingCartItem":
+				return ec.fieldContext_ProductItem_shoppingCartItem(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProductItem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OrderLine_userReview(ctx context.Context, field graphql.CollectedField, obj *ent.OrderLine) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OrderLine_userReview(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserReview(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.UserReview)
+	fc.Result = res
+	return ec.marshalOUserReview2ᚕᚖhealthyshopperᚋentᚐUserReviewᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OrderLine_userReview(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OrderLine",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UserReview_id(ctx, field)
+			case "userID":
+				return ec.fieldContext_UserReview_userID(ctx, field)
+			case "orderedProductID":
+				return ec.fieldContext_UserReview_orderedProductID(ctx, field)
+			case "rating":
+				return ec.fieldContext_UserReview_rating(ctx, field)
+			case "review":
+				return ec.fieldContext_UserReview_review(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_UserReview_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_UserReview_updatedAt(ctx, field)
+			case "user":
+				return ec.fieldContext_UserReview_user(ctx, field)
+			case "orderedProduct":
+				return ec.fieldContext_UserReview_orderedProduct(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserReview", field.Name)
 		},
 	}
 	return fc, nil
@@ -4447,6 +4600,10 @@ func (ec *executionContext) fieldContext_ProductItem_orderLine(ctx context.Conte
 				return ec.fieldContext_OrderLine_quantity(ctx, field)
 			case "price":
 				return ec.fieldContext_OrderLine_price(ctx, field)
+			case "productItem":
+				return ec.fieldContext_OrderLine_productItem(ctx, field)
+			case "userReview":
+				return ec.fieldContext_OrderLine_userReview(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrderLine", field.Name)
 		},
@@ -7530,6 +7687,8 @@ func (ec *executionContext) fieldContext_User_userReview(ctx context.Context, fi
 				return ec.fieldContext_UserReview_updatedAt(ctx, field)
 			case "user":
 				return ec.fieldContext_UserReview_user(ctx, field)
+			case "orderedProduct":
+				return ec.fieldContext_UserReview_orderedProduct(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserReview", field.Name)
 		},
@@ -8081,7 +8240,7 @@ func (ec *executionContext) _UserReview_orderedProductID(ctx context.Context, fi
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserReview_orderedProductID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8091,7 +8250,7 @@ func (ec *executionContext) fieldContext_UserReview_orderedProductID(ctx context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8338,6 +8497,66 @@ func (ec *executionContext) fieldContext_UserReview_user(ctx context.Context, fi
 				return ec.fieldContext_User_shopOrder(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReview_orderedProduct(ctx context.Context, field graphql.CollectedField, obj *ent.UserReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReview_orderedProduct(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrderedProduct(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.OrderLine)
+	fc.Result = res
+	return ec.marshalNOrderLine2ᚖhealthyshopperᚋentᚐOrderLine(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReview_orderedProduct(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReview",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OrderLine_id(ctx, field)
+			case "productItemID":
+				return ec.fieldContext_OrderLine_productItemID(ctx, field)
+			case "shopOrderID":
+				return ec.fieldContext_OrderLine_shopOrderID(ctx, field)
+			case "quantity":
+				return ec.fieldContext_OrderLine_quantity(ctx, field)
+			case "price":
+				return ec.fieldContext_OrderLine_price(ctx, field)
+			case "productItem":
+				return ec.fieldContext_OrderLine_productItem(ctx, field)
+			case "userReview":
+				return ec.fieldContext_OrderLine_userReview(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrderLine", field.Name)
 		},
 	}
 	return fc, nil
@@ -10968,36 +11187,73 @@ func (ec *executionContext) _OrderLine(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._OrderLine_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "productItemID":
 
 			out.Values[i] = ec._OrderLine_productItemID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "shopOrderID":
 
 			out.Values[i] = ec._OrderLine_shopOrderID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "quantity":
 
 			out.Values[i] = ec._OrderLine_quantity(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "price":
 
 			out.Values[i] = ec._OrderLine_price(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "productItem":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OrderLine_productItem(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "userReview":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._OrderLine_userReview(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12420,6 +12676,26 @@ func (ec *executionContext) _UserReview(ctx context.Context, sel ast.SelectionSe
 					}
 				}()
 				res = ec._UserReview_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "orderedProduct":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReview_orderedProduct(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

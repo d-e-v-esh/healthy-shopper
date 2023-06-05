@@ -2471,21 +2471,24 @@ func (m *NutritionalInformationTableMutation) ResetEdge(name string) error {
 // OrderLineMutation represents an operation that mutates the OrderLine nodes in the graph.
 type OrderLineMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int
-	product_item_id    *int
-	addproduct_item_id *int
-	shop_order_id      *int
-	addshop_order_id   *int
-	quantity           *int
-	addquantity        *int
-	price              *float64
-	addprice           *float64
-	clearedFields      map[string]struct{}
-	done               bool
-	oldValue           func(context.Context) (*OrderLine, error)
-	predicates         []predicate.OrderLine
+	op                  Op
+	typ                 string
+	id                  *int
+	shop_order_id       *int
+	addshop_order_id    *int
+	quantity            *int
+	addquantity         *int
+	price               *float64
+	addprice            *float64
+	clearedFields       map[string]struct{}
+	product_item        *int
+	clearedproduct_item bool
+	user_review         map[int]struct{}
+	removeduser_review  map[int]struct{}
+	cleareduser_review  bool
+	done                bool
+	oldValue            func(context.Context) (*OrderLine, error)
+	predicates          []predicate.OrderLine
 }
 
 var _ ent.Mutation = (*OrderLineMutation)(nil)
@@ -2588,13 +2591,12 @@ func (m *OrderLineMutation) IDs(ctx context.Context) ([]int, error) {
 
 // SetProductItemID sets the "product_item_id" field.
 func (m *OrderLineMutation) SetProductItemID(i int) {
-	m.product_item_id = &i
-	m.addproduct_item_id = nil
+	m.product_item = &i
 }
 
 // ProductItemID returns the value of the "product_item_id" field in the mutation.
 func (m *OrderLineMutation) ProductItemID() (r int, exists bool) {
-	v := m.product_item_id
+	v := m.product_item
 	if v == nil {
 		return
 	}
@@ -2618,28 +2620,9 @@ func (m *OrderLineMutation) OldProductItemID(ctx context.Context) (v int, err er
 	return oldValue.ProductItemID, nil
 }
 
-// AddProductItemID adds i to the "product_item_id" field.
-func (m *OrderLineMutation) AddProductItemID(i int) {
-	if m.addproduct_item_id != nil {
-		*m.addproduct_item_id += i
-	} else {
-		m.addproduct_item_id = &i
-	}
-}
-
-// AddedProductItemID returns the value that was added to the "product_item_id" field in this mutation.
-func (m *OrderLineMutation) AddedProductItemID() (r int, exists bool) {
-	v := m.addproduct_item_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetProductItemID resets all changes to the "product_item_id" field.
 func (m *OrderLineMutation) ResetProductItemID() {
-	m.product_item_id = nil
-	m.addproduct_item_id = nil
+	m.product_item = nil
 }
 
 // SetShopOrderID sets the "shop_order_id" field.
@@ -2810,6 +2793,86 @@ func (m *OrderLineMutation) ResetPrice() {
 	m.addprice = nil
 }
 
+// ClearProductItem clears the "product_item" edge to the ProductItem entity.
+func (m *OrderLineMutation) ClearProductItem() {
+	m.clearedproduct_item = true
+}
+
+// ProductItemCleared reports if the "product_item" edge to the ProductItem entity was cleared.
+func (m *OrderLineMutation) ProductItemCleared() bool {
+	return m.clearedproduct_item
+}
+
+// ProductItemIDs returns the "product_item" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProductItemID instead. It exists only for internal usage by the builders.
+func (m *OrderLineMutation) ProductItemIDs() (ids []int) {
+	if id := m.product_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProductItem resets all changes to the "product_item" edge.
+func (m *OrderLineMutation) ResetProductItem() {
+	m.product_item = nil
+	m.clearedproduct_item = false
+}
+
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by ids.
+func (m *OrderLineMutation) AddUserReviewIDs(ids ...int) {
+	if m.user_review == nil {
+		m.user_review = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.user_review[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserReview clears the "user_review" edge to the UserReview entity.
+func (m *OrderLineMutation) ClearUserReview() {
+	m.cleareduser_review = true
+}
+
+// UserReviewCleared reports if the "user_review" edge to the UserReview entity was cleared.
+func (m *OrderLineMutation) UserReviewCleared() bool {
+	return m.cleareduser_review
+}
+
+// RemoveUserReviewIDs removes the "user_review" edge to the UserReview entity by IDs.
+func (m *OrderLineMutation) RemoveUserReviewIDs(ids ...int) {
+	if m.removeduser_review == nil {
+		m.removeduser_review = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.user_review, ids[i])
+		m.removeduser_review[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserReview returns the removed IDs of the "user_review" edge to the UserReview entity.
+func (m *OrderLineMutation) RemovedUserReviewIDs() (ids []int) {
+	for id := range m.removeduser_review {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserReviewIDs returns the "user_review" edge IDs in the mutation.
+func (m *OrderLineMutation) UserReviewIDs() (ids []int) {
+	for id := range m.user_review {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserReview resets all changes to the "user_review" edge.
+func (m *OrderLineMutation) ResetUserReview() {
+	m.user_review = nil
+	m.cleareduser_review = false
+	m.removeduser_review = nil
+}
+
 // Where appends a list predicates to the OrderLineMutation builder.
 func (m *OrderLineMutation) Where(ps ...predicate.OrderLine) {
 	m.predicates = append(m.predicates, ps...)
@@ -2845,7 +2908,7 @@ func (m *OrderLineMutation) Type() string {
 // AddedFields().
 func (m *OrderLineMutation) Fields() []string {
 	fields := make([]string, 0, 4)
-	if m.product_item_id != nil {
+	if m.product_item != nil {
 		fields = append(fields, orderline.FieldProductItemID)
 	}
 	if m.shop_order_id != nil {
@@ -2935,9 +2998,6 @@ func (m *OrderLineMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *OrderLineMutation) AddedFields() []string {
 	var fields []string
-	if m.addproduct_item_id != nil {
-		fields = append(fields, orderline.FieldProductItemID)
-	}
 	if m.addshop_order_id != nil {
 		fields = append(fields, orderline.FieldShopOrderID)
 	}
@@ -2955,8 +3015,6 @@ func (m *OrderLineMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *OrderLineMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case orderline.FieldProductItemID:
-		return m.AddedProductItemID()
 	case orderline.FieldShopOrderID:
 		return m.AddedShopOrderID()
 	case orderline.FieldQuantity:
@@ -2972,13 +3030,6 @@ func (m *OrderLineMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *OrderLineMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case orderline.FieldProductItemID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddProductItemID(v)
-		return nil
 	case orderline.FieldShopOrderID:
 		v, ok := value.(int)
 		if !ok {
@@ -3045,49 +3096,103 @@ func (m *OrderLineMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderLineMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.product_item != nil {
+		edges = append(edges, orderline.EdgeProductItem)
+	}
+	if m.user_review != nil {
+		edges = append(edges, orderline.EdgeUserReview)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *OrderLineMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderline.EdgeProductItem:
+		if id := m.product_item; id != nil {
+			return []ent.Value{*id}
+		}
+	case orderline.EdgeUserReview:
+		ids := make([]ent.Value, 0, len(m.user_review))
+		for id := range m.user_review {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderLineMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removeduser_review != nil {
+		edges = append(edges, orderline.EdgeUserReview)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *OrderLineMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case orderline.EdgeUserReview:
+		ids := make([]ent.Value, 0, len(m.removeduser_review))
+		for id := range m.removeduser_review {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderLineMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedproduct_item {
+		edges = append(edges, orderline.EdgeProductItem)
+	}
+	if m.cleareduser_review {
+		edges = append(edges, orderline.EdgeUserReview)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *OrderLineMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderline.EdgeProductItem:
+		return m.clearedproduct_item
+	case orderline.EdgeUserReview:
+		return m.cleareduser_review
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *OrderLineMutation) ClearEdge(name string) error {
+	switch name {
+	case orderline.EdgeProductItem:
+		m.ClearProductItem()
+		return nil
+	}
 	return fmt.Errorf("unknown OrderLine unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *OrderLineMutation) ResetEdge(name string) error {
+	switch name {
+	case orderline.EdgeProductItem:
+		m.ResetProductItem()
+		return nil
+	case orderline.EdgeUserReview:
+		m.ResetUserReview()
+		return nil
+	}
 	return fmt.Errorf("unknown OrderLine edge %s", name)
 }
 
@@ -10925,22 +11030,22 @@ func (m *UserAddressMutation) ResetEdge(name string) error {
 // UserReviewMutation represents an operation that mutates the UserReview nodes in the graph.
 type UserReviewMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *int
-	ordered_product_id    *int
-	addordered_product_id *int
-	rating                *int
-	addrating             *int
-	review                *string
-	created_at            *time.Time
-	updated_at            *time.Time
-	clearedFields         map[string]struct{}
-	user                  *int
-	cleareduser           bool
-	done                  bool
-	oldValue              func(context.Context) (*UserReview, error)
-	predicates            []predicate.UserReview
+	op                     Op
+	typ                    string
+	id                     *int
+	rating                 *int
+	addrating              *int
+	review                 *string
+	created_at             *time.Time
+	updated_at             *time.Time
+	clearedFields          map[string]struct{}
+	user                   *int
+	cleareduser            bool
+	ordered_product        *int
+	clearedordered_product bool
+	done                   bool
+	oldValue               func(context.Context) (*UserReview, error)
+	predicates             []predicate.UserReview
 }
 
 var _ ent.Mutation = (*UserReviewMutation)(nil)
@@ -11079,13 +11184,12 @@ func (m *UserReviewMutation) ResetUserID() {
 
 // SetOrderedProductID sets the "ordered_product_id" field.
 func (m *UserReviewMutation) SetOrderedProductID(i int) {
-	m.ordered_product_id = &i
-	m.addordered_product_id = nil
+	m.ordered_product = &i
 }
 
 // OrderedProductID returns the value of the "ordered_product_id" field in the mutation.
 func (m *UserReviewMutation) OrderedProductID() (r int, exists bool) {
-	v := m.ordered_product_id
+	v := m.ordered_product
 	if v == nil {
 		return
 	}
@@ -11109,28 +11213,9 @@ func (m *UserReviewMutation) OldOrderedProductID(ctx context.Context) (v int, er
 	return oldValue.OrderedProductID, nil
 }
 
-// AddOrderedProductID adds i to the "ordered_product_id" field.
-func (m *UserReviewMutation) AddOrderedProductID(i int) {
-	if m.addordered_product_id != nil {
-		*m.addordered_product_id += i
-	} else {
-		m.addordered_product_id = &i
-	}
-}
-
-// AddedOrderedProductID returns the value that was added to the "ordered_product_id" field in this mutation.
-func (m *UserReviewMutation) AddedOrderedProductID() (r int, exists bool) {
-	v := m.addordered_product_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetOrderedProductID resets all changes to the "ordered_product_id" field.
 func (m *UserReviewMutation) ResetOrderedProductID() {
-	m.ordered_product_id = nil
-	m.addordered_product_id = nil
+	m.ordered_product = nil
 }
 
 // SetRating sets the "rating" field.
@@ -11323,6 +11408,32 @@ func (m *UserReviewMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// ClearOrderedProduct clears the "ordered_product" edge to the OrderLine entity.
+func (m *UserReviewMutation) ClearOrderedProduct() {
+	m.clearedordered_product = true
+}
+
+// OrderedProductCleared reports if the "ordered_product" edge to the OrderLine entity was cleared.
+func (m *UserReviewMutation) OrderedProductCleared() bool {
+	return m.clearedordered_product
+}
+
+// OrderedProductIDs returns the "ordered_product" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderedProductID instead. It exists only for internal usage by the builders.
+func (m *UserReviewMutation) OrderedProductIDs() (ids []int) {
+	if id := m.ordered_product; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrderedProduct resets all changes to the "ordered_product" edge.
+func (m *UserReviewMutation) ResetOrderedProduct() {
+	m.ordered_product = nil
+	m.clearedordered_product = false
+}
+
 // Where appends a list predicates to the UserReviewMutation builder.
 func (m *UserReviewMutation) Where(ps ...predicate.UserReview) {
 	m.predicates = append(m.predicates, ps...)
@@ -11361,7 +11472,7 @@ func (m *UserReviewMutation) Fields() []string {
 	if m.user != nil {
 		fields = append(fields, userreview.FieldUserID)
 	}
-	if m.ordered_product_id != nil {
+	if m.ordered_product != nil {
 		fields = append(fields, userreview.FieldOrderedProductID)
 	}
 	if m.rating != nil {
@@ -11476,9 +11587,6 @@ func (m *UserReviewMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *UserReviewMutation) AddedFields() []string {
 	var fields []string
-	if m.addordered_product_id != nil {
-		fields = append(fields, userreview.FieldOrderedProductID)
-	}
 	if m.addrating != nil {
 		fields = append(fields, userreview.FieldRating)
 	}
@@ -11490,8 +11598,6 @@ func (m *UserReviewMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *UserReviewMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case userreview.FieldOrderedProductID:
-		return m.AddedOrderedProductID()
 	case userreview.FieldRating:
 		return m.AddedRating()
 	}
@@ -11503,13 +11609,6 @@ func (m *UserReviewMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserReviewMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case userreview.FieldOrderedProductID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddOrderedProductID(v)
-		return nil
 	case userreview.FieldRating:
 		v, ok := value.(int)
 		if !ok {
@@ -11568,9 +11667,12 @@ func (m *UserReviewMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserReviewMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, userreview.EdgeUser)
+	}
+	if m.ordered_product != nil {
+		edges = append(edges, userreview.EdgeOrderedProduct)
 	}
 	return edges
 }
@@ -11583,13 +11685,17 @@ func (m *UserReviewMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case userreview.EdgeOrderedProduct:
+		if id := m.ordered_product; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserReviewMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -11601,9 +11707,12 @@ func (m *UserReviewMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserReviewMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, userreview.EdgeUser)
+	}
+	if m.clearedordered_product {
+		edges = append(edges, userreview.EdgeOrderedProduct)
 	}
 	return edges
 }
@@ -11614,6 +11723,8 @@ func (m *UserReviewMutation) EdgeCleared(name string) bool {
 	switch name {
 	case userreview.EdgeUser:
 		return m.cleareduser
+	case userreview.EdgeOrderedProduct:
+		return m.clearedordered_product
 	}
 	return false
 }
@@ -11625,6 +11736,9 @@ func (m *UserReviewMutation) ClearEdge(name string) error {
 	case userreview.EdgeUser:
 		m.ClearUser()
 		return nil
+	case userreview.EdgeOrderedProduct:
+		m.ClearOrderedProduct()
+		return nil
 	}
 	return fmt.Errorf("unknown UserReview unique edge %s", name)
 }
@@ -11635,6 +11749,9 @@ func (m *UserReviewMutation) ResetEdge(name string) error {
 	switch name {
 	case userreview.EdgeUser:
 		m.ResetUser()
+		return nil
+	case userreview.EdgeOrderedProduct:
+		m.ResetOrderedProduct()
 		return nil
 	}
 	return fmt.Errorf("unknown UserReview edge %s", name)

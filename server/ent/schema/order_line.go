@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -22,5 +23,9 @@ func (OrderLine) Fields() []ent.Field {
 
 // Edges of the OrderLine.
 func (OrderLine) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.From("product_item", ProductItem.Type).Ref("order_line").Unique().Field("product_item_id").Required(),
+
+		edge.To("user_review", UserReview.Type),
+	}
 }

@@ -64,6 +64,26 @@ func (nit *NutritionalInformationTable) NutritionalInformation(ctx context.Conte
 	return result, err
 }
 
+func (ol *OrderLine) ProductItem(ctx context.Context) (*ProductItem, error) {
+	result, err := ol.Edges.ProductItemOrErr()
+	if IsNotLoaded(err) {
+		result, err = ol.QueryProductItem().Only(ctx)
+	}
+	return result, err
+}
+
+func (ol *OrderLine) UserReview(ctx context.Context) (result []*UserReview, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ol.NamedUserReview(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ol.Edges.UserReviewOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ol.QueryUserReview().All(ctx)
+	}
+	return result, err
+}
+
 func (os *OrderStatus) ShopOrder(ctx context.Context) (result []*ShopOrder, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = os.NamedShopOrder(graphql.GetFieldContext(ctx).Field.Alias)
@@ -308,6 +328,14 @@ func (ur *UserReview) User(ctx context.Context) (*User, error) {
 	result, err := ur.Edges.UserOrErr()
 	if IsNotLoaded(err) {
 		result, err = ur.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (ur *UserReview) OrderedProduct(ctx context.Context) (*OrderLine, error) {
+	result, err := ur.Edges.OrderedProductOrErr()
+	if IsNotLoaded(err) {
+		result, err = ur.QueryOrderedProduct().Only(ctx)
 	}
 	return result, err
 }

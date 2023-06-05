@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/orderline"
+	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/userreview"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -41,6 +43,26 @@ func (olc *OrderLineCreate) SetQuantity(i int) *OrderLineCreate {
 func (olc *OrderLineCreate) SetPrice(f float64) *OrderLineCreate {
 	olc.mutation.SetPrice(f)
 	return olc
+}
+
+// SetProductItem sets the "product_item" edge to the ProductItem entity.
+func (olc *OrderLineCreate) SetProductItem(p *ProductItem) *OrderLineCreate {
+	return olc.SetProductItemID(p.ID)
+}
+
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by IDs.
+func (olc *OrderLineCreate) AddUserReviewIDs(ids ...int) *OrderLineCreate {
+	olc.mutation.AddUserReviewIDs(ids...)
+	return olc
+}
+
+// AddUserReview adds the "user_review" edges to the UserReview entity.
+func (olc *OrderLineCreate) AddUserReview(u ...*UserReview) *OrderLineCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return olc.AddUserReviewIDs(ids...)
 }
 
 // Mutation returns the OrderLineMutation object of the builder.
@@ -99,6 +121,9 @@ func (olc *OrderLineCreate) check() error {
 			return &ValidationError{Name: "price", err: fmt.Errorf(`ent: validator failed for field "OrderLine.price": %w`, err)}
 		}
 	}
+	if _, ok := olc.mutation.ProductItemID(); !ok {
+		return &ValidationError{Name: "product_item", err: errors.New(`ent: missing required edge "OrderLine.product_item"`)}
+	}
 	return nil
 }
 
@@ -125,10 +150,6 @@ func (olc *OrderLineCreate) createSpec() (*OrderLine, *sqlgraph.CreateSpec) {
 		_node = &OrderLine{config: olc.config}
 		_spec = sqlgraph.NewCreateSpec(orderline.Table, sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt))
 	)
-	if value, ok := olc.mutation.ProductItemID(); ok {
-		_spec.SetField(orderline.FieldProductItemID, field.TypeInt, value)
-		_node.ProductItemID = value
-	}
 	if value, ok := olc.mutation.ShopOrderID(); ok {
 		_spec.SetField(orderline.FieldShopOrderID, field.TypeInt, value)
 		_node.ShopOrderID = value
@@ -140,6 +161,39 @@ func (olc *OrderLineCreate) createSpec() (*OrderLine, *sqlgraph.CreateSpec) {
 	if value, ok := olc.mutation.Price(); ok {
 		_spec.SetField(orderline.FieldPrice, field.TypeFloat64, value)
 		_node.Price = value
+	}
+	if nodes := olc.mutation.ProductItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderline.ProductItemTable,
+			Columns: []string{orderline.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProductItemID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := olc.mutation.UserReviewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderline.UserReviewTable,
+			Columns: []string{orderline.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

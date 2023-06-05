@@ -4,6 +4,7 @@ package orderline
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -19,8 +20,26 @@ const (
 	FieldQuantity = "quantity"
 	// FieldPrice holds the string denoting the price field in the database.
 	FieldPrice = "price"
+	// EdgeProductItem holds the string denoting the product_item edge name in mutations.
+	EdgeProductItem = "product_item"
+	// EdgeUserReview holds the string denoting the user_review edge name in mutations.
+	EdgeUserReview = "user_review"
 	// Table holds the table name of the orderline in the database.
 	Table = "order_lines"
+	// ProductItemTable is the table that holds the product_item relation/edge.
+	ProductItemTable = "order_lines"
+	// ProductItemInverseTable is the table name for the ProductItem entity.
+	// It exists in this package in order to avoid circular dependency with the "productitem" package.
+	ProductItemInverseTable = "product_items"
+	// ProductItemColumn is the table column denoting the product_item relation/edge.
+	ProductItemColumn = "product_item_id"
+	// UserReviewTable is the table that holds the user_review relation/edge.
+	UserReviewTable = "user_reviews"
+	// UserReviewInverseTable is the table name for the UserReview entity.
+	// It exists in this package in order to avoid circular dependency with the "userreview" package.
+	UserReviewInverseTable = "user_reviews"
+	// UserReviewColumn is the table column denoting the user_review relation/edge.
+	UserReviewColumn = "ordered_product_id"
 )
 
 // Columns holds all SQL columns for orderline fields.
@@ -32,21 +51,10 @@ var Columns = []string{
 	FieldPrice,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "order_lines"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"product_item_order_line",
-}
-
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -86,4 +94,39 @@ func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
 // ByPrice orders the results by the price field.
 func ByPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPrice, opts...).ToFunc()
+}
+
+// ByProductItemField orders the results by product_item field.
+func ByProductItemField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProductItemStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByUserReviewCount orders the results by user_review count.
+func ByUserReviewCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserReviewStep(), opts...)
+	}
+}
+
+// ByUserReview orders the results by user_review terms.
+func ByUserReview(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserReviewStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newProductItemStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProductItemInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProductItemTable, ProductItemColumn),
+	)
+}
+func newUserReviewStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserReviewInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UserReviewTable, UserReviewColumn),
+	)
 }

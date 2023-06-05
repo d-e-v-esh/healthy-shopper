@@ -978,6 +978,38 @@ func (c *OrderLineClient) GetX(ctx context.Context, id int) *OrderLine {
 	return obj
 }
 
+// QueryProductItem queries the product_item edge of a OrderLine.
+func (c *OrderLineClient) QueryProductItem(ol *OrderLine) *ProductItemQuery {
+	query := (&ProductItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ol.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderline.Table, orderline.FieldID, id),
+			sqlgraph.To(productitem.Table, productitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderline.ProductItemTable, orderline.ProductItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(ol.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserReview queries the user_review edge of a OrderLine.
+func (c *OrderLineClient) QueryUserReview(ol *OrderLine) *UserReviewQuery {
+	query := (&UserReviewClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ol.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderline.Table, orderline.FieldID, id),
+			sqlgraph.To(userreview.Table, userreview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderline.UserReviewTable, orderline.UserReviewColumn),
+		)
+		fromV = sqlgraph.Neighbors(ol.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrderLineClient) Hooks() []Hook {
 	return c.hooks.OrderLine
@@ -2803,6 +2835,22 @@ func (c *UserReviewClient) QueryUser(ur *UserReview) *UserQuery {
 			sqlgraph.From(userreview.Table, userreview.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, userreview.UserTable, userreview.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ur.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrderedProduct queries the ordered_product edge of a UserReview.
+func (c *UserReviewClient) QueryOrderedProduct(ur *UserReview) *OrderLineQuery {
+	query := (&OrderLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ur.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userreview.Table, userreview.FieldID, id),
+			sqlgraph.To(orderline.Table, orderline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userreview.OrderedProductTable, userreview.OrderedProductColumn),
 		)
 		fromV = sqlgraph.Neighbors(ur.driver.Dialect(), step)
 		return fromV, nil

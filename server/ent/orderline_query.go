@@ -4,9 +4,12 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/userreview"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -17,13 +20,15 @@ import (
 // OrderLineQuery is the builder for querying OrderLine entities.
 type OrderLineQuery struct {
 	config
-	ctx        *QueryContext
-	order      []orderline.OrderOption
-	inters     []Interceptor
-	predicates []predicate.OrderLine
-	withFKs    bool
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*OrderLine) error
+	ctx                 *QueryContext
+	order               []orderline.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.OrderLine
+	withProductItem     *ProductItemQuery
+	withUserReview      *UserReviewQuery
+	modifiers           []func(*sql.Selector)
+	loadTotal           []func(context.Context, []*OrderLine) error
+	withNamedUserReview map[string]*UserReviewQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +63,50 @@ func (olq *OrderLineQuery) Unique(unique bool) *OrderLineQuery {
 func (olq *OrderLineQuery) Order(o ...orderline.OrderOption) *OrderLineQuery {
 	olq.order = append(olq.order, o...)
 	return olq
+}
+
+// QueryProductItem chains the current query on the "product_item" edge.
+func (olq *OrderLineQuery) QueryProductItem() *ProductItemQuery {
+	query := (&ProductItemClient{config: olq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := olq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := olq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderline.Table, orderline.FieldID, selector),
+			sqlgraph.To(productitem.Table, productitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderline.ProductItemTable, orderline.ProductItemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(olq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserReview chains the current query on the "user_review" edge.
+func (olq *OrderLineQuery) QueryUserReview() *UserReviewQuery {
+	query := (&UserReviewClient{config: olq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := olq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := olq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderline.Table, orderline.FieldID, selector),
+			sqlgraph.To(userreview.Table, userreview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderline.UserReviewTable, orderline.UserReviewColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(olq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first OrderLine entity from the query.
@@ -247,15 +296,39 @@ func (olq *OrderLineQuery) Clone() *OrderLineQuery {
 		return nil
 	}
 	return &OrderLineQuery{
-		config:     olq.config,
-		ctx:        olq.ctx.Clone(),
-		order:      append([]orderline.OrderOption{}, olq.order...),
-		inters:     append([]Interceptor{}, olq.inters...),
-		predicates: append([]predicate.OrderLine{}, olq.predicates...),
+		config:          olq.config,
+		ctx:             olq.ctx.Clone(),
+		order:           append([]orderline.OrderOption{}, olq.order...),
+		inters:          append([]Interceptor{}, olq.inters...),
+		predicates:      append([]predicate.OrderLine{}, olq.predicates...),
+		withProductItem: olq.withProductItem.Clone(),
+		withUserReview:  olq.withUserReview.Clone(),
 		// clone intermediate query.
 		sql:  olq.sql.Clone(),
 		path: olq.path,
 	}
+}
+
+// WithProductItem tells the query-builder to eager-load the nodes that are connected to
+// the "product_item" edge. The optional arguments are used to configure the query builder of the edge.
+func (olq *OrderLineQuery) WithProductItem(opts ...func(*ProductItemQuery)) *OrderLineQuery {
+	query := (&ProductItemClient{config: olq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	olq.withProductItem = query
+	return olq
+}
+
+// WithUserReview tells the query-builder to eager-load the nodes that are connected to
+// the "user_review" edge. The optional arguments are used to configure the query builder of the edge.
+func (olq *OrderLineQuery) WithUserReview(opts ...func(*UserReviewQuery)) *OrderLineQuery {
+	query := (&UserReviewClient{config: olq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	olq.withUserReview = query
+	return olq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -334,19 +407,20 @@ func (olq *OrderLineQuery) prepareQuery(ctx context.Context) error {
 
 func (olq *OrderLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OrderLine, error) {
 	var (
-		nodes   = []*OrderLine{}
-		withFKs = olq.withFKs
-		_spec   = olq.querySpec()
+		nodes       = []*OrderLine{}
+		_spec       = olq.querySpec()
+		loadedTypes = [2]bool{
+			olq.withProductItem != nil,
+			olq.withUserReview != nil,
+		}
 	)
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, orderline.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*OrderLine).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &OrderLine{config: olq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(olq.modifiers) > 0 {
@@ -361,12 +435,92 @@ func (olq *OrderLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*O
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := olq.withProductItem; query != nil {
+		if err := olq.loadProductItem(ctx, query, nodes, nil,
+			func(n *OrderLine, e *ProductItem) { n.Edges.ProductItem = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := olq.withUserReview; query != nil {
+		if err := olq.loadUserReview(ctx, query, nodes,
+			func(n *OrderLine) { n.Edges.UserReview = []*UserReview{} },
+			func(n *OrderLine, e *UserReview) { n.Edges.UserReview = append(n.Edges.UserReview, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range olq.withNamedUserReview {
+		if err := olq.loadUserReview(ctx, query, nodes,
+			func(n *OrderLine) { n.appendNamedUserReview(name) },
+			func(n *OrderLine, e *UserReview) { n.appendNamedUserReview(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range olq.loadTotal {
 		if err := olq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (olq *OrderLineQuery) loadProductItem(ctx context.Context, query *ProductItemQuery, nodes []*OrderLine, init func(*OrderLine), assign func(*OrderLine, *ProductItem)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*OrderLine)
+	for i := range nodes {
+		fk := nodes[i].ProductItemID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(productitem.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "product_item_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (olq *OrderLineQuery) loadUserReview(ctx context.Context, query *UserReviewQuery, nodes []*OrderLine, init func(*OrderLine), assign func(*OrderLine, *UserReview)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*OrderLine)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userreview.FieldOrderedProductID)
+	}
+	query.Where(predicate.UserReview(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderline.UserReviewColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderedProductID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "ordered_product_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (olq *OrderLineQuery) sqlCount(ctx context.Context) (int, error) {
@@ -396,6 +550,9 @@ func (olq *OrderLineQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != orderline.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if olq.withProductItem != nil {
+			_spec.Node.AddColumnOnce(orderline.FieldProductItemID)
 		}
 	}
 	if ps := olq.predicates; len(ps) > 0 {
@@ -451,6 +608,20 @@ func (olq *OrderLineQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedUserReview tells the query-builder to eager-load the nodes that are connected to the "user_review"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (olq *OrderLineQuery) WithNamedUserReview(name string, opts ...func(*UserReviewQuery)) *OrderLineQuery {
+	query := (&UserReviewClient{config: olq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if olq.withNamedUserReview == nil {
+		olq.withNamedUserReview = make(map[string]*UserReviewQuery)
+	}
+	olq.withNamedUserReview[name] = query
+	return olq
 }
 
 // OrderLineGroupBy is the group-by builder for OrderLine entities.

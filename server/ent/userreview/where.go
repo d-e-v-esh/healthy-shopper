@@ -125,26 +125,6 @@ func OrderedProductIDNotIn(vs ...int) predicate.UserReview {
 	return predicate.UserReview(sql.FieldNotIn(FieldOrderedProductID, vs...))
 }
 
-// OrderedProductIDGT applies the GT predicate on the "ordered_product_id" field.
-func OrderedProductIDGT(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldGT(FieldOrderedProductID, v))
-}
-
-// OrderedProductIDGTE applies the GTE predicate on the "ordered_product_id" field.
-func OrderedProductIDGTE(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldGTE(FieldOrderedProductID, v))
-}
-
-// OrderedProductIDLT applies the LT predicate on the "ordered_product_id" field.
-func OrderedProductIDLT(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldLT(FieldOrderedProductID, v))
-}
-
-// OrderedProductIDLTE applies the LTE predicate on the "ordered_product_id" field.
-func OrderedProductIDLTE(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldLTE(FieldOrderedProductID, v))
-}
-
 // RatingEQ applies the EQ predicate on the "rating" field.
 func RatingEQ(v int) predicate.UserReview {
 	return predicate.UserReview(sql.FieldEQ(FieldRating, v))
@@ -345,6 +325,29 @@ func HasUser() predicate.UserReview {
 func HasUserWith(preds ...predicate.User) predicate.UserReview {
 	return predicate.UserReview(func(s *sql.Selector) {
 		step := newUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOrderedProduct applies the HasEdge predicate on the "ordered_product" edge.
+func HasOrderedProduct() predicate.UserReview {
+	return predicate.UserReview(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OrderedProductTable, OrderedProductColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderedProductWith applies the HasEdge predicate on the "ordered_product" edge with a given conditions (other predicates).
+func HasOrderedProductWith(preds ...predicate.OrderLine) predicate.UserReview {
+	return predicate.UserReview(func(s *sql.Selector) {
+		step := newOrderedProductStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
