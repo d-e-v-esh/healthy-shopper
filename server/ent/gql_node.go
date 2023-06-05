@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/nutritionalinformation"
+	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -35,6 +37,16 @@ var addressImplementors = []string{"Address", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Address) IsNode() {}
+
+var nutritionalinformationImplementors = []string{"NutritionalInformation", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*NutritionalInformation) IsNode() {}
+
+var nutritionalinformationtableImplementors = []string{"NutritionalInformationTable", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*NutritionalInformationTable) IsNode() {}
 
 var productImplementors = []string{"Product", "Node"}
 
@@ -138,6 +150,30 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.Address.Query().
 			Where(address.ID(id))
 		query, err := query.CollectFields(ctx, addressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case nutritionalinformation.Table:
+		query := c.NutritionalInformation.Query().
+			Where(nutritionalinformation.ID(id))
+		query, err := query.CollectFields(ctx, nutritionalinformationImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case nutritionalinformationtable.Table:
+		query := c.NutritionalInformationTable.Query().
+			Where(nutritionalinformationtable.ID(id))
+		query, err := query.CollectFields(ctx, nutritionalinformationtableImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -319,6 +355,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Address.Query().
 			Where(address.IDIn(ids...))
 		query, err := query.CollectFields(ctx, addressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case nutritionalinformation.Table:
+		query := c.NutritionalInformation.Query().
+			Where(nutritionalinformation.IDIn(ids...))
+		query, err := query.CollectFields(ctx, nutritionalinformationImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case nutritionalinformationtable.Table:
+		query := c.NutritionalInformationTable.Query().
+			Where(nutritionalinformationtable.IDIn(ids...))
+		query, err := query.CollectFields(ctx, nutritionalinformationtableImplementors...)
 		if err != nil {
 			return nil, err
 		}

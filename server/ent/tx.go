@@ -14,6 +14,10 @@ type Tx struct {
 	config
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// NutritionalInformation is the client for interacting with the NutritionalInformation builders.
+	NutritionalInformation *NutritionalInformationClient
+	// NutritionalInformationTable is the client for interacting with the NutritionalInformationTable builders.
+	NutritionalInformationTable *NutritionalInformationTableClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// ProductItem is the client for interacting with the ProductItem builders.
@@ -162,6 +166,8 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
+	tx.NutritionalInformation = NewNutritionalInformationClient(tx.config)
+	tx.NutritionalInformationTable = NewNutritionalInformationTableClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.ProductItem = NewProductItemClient(tx.config)
 	tx.Promotion = NewPromotionClient(tx.config)

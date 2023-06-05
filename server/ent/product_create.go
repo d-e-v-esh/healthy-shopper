@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -148,6 +149,11 @@ func (pc *ProductCreate) SetPromotion(p *Promotion) *ProductCreate {
 	return pc.SetPromotionID(p.ID)
 }
 
+// SetNutritionalInformation sets the "nutritional_information" edge to the NutritionalInformation entity.
+func (pc *ProductCreate) SetNutritionalInformation(n *NutritionalInformation) *ProductCreate {
+	return pc.SetNutritionalInformationID(n.ID)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pc *ProductCreate) Mutation() *ProductMutation {
 	return pc.mutation
@@ -264,10 +270,6 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_spec.SetField(product.FieldProductCategoryID, field.TypeInt, value)
 		_node.ProductCategoryID = value
 	}
-	if value, ok := pc.mutation.NutritionalInformationID(); ok {
-		_spec.SetField(product.FieldNutritionalInformationID, field.TypeInt, value)
-		_node.NutritionalInformationID = value
-	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -307,6 +309,23 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.PromotionID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.NutritionalInformationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.NutritionalInformationTable,
+			Columns: []string{product.NutritionalInformationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nutritionalinformation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.NutritionalInformationID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

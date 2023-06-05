@@ -4,6 +4,8 @@ package ent
 
 import (
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/nutritionalinformation"
+	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -127,6 +129,72 @@ func init() {
 		return func(postal_code string) error {
 			for _, fn := range fns {
 				if err := fn(postal_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	nutritionalinformationFields := schema.NutritionalInformation{}.Fields()
+	_ = nutritionalinformationFields
+	// nutritionalinformationDescNValue is the schema descriptor for n_value field.
+	nutritionalinformationDescNValue := nutritionalinformationFields[1].Descriptor()
+	// nutritionalinformation.NValueValidator is a validator for the "n_value" field. It is called by the builders before save.
+	nutritionalinformation.NValueValidator = nutritionalinformationDescNValue.Validators[0].(func(float64) error)
+	// nutritionalinformationDescNMeasurementUnit is the schema descriptor for n_measurement_unit field.
+	nutritionalinformationDescNMeasurementUnit := nutritionalinformationFields[2].Descriptor()
+	// nutritionalinformation.NMeasurementUnitValidator is a validator for the "n_measurement_unit" field. It is called by the builders before save.
+	nutritionalinformation.NMeasurementUnitValidator = func() func(string) error {
+		validators := nutritionalinformationDescNMeasurementUnit.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(n_measurement_unit string) error {
+			for _, fn := range fns {
+				if err := fn(n_measurement_unit); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	nutritionalinformationtableFields := schema.NutritionalInformationTable{}.Fields()
+	_ = nutritionalinformationtableFields
+	// nutritionalinformationtableDescParameter is the schema descriptor for parameter field.
+	nutritionalinformationtableDescParameter := nutritionalinformationtableFields[0].Descriptor()
+	// nutritionalinformationtable.ParameterValidator is a validator for the "parameter" field. It is called by the builders before save.
+	nutritionalinformationtable.ParameterValidator = func() func(string) error {
+		validators := nutritionalinformationtableDescParameter.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(parameter string) error {
+			for _, fn := range fns {
+				if err := fn(parameter); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// nutritionalinformationtableDescValue is the schema descriptor for value field.
+	nutritionalinformationtableDescValue := nutritionalinformationtableFields[1].Descriptor()
+	// nutritionalinformationtable.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	nutritionalinformationtable.ValueValidator = nutritionalinformationtableDescValue.Validators[0].(func(float64) error)
+	// nutritionalinformationtableDescMeasurementUnit is the schema descriptor for measurement_unit field.
+	nutritionalinformationtableDescMeasurementUnit := nutritionalinformationtableFields[2].Descriptor()
+	// nutritionalinformationtable.MeasurementUnitValidator is a validator for the "measurement_unit" field. It is called by the builders before save.
+	nutritionalinformationtable.MeasurementUnitValidator = func() func(string) error {
+		validators := nutritionalinformationtableDescMeasurementUnit.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(measurement_unit string) error {
+			for _, fn := range fns {
+				if err := fn(measurement_unit); err != nil {
 					return err
 				}
 			}

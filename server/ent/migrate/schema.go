@@ -25,6 +25,40 @@ var (
 		Columns:    AddressesColumns,
 		PrimaryKey: []*schema.Column{AddressesColumns[0]},
 	}
+	// NutritionalInformationsColumns holds the columns for the "nutritional_informations" table.
+	NutritionalInformationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "n_value", Type: field.TypeFloat64},
+		{Name: "n_measurement_unit", Type: field.TypeString, Size: 6},
+		{Name: "nutritional_information_table_id", Type: field.TypeInt},
+	}
+	// NutritionalInformationsTable holds the schema information for the "nutritional_informations" table.
+	NutritionalInformationsTable = &schema.Table{
+		Name:       "nutritional_informations",
+		Columns:    NutritionalInformationsColumns,
+		PrimaryKey: []*schema.Column{NutritionalInformationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "nutritional_informations_nutritional_information_tables_nutritional_information_table",
+				Columns:    []*schema.Column{NutritionalInformationsColumns[3]},
+				RefColumns: []*schema.Column{NutritionalInformationTablesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// NutritionalInformationTablesColumns holds the columns for the "nutritional_information_tables" table.
+	NutritionalInformationTablesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "parameter", Type: field.TypeString, Size: 30},
+		{Name: "value", Type: field.TypeFloat64},
+		{Name: "measurement_unit", Type: field.TypeString, Size: 6},
+	}
+	// NutritionalInformationTablesTable holds the schema information for the "nutritional_information_tables" table.
+	NutritionalInformationTablesTable = &schema.Table{
+		Name:       "nutritional_information_tables",
+		Columns:    NutritionalInformationTablesColumns,
+		PrimaryKey: []*schema.Column{NutritionalInformationTablesColumns[0]},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -33,10 +67,10 @@ var (
 		{Name: "product_image", Type: field.TypeString, Size: 500},
 		{Name: "ingredients_list_id", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "product_category_id", Type: field.TypeInt, Unique: true, Nullable: true},
-		{Name: "nutritional_information_id", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "promotion_id", Type: field.TypeInt, Nullable: true},
+		{Name: "nutritional_information_id", Type: field.TypeInt, Nullable: true},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
@@ -46,8 +80,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "products_promotions_promotion",
-				Columns:    []*schema.Column{ProductsColumns[9]},
+				Columns:    []*schema.Column{ProductsColumns[8]},
 				RefColumns: []*schema.Column{PromotionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "products_nutritional_informations_nutritional_information",
+				Columns:    []*schema.Column{ProductsColumns[9]},
+				RefColumns: []*schema.Column{NutritionalInformationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -203,6 +243,8 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AddressesTable,
+		NutritionalInformationsTable,
+		NutritionalInformationTablesTable,
 		ProductsTable,
 		ProductItemsTable,
 		PromotionsTable,
@@ -215,7 +257,9 @@ var (
 )
 
 func init() {
+	NutritionalInformationsTable.ForeignKeys[0].RefTable = NutritionalInformationTablesTable
 	ProductsTable.ForeignKeys[0].RefTable = PromotionsTable
+	ProductsTable.ForeignKeys[1].RefTable = NutritionalInformationsTable
 	ProductItemsTable.ForeignKeys[0].RefTable = ProductsTable
 	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
 	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable

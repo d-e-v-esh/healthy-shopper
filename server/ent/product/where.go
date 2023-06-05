@@ -415,26 +415,6 @@ func NutritionalInformationIDNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldNutritionalInformationID, vs...))
 }
 
-// NutritionalInformationIDGT applies the GT predicate on the "nutritional_information_id" field.
-func NutritionalInformationIDGT(v int) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldNutritionalInformationID, v))
-}
-
-// NutritionalInformationIDGTE applies the GTE predicate on the "nutritional_information_id" field.
-func NutritionalInformationIDGTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldNutritionalInformationID, v))
-}
-
-// NutritionalInformationIDLT applies the LT predicate on the "nutritional_information_id" field.
-func NutritionalInformationIDLT(v int) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldNutritionalInformationID, v))
-}
-
-// NutritionalInformationIDLTE applies the LTE predicate on the "nutritional_information_id" field.
-func NutritionalInformationIDLTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldNutritionalInformationID, v))
-}
-
 // NutritionalInformationIDIsNil applies the IsNil predicate on the "nutritional_information_id" field.
 func NutritionalInformationIDIsNil() predicate.Product {
 	return predicate.Product(sql.FieldIsNull(FieldNutritionalInformationID))
@@ -603,6 +583,29 @@ func HasPromotion() predicate.Product {
 func HasPromotionWith(preds ...predicate.Promotion) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := newPromotionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNutritionalInformation applies the HasEdge predicate on the "nutritional_information" edge.
+func HasNutritionalInformation() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, NutritionalInformationTable, NutritionalInformationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNutritionalInformationWith applies the HasEdge predicate on the "nutritional_information" edge with a given conditions (other predicates).
+func HasNutritionalInformationWith(preds ...predicate.NutritionalInformation) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newNutritionalInformationStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

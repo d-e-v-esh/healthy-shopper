@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/nutritionalinformation"
+	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -81,15 +83,17 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			address.Table:          address.ValidColumn,
-			product.Table:          product.ValidColumn,
-			productitem.Table:      productitem.ValidColumn,
-			promotion.Table:        promotion.ValidColumn,
-			shoppingcart.Table:     shoppingcart.ValidColumn,
-			shoppingcartitem.Table: shoppingcartitem.ValidColumn,
-			user.Table:             user.ValidColumn,
-			useraddress.Table:      useraddress.ValidColumn,
-			userreview.Table:       userreview.ValidColumn,
+			address.Table:                     address.ValidColumn,
+			nutritionalinformation.Table:      nutritionalinformation.ValidColumn,
+			nutritionalinformationtable.Table: nutritionalinformationtable.ValidColumn,
+			product.Table:                     product.ValidColumn,
+			productitem.Table:                 productitem.ValidColumn,
+			promotion.Table:                   promotion.ValidColumn,
+			shoppingcart.Table:                shoppingcart.ValidColumn,
+			shoppingcartitem.Table:            shoppingcartitem.ValidColumn,
+			user.Table:                        user.ValidColumn,
+			useraddress.Table:                 useraddress.ValidColumn,
+			userreview.Table:                  userreview.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

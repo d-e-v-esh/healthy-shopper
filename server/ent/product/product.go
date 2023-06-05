@@ -36,6 +36,8 @@ const (
 	EdgeProductItem = "product_item"
 	// EdgePromotion holds the string denoting the promotion edge name in mutations.
 	EdgePromotion = "promotion"
+	// EdgeNutritionalInformation holds the string denoting the nutritional_information edge name in mutations.
+	EdgeNutritionalInformation = "nutritional_information"
 	// Table holds the table name of the product in the database.
 	Table = "products"
 	// ProductItemTable is the table that holds the product_item relation/edge.
@@ -52,6 +54,13 @@ const (
 	PromotionInverseTable = "promotions"
 	// PromotionColumn is the table column denoting the promotion relation/edge.
 	PromotionColumn = "promotion_id"
+	// NutritionalInformationTable is the table that holds the nutritional_information relation/edge.
+	NutritionalInformationTable = "products"
+	// NutritionalInformationInverseTable is the table name for the NutritionalInformation entity.
+	// It exists in this package in order to avoid circular dependency with the "nutritionalinformation" package.
+	NutritionalInformationInverseTable = "nutritional_informations"
+	// NutritionalInformationColumn is the table column denoting the nutritional_information relation/edge.
+	NutritionalInformationColumn = "nutritional_information_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -155,6 +164,13 @@ func ByPromotionField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPromotionStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByNutritionalInformationField orders the results by nutritional_information field.
+func ByNutritionalInformationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNutritionalInformationStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newProductItemStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -167,5 +183,12 @@ func newPromotionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PromotionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, PromotionTable, PromotionColumn),
+	)
+}
+func newNutritionalInformationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NutritionalInformationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, NutritionalInformationTable, NutritionalInformationColumn),
 	)
 }

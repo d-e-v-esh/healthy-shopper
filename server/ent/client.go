@@ -11,6 +11,8 @@ import (
 	"healthyshopper/ent/migrate"
 
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/nutritionalinformation"
+	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -33,6 +35,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// NutritionalInformation is the client for interacting with the NutritionalInformation builders.
+	NutritionalInformation *NutritionalInformationClient
+	// NutritionalInformationTable is the client for interacting with the NutritionalInformationTable builders.
+	NutritionalInformationTable *NutritionalInformationTableClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// ProductItem is the client for interacting with the ProductItem builders.
@@ -65,6 +71,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Address = NewAddressClient(c.config)
+	c.NutritionalInformation = NewNutritionalInformationClient(c.config)
+	c.NutritionalInformationTable = NewNutritionalInformationTableClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.ProductItem = NewProductItemClient(c.config)
 	c.Promotion = NewPromotionClient(c.config)
@@ -153,17 +161,19 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		Address:          NewAddressClient(cfg),
-		Product:          NewProductClient(cfg),
-		ProductItem:      NewProductItemClient(cfg),
-		Promotion:        NewPromotionClient(cfg),
-		ShoppingCart:     NewShoppingCartClient(cfg),
-		ShoppingCartItem: NewShoppingCartItemClient(cfg),
-		User:             NewUserClient(cfg),
-		UserAddress:      NewUserAddressClient(cfg),
-		UserReview:       NewUserReviewClient(cfg),
+		ctx:                         ctx,
+		config:                      cfg,
+		Address:                     NewAddressClient(cfg),
+		NutritionalInformation:      NewNutritionalInformationClient(cfg),
+		NutritionalInformationTable: NewNutritionalInformationTableClient(cfg),
+		Product:                     NewProductClient(cfg),
+		ProductItem:                 NewProductItemClient(cfg),
+		Promotion:                   NewPromotionClient(cfg),
+		ShoppingCart:                NewShoppingCartClient(cfg),
+		ShoppingCartItem:            NewShoppingCartItemClient(cfg),
+		User:                        NewUserClient(cfg),
+		UserAddress:                 NewUserAddressClient(cfg),
+		UserReview:                  NewUserReviewClient(cfg),
 	}, nil
 }
 
@@ -181,17 +191,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		Address:          NewAddressClient(cfg),
-		Product:          NewProductClient(cfg),
-		ProductItem:      NewProductItemClient(cfg),
-		Promotion:        NewPromotionClient(cfg),
-		ShoppingCart:     NewShoppingCartClient(cfg),
-		ShoppingCartItem: NewShoppingCartItemClient(cfg),
-		User:             NewUserClient(cfg),
-		UserAddress:      NewUserAddressClient(cfg),
-		UserReview:       NewUserReviewClient(cfg),
+		ctx:                         ctx,
+		config:                      cfg,
+		Address:                     NewAddressClient(cfg),
+		NutritionalInformation:      NewNutritionalInformationClient(cfg),
+		NutritionalInformationTable: NewNutritionalInformationTableClient(cfg),
+		Product:                     NewProductClient(cfg),
+		ProductItem:                 NewProductItemClient(cfg),
+		Promotion:                   NewPromotionClient(cfg),
+		ShoppingCart:                NewShoppingCartClient(cfg),
+		ShoppingCartItem:            NewShoppingCartItemClient(cfg),
+		User:                        NewUserClient(cfg),
+		UserAddress:                 NewUserAddressClient(cfg),
+		UserReview:                  NewUserReviewClient(cfg),
 	}, nil
 }
 
@@ -221,8 +233,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Address, c.Product, c.ProductItem, c.Promotion, c.ShoppingCart,
-		c.ShoppingCartItem, c.User, c.UserAddress, c.UserReview,
+		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.Product,
+		c.ProductItem, c.Promotion, c.ShoppingCart, c.ShoppingCartItem, c.User,
+		c.UserAddress, c.UserReview,
 	} {
 		n.Use(hooks...)
 	}
@@ -232,8 +245,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Address, c.Product, c.ProductItem, c.Promotion, c.ShoppingCart,
-		c.ShoppingCartItem, c.User, c.UserAddress, c.UserReview,
+		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.Product,
+		c.ProductItem, c.Promotion, c.ShoppingCart, c.ShoppingCartItem, c.User,
+		c.UserAddress, c.UserReview,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -244,6 +258,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AddressMutation:
 		return c.Address.mutate(ctx, m)
+	case *NutritionalInformationMutation:
+		return c.NutritionalInformation.mutate(ctx, m)
+	case *NutritionalInformationTableMutation:
+		return c.NutritionalInformationTable.mutate(ctx, m)
 	case *ProductMutation:
 		return c.Product.mutate(ctx, m)
 	case *ProductItemMutation:
@@ -399,6 +417,290 @@ func (c *AddressClient) mutate(ctx context.Context, m *AddressMutation) (Value, 
 	}
 }
 
+// NutritionalInformationClient is a client for the NutritionalInformation schema.
+type NutritionalInformationClient struct {
+	config
+}
+
+// NewNutritionalInformationClient returns a client for the NutritionalInformation from the given config.
+func NewNutritionalInformationClient(c config) *NutritionalInformationClient {
+	return &NutritionalInformationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `nutritionalinformation.Hooks(f(g(h())))`.
+func (c *NutritionalInformationClient) Use(hooks ...Hook) {
+	c.hooks.NutritionalInformation = append(c.hooks.NutritionalInformation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `nutritionalinformation.Intercept(f(g(h())))`.
+func (c *NutritionalInformationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NutritionalInformation = append(c.inters.NutritionalInformation, interceptors...)
+}
+
+// Create returns a builder for creating a NutritionalInformation entity.
+func (c *NutritionalInformationClient) Create() *NutritionalInformationCreate {
+	mutation := newNutritionalInformationMutation(c.config, OpCreate)
+	return &NutritionalInformationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NutritionalInformation entities.
+func (c *NutritionalInformationClient) CreateBulk(builders ...*NutritionalInformationCreate) *NutritionalInformationCreateBulk {
+	return &NutritionalInformationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NutritionalInformation.
+func (c *NutritionalInformationClient) Update() *NutritionalInformationUpdate {
+	mutation := newNutritionalInformationMutation(c.config, OpUpdate)
+	return &NutritionalInformationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NutritionalInformationClient) UpdateOne(ni *NutritionalInformation) *NutritionalInformationUpdateOne {
+	mutation := newNutritionalInformationMutation(c.config, OpUpdateOne, withNutritionalInformation(ni))
+	return &NutritionalInformationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NutritionalInformationClient) UpdateOneID(id int) *NutritionalInformationUpdateOne {
+	mutation := newNutritionalInformationMutation(c.config, OpUpdateOne, withNutritionalInformationID(id))
+	return &NutritionalInformationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NutritionalInformation.
+func (c *NutritionalInformationClient) Delete() *NutritionalInformationDelete {
+	mutation := newNutritionalInformationMutation(c.config, OpDelete)
+	return &NutritionalInformationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NutritionalInformationClient) DeleteOne(ni *NutritionalInformation) *NutritionalInformationDeleteOne {
+	return c.DeleteOneID(ni.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NutritionalInformationClient) DeleteOneID(id int) *NutritionalInformationDeleteOne {
+	builder := c.Delete().Where(nutritionalinformation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NutritionalInformationDeleteOne{builder}
+}
+
+// Query returns a query builder for NutritionalInformation.
+func (c *NutritionalInformationClient) Query() *NutritionalInformationQuery {
+	return &NutritionalInformationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNutritionalInformation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NutritionalInformation entity by its id.
+func (c *NutritionalInformationClient) Get(ctx context.Context, id int) (*NutritionalInformation, error) {
+	return c.Query().Where(nutritionalinformation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NutritionalInformationClient) GetX(ctx context.Context, id int) *NutritionalInformation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProduct queries the product edge of a NutritionalInformation.
+func (c *NutritionalInformationClient) QueryProduct(ni *NutritionalInformation) *ProductQuery {
+	query := (&ProductClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nutritionalinformation.Table, nutritionalinformation.FieldID, id),
+			sqlgraph.To(product.Table, product.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, nutritionalinformation.ProductTable, nutritionalinformation.ProductColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNutritionalInformationTable queries the nutritional_information_table edge of a NutritionalInformation.
+func (c *NutritionalInformationClient) QueryNutritionalInformationTable(ni *NutritionalInformation) *NutritionalInformationTableQuery {
+	query := (&NutritionalInformationTableClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nutritionalinformation.Table, nutritionalinformation.FieldID, id),
+			sqlgraph.To(nutritionalinformationtable.Table, nutritionalinformationtable.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, nutritionalinformation.NutritionalInformationTableTable, nutritionalinformation.NutritionalInformationTableColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NutritionalInformationClient) Hooks() []Hook {
+	return c.hooks.NutritionalInformation
+}
+
+// Interceptors returns the client interceptors.
+func (c *NutritionalInformationClient) Interceptors() []Interceptor {
+	return c.inters.NutritionalInformation
+}
+
+func (c *NutritionalInformationClient) mutate(ctx context.Context, m *NutritionalInformationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NutritionalInformationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NutritionalInformationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NutritionalInformationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NutritionalInformationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NutritionalInformation mutation op: %q", m.Op())
+	}
+}
+
+// NutritionalInformationTableClient is a client for the NutritionalInformationTable schema.
+type NutritionalInformationTableClient struct {
+	config
+}
+
+// NewNutritionalInformationTableClient returns a client for the NutritionalInformationTable from the given config.
+func NewNutritionalInformationTableClient(c config) *NutritionalInformationTableClient {
+	return &NutritionalInformationTableClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `nutritionalinformationtable.Hooks(f(g(h())))`.
+func (c *NutritionalInformationTableClient) Use(hooks ...Hook) {
+	c.hooks.NutritionalInformationTable = append(c.hooks.NutritionalInformationTable, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `nutritionalinformationtable.Intercept(f(g(h())))`.
+func (c *NutritionalInformationTableClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NutritionalInformationTable = append(c.inters.NutritionalInformationTable, interceptors...)
+}
+
+// Create returns a builder for creating a NutritionalInformationTable entity.
+func (c *NutritionalInformationTableClient) Create() *NutritionalInformationTableCreate {
+	mutation := newNutritionalInformationTableMutation(c.config, OpCreate)
+	return &NutritionalInformationTableCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NutritionalInformationTable entities.
+func (c *NutritionalInformationTableClient) CreateBulk(builders ...*NutritionalInformationTableCreate) *NutritionalInformationTableCreateBulk {
+	return &NutritionalInformationTableCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NutritionalInformationTable.
+func (c *NutritionalInformationTableClient) Update() *NutritionalInformationTableUpdate {
+	mutation := newNutritionalInformationTableMutation(c.config, OpUpdate)
+	return &NutritionalInformationTableUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NutritionalInformationTableClient) UpdateOne(nit *NutritionalInformationTable) *NutritionalInformationTableUpdateOne {
+	mutation := newNutritionalInformationTableMutation(c.config, OpUpdateOne, withNutritionalInformationTable(nit))
+	return &NutritionalInformationTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NutritionalInformationTableClient) UpdateOneID(id int) *NutritionalInformationTableUpdateOne {
+	mutation := newNutritionalInformationTableMutation(c.config, OpUpdateOne, withNutritionalInformationTableID(id))
+	return &NutritionalInformationTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NutritionalInformationTable.
+func (c *NutritionalInformationTableClient) Delete() *NutritionalInformationTableDelete {
+	mutation := newNutritionalInformationTableMutation(c.config, OpDelete)
+	return &NutritionalInformationTableDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NutritionalInformationTableClient) DeleteOne(nit *NutritionalInformationTable) *NutritionalInformationTableDeleteOne {
+	return c.DeleteOneID(nit.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NutritionalInformationTableClient) DeleteOneID(id int) *NutritionalInformationTableDeleteOne {
+	builder := c.Delete().Where(nutritionalinformationtable.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NutritionalInformationTableDeleteOne{builder}
+}
+
+// Query returns a query builder for NutritionalInformationTable.
+func (c *NutritionalInformationTableClient) Query() *NutritionalInformationTableQuery {
+	return &NutritionalInformationTableQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNutritionalInformationTable},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NutritionalInformationTable entity by its id.
+func (c *NutritionalInformationTableClient) Get(ctx context.Context, id int) (*NutritionalInformationTable, error) {
+	return c.Query().Where(nutritionalinformationtable.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NutritionalInformationTableClient) GetX(ctx context.Context, id int) *NutritionalInformationTable {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryNutritionalInformation queries the nutritional_information edge of a NutritionalInformationTable.
+func (c *NutritionalInformationTableClient) QueryNutritionalInformation(nit *NutritionalInformationTable) *NutritionalInformationQuery {
+	query := (&NutritionalInformationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := nit.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(nutritionalinformationtable.Table, nutritionalinformationtable.FieldID, id),
+			sqlgraph.To(nutritionalinformation.Table, nutritionalinformation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, nutritionalinformationtable.NutritionalInformationTable, nutritionalinformationtable.NutritionalInformationColumn),
+		)
+		fromV = sqlgraph.Neighbors(nit.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NutritionalInformationTableClient) Hooks() []Hook {
+	return c.hooks.NutritionalInformationTable
+}
+
+// Interceptors returns the client interceptors.
+func (c *NutritionalInformationTableClient) Interceptors() []Interceptor {
+	return c.inters.NutritionalInformationTable
+}
+
+func (c *NutritionalInformationTableClient) mutate(ctx context.Context, m *NutritionalInformationTableMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NutritionalInformationTableCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NutritionalInformationTableUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NutritionalInformationTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NutritionalInformationTableDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown NutritionalInformationTable mutation op: %q", m.Op())
+	}
+}
+
 // ProductClient is a client for the Product schema.
 type ProductClient struct {
 	config
@@ -517,6 +819,22 @@ func (c *ProductClient) QueryPromotion(pr *Product) *PromotionQuery {
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(promotion.Table, promotion.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, product.PromotionTable, product.PromotionColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNutritionalInformation queries the nutritional_information edge of a Product.
+func (c *ProductClient) QueryNutritionalInformation(pr *Product) *NutritionalInformationQuery {
+	query := (&NutritionalInformationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, id),
+			sqlgraph.To(nutritionalinformation.Table, nutritionalinformation.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, product.NutritionalInformationTable, product.NutritionalInformationColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -1554,11 +1872,13 @@ func (c *UserReviewClient) mutate(ctx context.Context, m *UserReviewMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, Product, ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User,
-		UserAddress, UserReview []ent.Hook
+		Address, NutritionalInformation, NutritionalInformationTable, Product,
+		ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		UserReview []ent.Hook
 	}
 	inters struct {
-		Address, Product, ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User,
-		UserAddress, UserReview []ent.Interceptor
+		Address, NutritionalInformation, NutritionalInformationTable, Product,
+		ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		UserReview []ent.Interceptor
 	}
 )

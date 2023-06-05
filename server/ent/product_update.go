@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
@@ -104,7 +105,6 @@ func (pu *ProductUpdate) ClearProductCategoryID() *ProductUpdate {
 
 // SetNutritionalInformationID sets the "nutritional_information_id" field.
 func (pu *ProductUpdate) SetNutritionalInformationID(i int) *ProductUpdate {
-	pu.mutation.ResetNutritionalInformationID()
 	pu.mutation.SetNutritionalInformationID(i)
 	return pu
 }
@@ -114,12 +114,6 @@ func (pu *ProductUpdate) SetNillableNutritionalInformationID(i *int) *ProductUpd
 	if i != nil {
 		pu.SetNutritionalInformationID(*i)
 	}
-	return pu
-}
-
-// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
-func (pu *ProductUpdate) AddNutritionalInformationID(i int) *ProductUpdate {
-	pu.mutation.AddNutritionalInformationID(i)
 	return pu
 }
 
@@ -207,6 +201,11 @@ func (pu *ProductUpdate) SetPromotion(p *Promotion) *ProductUpdate {
 	return pu.SetPromotionID(p.ID)
 }
 
+// SetNutritionalInformation sets the "nutritional_information" edge to the NutritionalInformation entity.
+func (pu *ProductUpdate) SetNutritionalInformation(n *NutritionalInformation) *ProductUpdate {
+	return pu.SetNutritionalInformationID(n.ID)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pu *ProductUpdate) Mutation() *ProductMutation {
 	return pu.mutation
@@ -221,6 +220,12 @@ func (pu *ProductUpdate) ClearProductItem() *ProductUpdate {
 // ClearPromotion clears the "promotion" edge to the Promotion entity.
 func (pu *ProductUpdate) ClearPromotion() *ProductUpdate {
 	pu.mutation.ClearPromotion()
+	return pu
+}
+
+// ClearNutritionalInformation clears the "nutritional_information" edge to the NutritionalInformation entity.
+func (pu *ProductUpdate) ClearNutritionalInformation() *ProductUpdate {
+	pu.mutation.ClearNutritionalInformation()
 	return pu
 }
 
@@ -310,15 +315,6 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if pu.mutation.ProductCategoryIDCleared() {
 		_spec.ClearField(product.FieldProductCategoryID, field.TypeInt)
 	}
-	if value, ok := pu.mutation.NutritionalInformationID(); ok {
-		_spec.SetField(product.FieldNutritionalInformationID, field.TypeInt, value)
-	}
-	if value, ok := pu.mutation.AddedNutritionalInformationID(); ok {
-		_spec.AddField(product.FieldNutritionalInformationID, field.TypeInt, value)
-	}
-	if pu.mutation.NutritionalInformationIDCleared() {
-		_spec.ClearField(product.FieldNutritionalInformationID, field.TypeInt)
-	}
 	if value, ok := pu.mutation.CreatedAt(); ok {
 		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -379,6 +375,35 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(promotion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.NutritionalInformationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.NutritionalInformationTable,
+			Columns: []string{product.NutritionalInformationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nutritionalinformation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.NutritionalInformationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.NutritionalInformationTable,
+			Columns: []string{product.NutritionalInformationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nutritionalinformation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -480,7 +505,6 @@ func (puo *ProductUpdateOne) ClearProductCategoryID() *ProductUpdateOne {
 
 // SetNutritionalInformationID sets the "nutritional_information_id" field.
 func (puo *ProductUpdateOne) SetNutritionalInformationID(i int) *ProductUpdateOne {
-	puo.mutation.ResetNutritionalInformationID()
 	puo.mutation.SetNutritionalInformationID(i)
 	return puo
 }
@@ -490,12 +514,6 @@ func (puo *ProductUpdateOne) SetNillableNutritionalInformationID(i *int) *Produc
 	if i != nil {
 		puo.SetNutritionalInformationID(*i)
 	}
-	return puo
-}
-
-// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
-func (puo *ProductUpdateOne) AddNutritionalInformationID(i int) *ProductUpdateOne {
-	puo.mutation.AddNutritionalInformationID(i)
 	return puo
 }
 
@@ -583,6 +601,11 @@ func (puo *ProductUpdateOne) SetPromotion(p *Promotion) *ProductUpdateOne {
 	return puo.SetPromotionID(p.ID)
 }
 
+// SetNutritionalInformation sets the "nutritional_information" edge to the NutritionalInformation entity.
+func (puo *ProductUpdateOne) SetNutritionalInformation(n *NutritionalInformation) *ProductUpdateOne {
+	return puo.SetNutritionalInformationID(n.ID)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (puo *ProductUpdateOne) Mutation() *ProductMutation {
 	return puo.mutation
@@ -597,6 +620,12 @@ func (puo *ProductUpdateOne) ClearProductItem() *ProductUpdateOne {
 // ClearPromotion clears the "promotion" edge to the Promotion entity.
 func (puo *ProductUpdateOne) ClearPromotion() *ProductUpdateOne {
 	puo.mutation.ClearPromotion()
+	return puo
+}
+
+// ClearNutritionalInformation clears the "nutritional_information" edge to the NutritionalInformation entity.
+func (puo *ProductUpdateOne) ClearNutritionalInformation() *ProductUpdateOne {
+	puo.mutation.ClearNutritionalInformation()
 	return puo
 }
 
@@ -716,15 +745,6 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	if puo.mutation.ProductCategoryIDCleared() {
 		_spec.ClearField(product.FieldProductCategoryID, field.TypeInt)
 	}
-	if value, ok := puo.mutation.NutritionalInformationID(); ok {
-		_spec.SetField(product.FieldNutritionalInformationID, field.TypeInt, value)
-	}
-	if value, ok := puo.mutation.AddedNutritionalInformationID(); ok {
-		_spec.AddField(product.FieldNutritionalInformationID, field.TypeInt, value)
-	}
-	if puo.mutation.NutritionalInformationIDCleared() {
-		_spec.ClearField(product.FieldNutritionalInformationID, field.TypeInt)
-	}
 	if value, ok := puo.mutation.CreatedAt(); ok {
 		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -785,6 +805,35 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(promotion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.NutritionalInformationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.NutritionalInformationTable,
+			Columns: []string{product.NutritionalInformationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nutritionalinformation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.NutritionalInformationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.NutritionalInformationTable,
+			Columns: []string{product.NutritionalInformationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(nutritionalinformation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -21,11 +21,11 @@ input CreateProductInput {
   productImage: String!
   ingredientsListID: Int
   productCategoryID: Int
-  nutritionalInformationID: Int
   createdAt: Time
   updatedAt: Time
   productItemID: ID
   promotionID: ID
+  nutritionalInformationID: ID
 }
 """
 CreateProductItemInput is used for create ProductItem object.
@@ -78,6 +78,21 @@ interface Node @goModel(model: "healthyshopper/ent.Noder") {
   """The id of the object."""
   id: ID!
 }
+type NutritionalInformation implements Node {
+  id: ID!
+  nutritionalInformationTableID: ID!
+  nValue: Float!
+  nMeasurementUnit: String!
+  product: [Product!]!
+  nutritionalInformationTable: NutritionalInformationTable!
+}
+type NutritionalInformationTable implements Node {
+  id: ID!
+  parameter: String!
+  value: Float!
+  measurementUnit: String!
+  nutritionalInformation: [NutritionalInformation!]
+}
 """Possible directions in which to order a list of items when provided an `orderBy` argument."""
 enum OrderDirection {
   """Specifies an ascending order for a given `orderBy` argument."""
@@ -106,12 +121,13 @@ type Product implements Node {
   productImage: String!
   ingredientsListID: Int
   productCategoryID: Int
-  nutritionalInformationID: Int
+  nutritionalInformationID: ID
   promotionID: ID
   createdAt: Time!
   updatedAt: Time
   productItem: ProductItem
   promotion: Promotion
+  nutritionalInformation: NutritionalInformation
 }
 type ProductItem implements Node {
   id: ID!

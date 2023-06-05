@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/nutritionalinformation"
+	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
@@ -32,15 +34,17 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAddress          = "Address"
-	TypeProduct          = "Product"
-	TypeProductItem      = "ProductItem"
-	TypePromotion        = "Promotion"
-	TypeShoppingCart     = "ShoppingCart"
-	TypeShoppingCartItem = "ShoppingCartItem"
-	TypeUser             = "User"
-	TypeUserAddress      = "UserAddress"
-	TypeUserReview       = "UserReview"
+	TypeAddress                     = "Address"
+	TypeNutritionalInformation      = "NutritionalInformation"
+	TypeNutritionalInformationTable = "NutritionalInformationTable"
+	TypeProduct                     = "Product"
+	TypeProductItem                 = "ProductItem"
+	TypePromotion                   = "Promotion"
+	TypeShoppingCart                = "ShoppingCart"
+	TypeShoppingCartItem            = "ShoppingCartItem"
+	TypeUser                        = "User"
+	TypeUserAddress                 = "UserAddress"
+	TypeUserReview                  = "UserReview"
 )
 
 // AddressMutation represents an operation that mutates the Address nodes in the graph.
@@ -808,31 +812,1202 @@ func (m *AddressMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Address edge %s", name)
 }
 
+// NutritionalInformationMutation represents an operation that mutates the NutritionalInformation nodes in the graph.
+type NutritionalInformationMutation struct {
+	config
+	op                                   Op
+	typ                                  string
+	id                                   *int
+	n_value                              *float64
+	addn_value                           *float64
+	n_measurement_unit                   *string
+	clearedFields                        map[string]struct{}
+	product                              map[int]struct{}
+	removedproduct                       map[int]struct{}
+	clearedproduct                       bool
+	nutritional_information_table        *int
+	clearednutritional_information_table bool
+	done                                 bool
+	oldValue                             func(context.Context) (*NutritionalInformation, error)
+	predicates                           []predicate.NutritionalInformation
+}
+
+var _ ent.Mutation = (*NutritionalInformationMutation)(nil)
+
+// nutritionalinformationOption allows management of the mutation configuration using functional options.
+type nutritionalinformationOption func(*NutritionalInformationMutation)
+
+// newNutritionalInformationMutation creates new mutation for the NutritionalInformation entity.
+func newNutritionalInformationMutation(c config, op Op, opts ...nutritionalinformationOption) *NutritionalInformationMutation {
+	m := &NutritionalInformationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNutritionalInformation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNutritionalInformationID sets the ID field of the mutation.
+func withNutritionalInformationID(id int) nutritionalinformationOption {
+	return func(m *NutritionalInformationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NutritionalInformation
+		)
+		m.oldValue = func(ctx context.Context) (*NutritionalInformation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NutritionalInformation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNutritionalInformation sets the old NutritionalInformation of the mutation.
+func withNutritionalInformation(node *NutritionalInformation) nutritionalinformationOption {
+	return func(m *NutritionalInformationMutation) {
+		m.oldValue = func(context.Context) (*NutritionalInformation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NutritionalInformationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NutritionalInformationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NutritionalInformationMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NutritionalInformationMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NutritionalInformation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetNutritionalInformationTableID sets the "nutritional_information_table_id" field.
+func (m *NutritionalInformationMutation) SetNutritionalInformationTableID(i int) {
+	m.nutritional_information_table = &i
+}
+
+// NutritionalInformationTableID returns the value of the "nutritional_information_table_id" field in the mutation.
+func (m *NutritionalInformationMutation) NutritionalInformationTableID() (r int, exists bool) {
+	v := m.nutritional_information_table
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNutritionalInformationTableID returns the old "nutritional_information_table_id" field's value of the NutritionalInformation entity.
+// If the NutritionalInformation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NutritionalInformationMutation) OldNutritionalInformationTableID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNutritionalInformationTableID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNutritionalInformationTableID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNutritionalInformationTableID: %w", err)
+	}
+	return oldValue.NutritionalInformationTableID, nil
+}
+
+// ResetNutritionalInformationTableID resets all changes to the "nutritional_information_table_id" field.
+func (m *NutritionalInformationMutation) ResetNutritionalInformationTableID() {
+	m.nutritional_information_table = nil
+}
+
+// SetNValue sets the "n_value" field.
+func (m *NutritionalInformationMutation) SetNValue(f float64) {
+	m.n_value = &f
+	m.addn_value = nil
+}
+
+// NValue returns the value of the "n_value" field in the mutation.
+func (m *NutritionalInformationMutation) NValue() (r float64, exists bool) {
+	v := m.n_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNValue returns the old "n_value" field's value of the NutritionalInformation entity.
+// If the NutritionalInformation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NutritionalInformationMutation) OldNValue(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNValue: %w", err)
+	}
+	return oldValue.NValue, nil
+}
+
+// AddNValue adds f to the "n_value" field.
+func (m *NutritionalInformationMutation) AddNValue(f float64) {
+	if m.addn_value != nil {
+		*m.addn_value += f
+	} else {
+		m.addn_value = &f
+	}
+}
+
+// AddedNValue returns the value that was added to the "n_value" field in this mutation.
+func (m *NutritionalInformationMutation) AddedNValue() (r float64, exists bool) {
+	v := m.addn_value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNValue resets all changes to the "n_value" field.
+func (m *NutritionalInformationMutation) ResetNValue() {
+	m.n_value = nil
+	m.addn_value = nil
+}
+
+// SetNMeasurementUnit sets the "n_measurement_unit" field.
+func (m *NutritionalInformationMutation) SetNMeasurementUnit(s string) {
+	m.n_measurement_unit = &s
+}
+
+// NMeasurementUnit returns the value of the "n_measurement_unit" field in the mutation.
+func (m *NutritionalInformationMutation) NMeasurementUnit() (r string, exists bool) {
+	v := m.n_measurement_unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNMeasurementUnit returns the old "n_measurement_unit" field's value of the NutritionalInformation entity.
+// If the NutritionalInformation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NutritionalInformationMutation) OldNMeasurementUnit(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNMeasurementUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNMeasurementUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNMeasurementUnit: %w", err)
+	}
+	return oldValue.NMeasurementUnit, nil
+}
+
+// ResetNMeasurementUnit resets all changes to the "n_measurement_unit" field.
+func (m *NutritionalInformationMutation) ResetNMeasurementUnit() {
+	m.n_measurement_unit = nil
+}
+
+// AddProductIDs adds the "product" edge to the Product entity by ids.
+func (m *NutritionalInformationMutation) AddProductIDs(ids ...int) {
+	if m.product == nil {
+		m.product = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.product[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProduct clears the "product" edge to the Product entity.
+func (m *NutritionalInformationMutation) ClearProduct() {
+	m.clearedproduct = true
+}
+
+// ProductCleared reports if the "product" edge to the Product entity was cleared.
+func (m *NutritionalInformationMutation) ProductCleared() bool {
+	return m.clearedproduct
+}
+
+// RemoveProductIDs removes the "product" edge to the Product entity by IDs.
+func (m *NutritionalInformationMutation) RemoveProductIDs(ids ...int) {
+	if m.removedproduct == nil {
+		m.removedproduct = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.product, ids[i])
+		m.removedproduct[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProduct returns the removed IDs of the "product" edge to the Product entity.
+func (m *NutritionalInformationMutation) RemovedProductIDs() (ids []int) {
+	for id := range m.removedproduct {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ProductIDs returns the "product" edge IDs in the mutation.
+func (m *NutritionalInformationMutation) ProductIDs() (ids []int) {
+	for id := range m.product {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProduct resets all changes to the "product" edge.
+func (m *NutritionalInformationMutation) ResetProduct() {
+	m.product = nil
+	m.clearedproduct = false
+	m.removedproduct = nil
+}
+
+// ClearNutritionalInformationTable clears the "nutritional_information_table" edge to the NutritionalInformationTable entity.
+func (m *NutritionalInformationMutation) ClearNutritionalInformationTable() {
+	m.clearednutritional_information_table = true
+}
+
+// NutritionalInformationTableCleared reports if the "nutritional_information_table" edge to the NutritionalInformationTable entity was cleared.
+func (m *NutritionalInformationMutation) NutritionalInformationTableCleared() bool {
+	return m.clearednutritional_information_table
+}
+
+// NutritionalInformationTableIDs returns the "nutritional_information_table" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NutritionalInformationTableID instead. It exists only for internal usage by the builders.
+func (m *NutritionalInformationMutation) NutritionalInformationTableIDs() (ids []int) {
+	if id := m.nutritional_information_table; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNutritionalInformationTable resets all changes to the "nutritional_information_table" edge.
+func (m *NutritionalInformationMutation) ResetNutritionalInformationTable() {
+	m.nutritional_information_table = nil
+	m.clearednutritional_information_table = false
+}
+
+// Where appends a list predicates to the NutritionalInformationMutation builder.
+func (m *NutritionalInformationMutation) Where(ps ...predicate.NutritionalInformation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NutritionalInformationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NutritionalInformationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NutritionalInformation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NutritionalInformationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NutritionalInformationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NutritionalInformation).
+func (m *NutritionalInformationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NutritionalInformationMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.nutritional_information_table != nil {
+		fields = append(fields, nutritionalinformation.FieldNutritionalInformationTableID)
+	}
+	if m.n_value != nil {
+		fields = append(fields, nutritionalinformation.FieldNValue)
+	}
+	if m.n_measurement_unit != nil {
+		fields = append(fields, nutritionalinformation.FieldNMeasurementUnit)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NutritionalInformationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case nutritionalinformation.FieldNutritionalInformationTableID:
+		return m.NutritionalInformationTableID()
+	case nutritionalinformation.FieldNValue:
+		return m.NValue()
+	case nutritionalinformation.FieldNMeasurementUnit:
+		return m.NMeasurementUnit()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NutritionalInformationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case nutritionalinformation.FieldNutritionalInformationTableID:
+		return m.OldNutritionalInformationTableID(ctx)
+	case nutritionalinformation.FieldNValue:
+		return m.OldNValue(ctx)
+	case nutritionalinformation.FieldNMeasurementUnit:
+		return m.OldNMeasurementUnit(ctx)
+	}
+	return nil, fmt.Errorf("unknown NutritionalInformation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NutritionalInformationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case nutritionalinformation.FieldNutritionalInformationTableID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNutritionalInformationTableID(v)
+		return nil
+	case nutritionalinformation.FieldNValue:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNValue(v)
+		return nil
+	case nutritionalinformation.FieldNMeasurementUnit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNMeasurementUnit(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NutritionalInformationMutation) AddedFields() []string {
+	var fields []string
+	if m.addn_value != nil {
+		fields = append(fields, nutritionalinformation.FieldNValue)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NutritionalInformationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case nutritionalinformation.FieldNValue:
+		return m.AddedNValue()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NutritionalInformationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case nutritionalinformation.FieldNValue:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNValue(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NutritionalInformationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NutritionalInformationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NutritionalInformationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown NutritionalInformation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NutritionalInformationMutation) ResetField(name string) error {
+	switch name {
+	case nutritionalinformation.FieldNutritionalInformationTableID:
+		m.ResetNutritionalInformationTableID()
+		return nil
+	case nutritionalinformation.FieldNValue:
+		m.ResetNValue()
+		return nil
+	case nutritionalinformation.FieldNMeasurementUnit:
+		m.ResetNMeasurementUnit()
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NutritionalInformationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.product != nil {
+		edges = append(edges, nutritionalinformation.EdgeProduct)
+	}
+	if m.nutritional_information_table != nil {
+		edges = append(edges, nutritionalinformation.EdgeNutritionalInformationTable)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NutritionalInformationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case nutritionalinformation.EdgeProduct:
+		ids := make([]ent.Value, 0, len(m.product))
+		for id := range m.product {
+			ids = append(ids, id)
+		}
+		return ids
+	case nutritionalinformation.EdgeNutritionalInformationTable:
+		if id := m.nutritional_information_table; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NutritionalInformationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedproduct != nil {
+		edges = append(edges, nutritionalinformation.EdgeProduct)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NutritionalInformationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case nutritionalinformation.EdgeProduct:
+		ids := make([]ent.Value, 0, len(m.removedproduct))
+		for id := range m.removedproduct {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NutritionalInformationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedproduct {
+		edges = append(edges, nutritionalinformation.EdgeProduct)
+	}
+	if m.clearednutritional_information_table {
+		edges = append(edges, nutritionalinformation.EdgeNutritionalInformationTable)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NutritionalInformationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case nutritionalinformation.EdgeProduct:
+		return m.clearedproduct
+	case nutritionalinformation.EdgeNutritionalInformationTable:
+		return m.clearednutritional_information_table
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NutritionalInformationMutation) ClearEdge(name string) error {
+	switch name {
+	case nutritionalinformation.EdgeNutritionalInformationTable:
+		m.ClearNutritionalInformationTable()
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NutritionalInformationMutation) ResetEdge(name string) error {
+	switch name {
+	case nutritionalinformation.EdgeProduct:
+		m.ResetProduct()
+		return nil
+	case nutritionalinformation.EdgeNutritionalInformationTable:
+		m.ResetNutritionalInformationTable()
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformation edge %s", name)
+}
+
+// NutritionalInformationTableMutation represents an operation that mutates the NutritionalInformationTable nodes in the graph.
+type NutritionalInformationTableMutation struct {
+	config
+	op                             Op
+	typ                            string
+	id                             *int
+	parameter                      *string
+	value                          *float64
+	addvalue                       *float64
+	measurement_unit               *string
+	clearedFields                  map[string]struct{}
+	nutritional_information        map[int]struct{}
+	removednutritional_information map[int]struct{}
+	clearednutritional_information bool
+	done                           bool
+	oldValue                       func(context.Context) (*NutritionalInformationTable, error)
+	predicates                     []predicate.NutritionalInformationTable
+}
+
+var _ ent.Mutation = (*NutritionalInformationTableMutation)(nil)
+
+// nutritionalinformationtableOption allows management of the mutation configuration using functional options.
+type nutritionalinformationtableOption func(*NutritionalInformationTableMutation)
+
+// newNutritionalInformationTableMutation creates new mutation for the NutritionalInformationTable entity.
+func newNutritionalInformationTableMutation(c config, op Op, opts ...nutritionalinformationtableOption) *NutritionalInformationTableMutation {
+	m := &NutritionalInformationTableMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNutritionalInformationTable,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNutritionalInformationTableID sets the ID field of the mutation.
+func withNutritionalInformationTableID(id int) nutritionalinformationtableOption {
+	return func(m *NutritionalInformationTableMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NutritionalInformationTable
+		)
+		m.oldValue = func(ctx context.Context) (*NutritionalInformationTable, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NutritionalInformationTable.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNutritionalInformationTable sets the old NutritionalInformationTable of the mutation.
+func withNutritionalInformationTable(node *NutritionalInformationTable) nutritionalinformationtableOption {
+	return func(m *NutritionalInformationTableMutation) {
+		m.oldValue = func(context.Context) (*NutritionalInformationTable, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NutritionalInformationTableMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NutritionalInformationTableMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NutritionalInformationTableMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NutritionalInformationTableMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NutritionalInformationTable.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetParameter sets the "parameter" field.
+func (m *NutritionalInformationTableMutation) SetParameter(s string) {
+	m.parameter = &s
+}
+
+// Parameter returns the value of the "parameter" field in the mutation.
+func (m *NutritionalInformationTableMutation) Parameter() (r string, exists bool) {
+	v := m.parameter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParameter returns the old "parameter" field's value of the NutritionalInformationTable entity.
+// If the NutritionalInformationTable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NutritionalInformationTableMutation) OldParameter(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParameter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParameter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParameter: %w", err)
+	}
+	return oldValue.Parameter, nil
+}
+
+// ResetParameter resets all changes to the "parameter" field.
+func (m *NutritionalInformationTableMutation) ResetParameter() {
+	m.parameter = nil
+}
+
+// SetValue sets the "value" field.
+func (m *NutritionalInformationTableMutation) SetValue(f float64) {
+	m.value = &f
+	m.addvalue = nil
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *NutritionalInformationTableMutation) Value() (r float64, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the NutritionalInformationTable entity.
+// If the NutritionalInformationTable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NutritionalInformationTableMutation) OldValue(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// AddValue adds f to the "value" field.
+func (m *NutritionalInformationTableMutation) AddValue(f float64) {
+	if m.addvalue != nil {
+		*m.addvalue += f
+	} else {
+		m.addvalue = &f
+	}
+}
+
+// AddedValue returns the value that was added to the "value" field in this mutation.
+func (m *NutritionalInformationTableMutation) AddedValue() (r float64, exists bool) {
+	v := m.addvalue
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *NutritionalInformationTableMutation) ResetValue() {
+	m.value = nil
+	m.addvalue = nil
+}
+
+// SetMeasurementUnit sets the "measurement_unit" field.
+func (m *NutritionalInformationTableMutation) SetMeasurementUnit(s string) {
+	m.measurement_unit = &s
+}
+
+// MeasurementUnit returns the value of the "measurement_unit" field in the mutation.
+func (m *NutritionalInformationTableMutation) MeasurementUnit() (r string, exists bool) {
+	v := m.measurement_unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMeasurementUnit returns the old "measurement_unit" field's value of the NutritionalInformationTable entity.
+// If the NutritionalInformationTable object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NutritionalInformationTableMutation) OldMeasurementUnit(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMeasurementUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMeasurementUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMeasurementUnit: %w", err)
+	}
+	return oldValue.MeasurementUnit, nil
+}
+
+// ResetMeasurementUnit resets all changes to the "measurement_unit" field.
+func (m *NutritionalInformationTableMutation) ResetMeasurementUnit() {
+	m.measurement_unit = nil
+}
+
+// AddNutritionalInformationIDs adds the "nutritional_information" edge to the NutritionalInformation entity by ids.
+func (m *NutritionalInformationTableMutation) AddNutritionalInformationIDs(ids ...int) {
+	if m.nutritional_information == nil {
+		m.nutritional_information = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.nutritional_information[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNutritionalInformation clears the "nutritional_information" edge to the NutritionalInformation entity.
+func (m *NutritionalInformationTableMutation) ClearNutritionalInformation() {
+	m.clearednutritional_information = true
+}
+
+// NutritionalInformationCleared reports if the "nutritional_information" edge to the NutritionalInformation entity was cleared.
+func (m *NutritionalInformationTableMutation) NutritionalInformationCleared() bool {
+	return m.clearednutritional_information
+}
+
+// RemoveNutritionalInformationIDs removes the "nutritional_information" edge to the NutritionalInformation entity by IDs.
+func (m *NutritionalInformationTableMutation) RemoveNutritionalInformationIDs(ids ...int) {
+	if m.removednutritional_information == nil {
+		m.removednutritional_information = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.nutritional_information, ids[i])
+		m.removednutritional_information[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNutritionalInformation returns the removed IDs of the "nutritional_information" edge to the NutritionalInformation entity.
+func (m *NutritionalInformationTableMutation) RemovedNutritionalInformationIDs() (ids []int) {
+	for id := range m.removednutritional_information {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NutritionalInformationIDs returns the "nutritional_information" edge IDs in the mutation.
+func (m *NutritionalInformationTableMutation) NutritionalInformationIDs() (ids []int) {
+	for id := range m.nutritional_information {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNutritionalInformation resets all changes to the "nutritional_information" edge.
+func (m *NutritionalInformationTableMutation) ResetNutritionalInformation() {
+	m.nutritional_information = nil
+	m.clearednutritional_information = false
+	m.removednutritional_information = nil
+}
+
+// Where appends a list predicates to the NutritionalInformationTableMutation builder.
+func (m *NutritionalInformationTableMutation) Where(ps ...predicate.NutritionalInformationTable) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NutritionalInformationTableMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NutritionalInformationTableMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NutritionalInformationTable, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NutritionalInformationTableMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NutritionalInformationTableMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NutritionalInformationTable).
+func (m *NutritionalInformationTableMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NutritionalInformationTableMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.parameter != nil {
+		fields = append(fields, nutritionalinformationtable.FieldParameter)
+	}
+	if m.value != nil {
+		fields = append(fields, nutritionalinformationtable.FieldValue)
+	}
+	if m.measurement_unit != nil {
+		fields = append(fields, nutritionalinformationtable.FieldMeasurementUnit)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NutritionalInformationTableMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case nutritionalinformationtable.FieldParameter:
+		return m.Parameter()
+	case nutritionalinformationtable.FieldValue:
+		return m.Value()
+	case nutritionalinformationtable.FieldMeasurementUnit:
+		return m.MeasurementUnit()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NutritionalInformationTableMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case nutritionalinformationtable.FieldParameter:
+		return m.OldParameter(ctx)
+	case nutritionalinformationtable.FieldValue:
+		return m.OldValue(ctx)
+	case nutritionalinformationtable.FieldMeasurementUnit:
+		return m.OldMeasurementUnit(ctx)
+	}
+	return nil, fmt.Errorf("unknown NutritionalInformationTable field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NutritionalInformationTableMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case nutritionalinformationtable.FieldParameter:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParameter(v)
+		return nil
+	case nutritionalinformationtable.FieldValue:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
+	case nutritionalinformationtable.FieldMeasurementUnit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMeasurementUnit(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformationTable field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NutritionalInformationTableMutation) AddedFields() []string {
+	var fields []string
+	if m.addvalue != nil {
+		fields = append(fields, nutritionalinformationtable.FieldValue)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NutritionalInformationTableMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case nutritionalinformationtable.FieldValue:
+		return m.AddedValue()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NutritionalInformationTableMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case nutritionalinformationtable.FieldValue:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddValue(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformationTable numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NutritionalInformationTableMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NutritionalInformationTableMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NutritionalInformationTableMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown NutritionalInformationTable nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NutritionalInformationTableMutation) ResetField(name string) error {
+	switch name {
+	case nutritionalinformationtable.FieldParameter:
+		m.ResetParameter()
+		return nil
+	case nutritionalinformationtable.FieldValue:
+		m.ResetValue()
+		return nil
+	case nutritionalinformationtable.FieldMeasurementUnit:
+		m.ResetMeasurementUnit()
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformationTable field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NutritionalInformationTableMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.nutritional_information != nil {
+		edges = append(edges, nutritionalinformationtable.EdgeNutritionalInformation)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NutritionalInformationTableMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case nutritionalinformationtable.EdgeNutritionalInformation:
+		ids := make([]ent.Value, 0, len(m.nutritional_information))
+		for id := range m.nutritional_information {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NutritionalInformationTableMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removednutritional_information != nil {
+		edges = append(edges, nutritionalinformationtable.EdgeNutritionalInformation)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NutritionalInformationTableMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case nutritionalinformationtable.EdgeNutritionalInformation:
+		ids := make([]ent.Value, 0, len(m.removednutritional_information))
+		for id := range m.removednutritional_information {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NutritionalInformationTableMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearednutritional_information {
+		edges = append(edges, nutritionalinformationtable.EdgeNutritionalInformation)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NutritionalInformationTableMutation) EdgeCleared(name string) bool {
+	switch name {
+	case nutritionalinformationtable.EdgeNutritionalInformation:
+		return m.clearednutritional_information
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NutritionalInformationTableMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown NutritionalInformationTable unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NutritionalInformationTableMutation) ResetEdge(name string) error {
+	switch name {
+	case nutritionalinformationtable.EdgeNutritionalInformation:
+		m.ResetNutritionalInformation()
+		return nil
+	}
+	return fmt.Errorf("unknown NutritionalInformationTable edge %s", name)
+}
+
 // ProductMutation represents an operation that mutates the Product nodes in the graph.
 type ProductMutation struct {
 	config
-	op                            Op
-	typ                           string
-	id                            *int
-	name                          *string
-	description                   *string
-	product_image                 *string
-	ingredients_list_id           *int
-	addingredients_list_id        *int
-	product_category_id           *int
-	addproduct_category_id        *int
-	nutritional_information_id    *int
-	addnutritional_information_id *int
-	created_at                    *time.Time
-	updated_at                    *time.Time
-	clearedFields                 map[string]struct{}
-	product_item                  *int
-	clearedproduct_item           bool
-	promotion                     *int
-	clearedpromotion              bool
-	done                          bool
-	oldValue                      func(context.Context) (*Product, error)
-	predicates                    []predicate.Product
+	op                             Op
+	typ                            string
+	id                             *int
+	name                           *string
+	description                    *string
+	product_image                  *string
+	ingredients_list_id            *int
+	addingredients_list_id         *int
+	product_category_id            *int
+	addproduct_category_id         *int
+	created_at                     *time.Time
+	updated_at                     *time.Time
+	clearedFields                  map[string]struct{}
+	product_item                   *int
+	clearedproduct_item            bool
+	promotion                      *int
+	clearedpromotion               bool
+	nutritional_information        *int
+	clearednutritional_information bool
+	done                           bool
+	oldValue                       func(context.Context) (*Product, error)
+	predicates                     []predicate.Product
 }
 
 var _ ent.Mutation = (*ProductMutation)(nil)
@@ -1183,13 +2358,12 @@ func (m *ProductMutation) ResetProductCategoryID() {
 
 // SetNutritionalInformationID sets the "nutritional_information_id" field.
 func (m *ProductMutation) SetNutritionalInformationID(i int) {
-	m.nutritional_information_id = &i
-	m.addnutritional_information_id = nil
+	m.nutritional_information = &i
 }
 
 // NutritionalInformationID returns the value of the "nutritional_information_id" field in the mutation.
 func (m *ProductMutation) NutritionalInformationID() (r int, exists bool) {
-	v := m.nutritional_information_id
+	v := m.nutritional_information
 	if v == nil {
 		return
 	}
@@ -1213,28 +2387,9 @@ func (m *ProductMutation) OldNutritionalInformationID(ctx context.Context) (v in
 	return oldValue.NutritionalInformationID, nil
 }
 
-// AddNutritionalInformationID adds i to the "nutritional_information_id" field.
-func (m *ProductMutation) AddNutritionalInformationID(i int) {
-	if m.addnutritional_information_id != nil {
-		*m.addnutritional_information_id += i
-	} else {
-		m.addnutritional_information_id = &i
-	}
-}
-
-// AddedNutritionalInformationID returns the value that was added to the "nutritional_information_id" field in this mutation.
-func (m *ProductMutation) AddedNutritionalInformationID() (r int, exists bool) {
-	v := m.addnutritional_information_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ClearNutritionalInformationID clears the value of the "nutritional_information_id" field.
 func (m *ProductMutation) ClearNutritionalInformationID() {
-	m.nutritional_information_id = nil
-	m.addnutritional_information_id = nil
+	m.nutritional_information = nil
 	m.clearedFields[product.FieldNutritionalInformationID] = struct{}{}
 }
 
@@ -1246,8 +2401,7 @@ func (m *ProductMutation) NutritionalInformationIDCleared() bool {
 
 // ResetNutritionalInformationID resets all changes to the "nutritional_information_id" field.
 func (m *ProductMutation) ResetNutritionalInformationID() {
-	m.nutritional_information_id = nil
-	m.addnutritional_information_id = nil
+	m.nutritional_information = nil
 	delete(m.clearedFields, product.FieldNutritionalInformationID)
 }
 
@@ -1450,6 +2604,32 @@ func (m *ProductMutation) ResetPromotion() {
 	m.clearedpromotion = false
 }
 
+// ClearNutritionalInformation clears the "nutritional_information" edge to the NutritionalInformation entity.
+func (m *ProductMutation) ClearNutritionalInformation() {
+	m.clearednutritional_information = true
+}
+
+// NutritionalInformationCleared reports if the "nutritional_information" edge to the NutritionalInformation entity was cleared.
+func (m *ProductMutation) NutritionalInformationCleared() bool {
+	return m.NutritionalInformationIDCleared() || m.clearednutritional_information
+}
+
+// NutritionalInformationIDs returns the "nutritional_information" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// NutritionalInformationID instead. It exists only for internal usage by the builders.
+func (m *ProductMutation) NutritionalInformationIDs() (ids []int) {
+	if id := m.nutritional_information; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetNutritionalInformation resets all changes to the "nutritional_information" edge.
+func (m *ProductMutation) ResetNutritionalInformation() {
+	m.nutritional_information = nil
+	m.clearednutritional_information = false
+}
+
 // Where appends a list predicates to the ProductMutation builder.
 func (m *ProductMutation) Where(ps ...predicate.Product) {
 	m.predicates = append(m.predicates, ps...)
@@ -1500,7 +2680,7 @@ func (m *ProductMutation) Fields() []string {
 	if m.product_category_id != nil {
 		fields = append(fields, product.FieldProductCategoryID)
 	}
-	if m.nutritional_information_id != nil {
+	if m.nutritional_information != nil {
 		fields = append(fields, product.FieldNutritionalInformationID)
 	}
 	if m.promotion != nil {
@@ -1651,9 +2831,6 @@ func (m *ProductMutation) AddedFields() []string {
 	if m.addproduct_category_id != nil {
 		fields = append(fields, product.FieldProductCategoryID)
 	}
-	if m.addnutritional_information_id != nil {
-		fields = append(fields, product.FieldNutritionalInformationID)
-	}
 	return fields
 }
 
@@ -1666,8 +2843,6 @@ func (m *ProductMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedIngredientsListID()
 	case product.FieldProductCategoryID:
 		return m.AddedProductCategoryID()
-	case product.FieldNutritionalInformationID:
-		return m.AddedNutritionalInformationID()
 	}
 	return nil, false
 }
@@ -1690,13 +2865,6 @@ func (m *ProductMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddProductCategoryID(v)
-		return nil
-	case product.FieldNutritionalInformationID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddNutritionalInformationID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Product numeric field %s", name)
@@ -1791,12 +2959,15 @@ func (m *ProductMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProductMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.product_item != nil {
 		edges = append(edges, product.EdgeProductItem)
 	}
 	if m.promotion != nil {
 		edges = append(edges, product.EdgePromotion)
+	}
+	if m.nutritional_information != nil {
+		edges = append(edges, product.EdgeNutritionalInformation)
 	}
 	return edges
 }
@@ -1813,13 +2984,17 @@ func (m *ProductMutation) AddedIDs(name string) []ent.Value {
 		if id := m.promotion; id != nil {
 			return []ent.Value{*id}
 		}
+	case product.EdgeNutritionalInformation:
+		if id := m.nutritional_information; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProductMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -1831,12 +3006,15 @@ func (m *ProductMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProductMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedproduct_item {
 		edges = append(edges, product.EdgeProductItem)
 	}
 	if m.clearedpromotion {
 		edges = append(edges, product.EdgePromotion)
+	}
+	if m.clearednutritional_information {
+		edges = append(edges, product.EdgeNutritionalInformation)
 	}
 	return edges
 }
@@ -1849,6 +3027,8 @@ func (m *ProductMutation) EdgeCleared(name string) bool {
 		return m.clearedproduct_item
 	case product.EdgePromotion:
 		return m.clearedpromotion
+	case product.EdgeNutritionalInformation:
+		return m.clearednutritional_information
 	}
 	return false
 }
@@ -1863,6 +3043,9 @@ func (m *ProductMutation) ClearEdge(name string) error {
 	case product.EdgePromotion:
 		m.ClearPromotion()
 		return nil
+	case product.EdgeNutritionalInformation:
+		m.ClearNutritionalInformation()
+		return nil
 	}
 	return fmt.Errorf("unknown Product unique edge %s", name)
 }
@@ -1876,6 +3059,9 @@ func (m *ProductMutation) ResetEdge(name string) error {
 		return nil
 	case product.EdgePromotion:
 		m.ResetPromotion()
+		return nil
+	case product.EdgeNutritionalInformation:
+		m.ResetNutritionalInformation()
 		return nil
 	}
 	return fmt.Errorf("unknown Product edge %s", name)

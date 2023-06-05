@@ -6,6 +6,8 @@ import (
 	"context"
 	"errors"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/nutritionalinformation"
+	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -348,6 +350,502 @@ func (a *Address) ToEdge(order *AddressOrder) *AddressEdge {
 	return &AddressEdge{
 		Node:   a,
 		Cursor: order.Field.toCursor(a),
+	}
+}
+
+// NutritionalInformationEdge is the edge representation of NutritionalInformation.
+type NutritionalInformationEdge struct {
+	Node   *NutritionalInformation `json:"node"`
+	Cursor Cursor                  `json:"cursor"`
+}
+
+// NutritionalInformationConnection is the connection containing edges to NutritionalInformation.
+type NutritionalInformationConnection struct {
+	Edges      []*NutritionalInformationEdge `json:"edges"`
+	PageInfo   PageInfo                      `json:"pageInfo"`
+	TotalCount int                           `json:"totalCount"`
+}
+
+func (c *NutritionalInformationConnection) build(nodes []*NutritionalInformation, pager *nutritionalinformationPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *NutritionalInformation
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *NutritionalInformation {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *NutritionalInformation {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*NutritionalInformationEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &NutritionalInformationEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// NutritionalInformationPaginateOption enables pagination customization.
+type NutritionalInformationPaginateOption func(*nutritionalinformationPager) error
+
+// WithNutritionalInformationOrder configures pagination ordering.
+func WithNutritionalInformationOrder(order *NutritionalInformationOrder) NutritionalInformationPaginateOption {
+	if order == nil {
+		order = DefaultNutritionalInformationOrder
+	}
+	o := *order
+	return func(pager *nutritionalinformationPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultNutritionalInformationOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithNutritionalInformationFilter configures pagination filter.
+func WithNutritionalInformationFilter(filter func(*NutritionalInformationQuery) (*NutritionalInformationQuery, error)) NutritionalInformationPaginateOption {
+	return func(pager *nutritionalinformationPager) error {
+		if filter == nil {
+			return errors.New("NutritionalInformationQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type nutritionalinformationPager struct {
+	reverse bool
+	order   *NutritionalInformationOrder
+	filter  func(*NutritionalInformationQuery) (*NutritionalInformationQuery, error)
+}
+
+func newNutritionalInformationPager(opts []NutritionalInformationPaginateOption, reverse bool) (*nutritionalinformationPager, error) {
+	pager := &nutritionalinformationPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultNutritionalInformationOrder
+	}
+	return pager, nil
+}
+
+func (p *nutritionalinformationPager) applyFilter(query *NutritionalInformationQuery) (*NutritionalInformationQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *nutritionalinformationPager) toCursor(ni *NutritionalInformation) Cursor {
+	return p.order.Field.toCursor(ni)
+}
+
+func (p *nutritionalinformationPager) applyCursors(query *NutritionalInformationQuery, after, before *Cursor) (*NutritionalInformationQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultNutritionalInformationOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *nutritionalinformationPager) applyOrder(query *NutritionalInformationQuery) *NutritionalInformationQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultNutritionalInformationOrder.Field {
+		query = query.Order(DefaultNutritionalInformationOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *nutritionalinformationPager) orderExpr(query *NutritionalInformationQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultNutritionalInformationOrder.Field {
+			b.Comma().Ident(DefaultNutritionalInformationOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to NutritionalInformation.
+func (ni *NutritionalInformationQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...NutritionalInformationPaginateOption,
+) (*NutritionalInformationConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newNutritionalInformationPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if ni, err = pager.applyFilter(ni); err != nil {
+		return nil, err
+	}
+	conn := &NutritionalInformationConnection{Edges: []*NutritionalInformationEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := ni.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if ni, err = pager.applyCursors(ni, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		ni.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ni.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	ni = pager.applyOrder(ni)
+	nodes, err := ni.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// NutritionalInformationOrderField defines the ordering field of NutritionalInformation.
+type NutritionalInformationOrderField struct {
+	// Value extracts the ordering value from the given NutritionalInformation.
+	Value    func(*NutritionalInformation) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) nutritionalinformation.OrderOption
+	toCursor func(*NutritionalInformation) Cursor
+}
+
+// NutritionalInformationOrder defines the ordering of NutritionalInformation.
+type NutritionalInformationOrder struct {
+	Direction OrderDirection                    `json:"direction"`
+	Field     *NutritionalInformationOrderField `json:"field"`
+}
+
+// DefaultNutritionalInformationOrder is the default ordering of NutritionalInformation.
+var DefaultNutritionalInformationOrder = &NutritionalInformationOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &NutritionalInformationOrderField{
+		Value: func(ni *NutritionalInformation) (ent.Value, error) {
+			return ni.ID, nil
+		},
+		column: nutritionalinformation.FieldID,
+		toTerm: nutritionalinformation.ByID,
+		toCursor: func(ni *NutritionalInformation) Cursor {
+			return Cursor{ID: ni.ID}
+		},
+	},
+}
+
+// ToEdge converts NutritionalInformation into NutritionalInformationEdge.
+func (ni *NutritionalInformation) ToEdge(order *NutritionalInformationOrder) *NutritionalInformationEdge {
+	if order == nil {
+		order = DefaultNutritionalInformationOrder
+	}
+	return &NutritionalInformationEdge{
+		Node:   ni,
+		Cursor: order.Field.toCursor(ni),
+	}
+}
+
+// NutritionalInformationTableEdge is the edge representation of NutritionalInformationTable.
+type NutritionalInformationTableEdge struct {
+	Node   *NutritionalInformationTable `json:"node"`
+	Cursor Cursor                       `json:"cursor"`
+}
+
+// NutritionalInformationTableConnection is the connection containing edges to NutritionalInformationTable.
+type NutritionalInformationTableConnection struct {
+	Edges      []*NutritionalInformationTableEdge `json:"edges"`
+	PageInfo   PageInfo                           `json:"pageInfo"`
+	TotalCount int                                `json:"totalCount"`
+}
+
+func (c *NutritionalInformationTableConnection) build(nodes []*NutritionalInformationTable, pager *nutritionalinformationtablePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *NutritionalInformationTable
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *NutritionalInformationTable {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *NutritionalInformationTable {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*NutritionalInformationTableEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &NutritionalInformationTableEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// NutritionalInformationTablePaginateOption enables pagination customization.
+type NutritionalInformationTablePaginateOption func(*nutritionalinformationtablePager) error
+
+// WithNutritionalInformationTableOrder configures pagination ordering.
+func WithNutritionalInformationTableOrder(order *NutritionalInformationTableOrder) NutritionalInformationTablePaginateOption {
+	if order == nil {
+		order = DefaultNutritionalInformationTableOrder
+	}
+	o := *order
+	return func(pager *nutritionalinformationtablePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultNutritionalInformationTableOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithNutritionalInformationTableFilter configures pagination filter.
+func WithNutritionalInformationTableFilter(filter func(*NutritionalInformationTableQuery) (*NutritionalInformationTableQuery, error)) NutritionalInformationTablePaginateOption {
+	return func(pager *nutritionalinformationtablePager) error {
+		if filter == nil {
+			return errors.New("NutritionalInformationTableQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type nutritionalinformationtablePager struct {
+	reverse bool
+	order   *NutritionalInformationTableOrder
+	filter  func(*NutritionalInformationTableQuery) (*NutritionalInformationTableQuery, error)
+}
+
+func newNutritionalInformationTablePager(opts []NutritionalInformationTablePaginateOption, reverse bool) (*nutritionalinformationtablePager, error) {
+	pager := &nutritionalinformationtablePager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultNutritionalInformationTableOrder
+	}
+	return pager, nil
+}
+
+func (p *nutritionalinformationtablePager) applyFilter(query *NutritionalInformationTableQuery) (*NutritionalInformationTableQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *nutritionalinformationtablePager) toCursor(nit *NutritionalInformationTable) Cursor {
+	return p.order.Field.toCursor(nit)
+}
+
+func (p *nutritionalinformationtablePager) applyCursors(query *NutritionalInformationTableQuery, after, before *Cursor) (*NutritionalInformationTableQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultNutritionalInformationTableOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *nutritionalinformationtablePager) applyOrder(query *NutritionalInformationTableQuery) *NutritionalInformationTableQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultNutritionalInformationTableOrder.Field {
+		query = query.Order(DefaultNutritionalInformationTableOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *nutritionalinformationtablePager) orderExpr(query *NutritionalInformationTableQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultNutritionalInformationTableOrder.Field {
+			b.Comma().Ident(DefaultNutritionalInformationTableOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to NutritionalInformationTable.
+func (nit *NutritionalInformationTableQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...NutritionalInformationTablePaginateOption,
+) (*NutritionalInformationTableConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newNutritionalInformationTablePager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if nit, err = pager.applyFilter(nit); err != nil {
+		return nil, err
+	}
+	conn := &NutritionalInformationTableConnection{Edges: []*NutritionalInformationTableEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := nit.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if nit, err = pager.applyCursors(nit, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		nit.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := nit.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	nit = pager.applyOrder(nit)
+	nodes, err := nit.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// NutritionalInformationTableOrderField defines the ordering field of NutritionalInformationTable.
+type NutritionalInformationTableOrderField struct {
+	// Value extracts the ordering value from the given NutritionalInformationTable.
+	Value    func(*NutritionalInformationTable) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) nutritionalinformationtable.OrderOption
+	toCursor func(*NutritionalInformationTable) Cursor
+}
+
+// NutritionalInformationTableOrder defines the ordering of NutritionalInformationTable.
+type NutritionalInformationTableOrder struct {
+	Direction OrderDirection                         `json:"direction"`
+	Field     *NutritionalInformationTableOrderField `json:"field"`
+}
+
+// DefaultNutritionalInformationTableOrder is the default ordering of NutritionalInformationTable.
+var DefaultNutritionalInformationTableOrder = &NutritionalInformationTableOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &NutritionalInformationTableOrderField{
+		Value: func(nit *NutritionalInformationTable) (ent.Value, error) {
+			return nit.ID, nil
+		},
+		column: nutritionalinformationtable.FieldID,
+		toTerm: nutritionalinformationtable.ByID,
+		toCursor: func(nit *NutritionalInformationTable) Cursor {
+			return Cursor{ID: nit.ID}
+		},
+	},
+}
+
+// ToEdge converts NutritionalInformationTable into NutritionalInformationTableEdge.
+func (nit *NutritionalInformationTable) ToEdge(order *NutritionalInformationTableOrder) *NutritionalInformationTableEdge {
+	if order == nil {
+		order = DefaultNutritionalInformationTableOrder
+	}
+	return &NutritionalInformationTableEdge{
+		Node:   nit,
+		Cursor: order.Field.toCursor(nit),
 	}
 }
 

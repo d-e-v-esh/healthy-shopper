@@ -20,6 +20,38 @@ func (a *Address) UserAddress(ctx context.Context) (result []*UserAddress, err e
 	return result, err
 }
 
+func (ni *NutritionalInformation) Product(ctx context.Context) (result []*Product, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = ni.NamedProduct(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = ni.Edges.ProductOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = ni.QueryProduct().All(ctx)
+	}
+	return result, err
+}
+
+func (ni *NutritionalInformation) NutritionalInformationTable(ctx context.Context) (*NutritionalInformationTable, error) {
+	result, err := ni.Edges.NutritionalInformationTableOrErr()
+	if IsNotLoaded(err) {
+		result, err = ni.QueryNutritionalInformationTable().Only(ctx)
+	}
+	return result, err
+}
+
+func (nit *NutritionalInformationTable) NutritionalInformation(ctx context.Context) (result []*NutritionalInformation, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = nit.NamedNutritionalInformation(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = nit.Edges.NutritionalInformationOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = nit.QueryNutritionalInformation().All(ctx)
+	}
+	return result, err
+}
+
 func (pr *Product) ProductItem(ctx context.Context) (*ProductItem, error) {
 	result, err := pr.Edges.ProductItemOrErr()
 	if IsNotLoaded(err) {
@@ -32,6 +64,14 @@ func (pr *Product) Promotion(ctx context.Context) (*Promotion, error) {
 	result, err := pr.Edges.PromotionOrErr()
 	if IsNotLoaded(err) {
 		result, err = pr.QueryPromotion().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (pr *Product) NutritionalInformation(ctx context.Context) (*NutritionalInformation, error) {
+	result, err := pr.Edges.NutritionalInformationOrErr()
+	if IsNotLoaded(err) {
+		result, err = pr.QueryNutritionalInformation().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }

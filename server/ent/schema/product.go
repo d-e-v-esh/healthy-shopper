@@ -35,6 +35,7 @@ func (Product) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("product_item", ProductItem.Type).Unique(),
 		edge.To("promotion", Promotion.Type).Field("promotion_id").Unique(),
+		edge.To("nutritional_information", NutritionalInformation.Type).Field("nutritional_information_id").Unique(),
 	}
 }
 

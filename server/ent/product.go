@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -49,11 +50,13 @@ type ProductEdges struct {
 	ProductItem *ProductItem `json:"product_item,omitempty"`
 	// Promotion holds the value of the promotion edge.
 	Promotion *Promotion `json:"promotion,omitempty"`
+	// NutritionalInformation holds the value of the nutritional_information edge.
+	NutritionalInformation *NutritionalInformation `json:"nutritional_information,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 }
 
 // ProductItemOrErr returns the ProductItem value or an error if the edge
@@ -80,6 +83,19 @@ func (e ProductEdges) PromotionOrErr() (*Promotion, error) {
 		return e.Promotion, nil
 	}
 	return nil, &NotLoadedError{edge: "promotion"}
+}
+
+// NutritionalInformationOrErr returns the NutritionalInformation value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) NutritionalInformationOrErr() (*NutritionalInformation, error) {
+	if e.loadedTypes[2] {
+		if e.NutritionalInformation == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: nutritionalinformation.Label}
+		}
+		return e.NutritionalInformation, nil
+	}
+	return nil, &NotLoadedError{edge: "nutritional_information"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -189,6 +205,11 @@ func (pr *Product) QueryProductItem() *ProductItemQuery {
 // QueryPromotion queries the "promotion" edge of the Product entity.
 func (pr *Product) QueryPromotion() *PromotionQuery {
 	return NewProductClient(pr.config).QueryPromotion(pr)
+}
+
+// QueryNutritionalInformation queries the "nutritional_information" edge of the Product entity.
+func (pr *Product) QueryNutritionalInformation() *NutritionalInformationQuery {
+	return NewProductClient(pr.config).QueryNutritionalInformation(pr)
 }
 
 // Update returns a builder for updating this Product.

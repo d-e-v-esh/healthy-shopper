@@ -5,6 +5,8 @@ package ent
 import (
 	"context"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/nutritionalinformation"
+	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/promotion"
@@ -125,6 +127,192 @@ func newAddressPaginateArgs(rv map[string]any) *addressPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ni *NutritionalInformationQuery) CollectFields(ctx context.Context, satisfies ...string) (*NutritionalInformationQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ni, nil
+	}
+	if err := ni.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ni, nil
+}
+
+func (ni *NutritionalInformationQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(nutritionalinformation.Columns))
+		selectedFields = []string{nutritionalinformation.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "product":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProductClient{config: ni.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, productImplementors)...); err != nil {
+				return err
+			}
+			ni.WithNamedProduct(alias, func(wq *ProductQuery) {
+				*wq = *query
+			})
+		case "nutritionalInformationTable":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&NutritionalInformationTableClient{config: ni.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, nutritionalinformationtableImplementors)...); err != nil {
+				return err
+			}
+			ni.withNutritionalInformationTable = query
+			if _, ok := fieldSeen[nutritionalinformation.FieldNutritionalInformationTableID]; !ok {
+				selectedFields = append(selectedFields, nutritionalinformation.FieldNutritionalInformationTableID)
+				fieldSeen[nutritionalinformation.FieldNutritionalInformationTableID] = struct{}{}
+			}
+		case "nutritionalInformationTableID":
+			if _, ok := fieldSeen[nutritionalinformation.FieldNutritionalInformationTableID]; !ok {
+				selectedFields = append(selectedFields, nutritionalinformation.FieldNutritionalInformationTableID)
+				fieldSeen[nutritionalinformation.FieldNutritionalInformationTableID] = struct{}{}
+			}
+		case "nValue":
+			if _, ok := fieldSeen[nutritionalinformation.FieldNValue]; !ok {
+				selectedFields = append(selectedFields, nutritionalinformation.FieldNValue)
+				fieldSeen[nutritionalinformation.FieldNValue] = struct{}{}
+			}
+		case "nMeasurementUnit":
+			if _, ok := fieldSeen[nutritionalinformation.FieldNMeasurementUnit]; !ok {
+				selectedFields = append(selectedFields, nutritionalinformation.FieldNMeasurementUnit)
+				fieldSeen[nutritionalinformation.FieldNMeasurementUnit] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ni.Select(selectedFields...)
+	}
+	return nil
+}
+
+type nutritionalinformationPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []NutritionalInformationPaginateOption
+}
+
+func newNutritionalInformationPaginateArgs(rv map[string]any) *nutritionalinformationPaginateArgs {
+	args := &nutritionalinformationPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (nit *NutritionalInformationTableQuery) CollectFields(ctx context.Context, satisfies ...string) (*NutritionalInformationTableQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return nit, nil
+	}
+	if err := nit.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return nit, nil
+}
+
+func (nit *NutritionalInformationTableQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(nutritionalinformationtable.Columns))
+		selectedFields = []string{nutritionalinformationtable.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "nutritionalInformation":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&NutritionalInformationClient{config: nit.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, nutritionalinformationImplementors)...); err != nil {
+				return err
+			}
+			nit.WithNamedNutritionalInformation(alias, func(wq *NutritionalInformationQuery) {
+				*wq = *query
+			})
+		case "parameter":
+			if _, ok := fieldSeen[nutritionalinformationtable.FieldParameter]; !ok {
+				selectedFields = append(selectedFields, nutritionalinformationtable.FieldParameter)
+				fieldSeen[nutritionalinformationtable.FieldParameter] = struct{}{}
+			}
+		case "value":
+			if _, ok := fieldSeen[nutritionalinformationtable.FieldValue]; !ok {
+				selectedFields = append(selectedFields, nutritionalinformationtable.FieldValue)
+				fieldSeen[nutritionalinformationtable.FieldValue] = struct{}{}
+			}
+		case "measurementUnit":
+			if _, ok := fieldSeen[nutritionalinformationtable.FieldMeasurementUnit]; !ok {
+				selectedFields = append(selectedFields, nutritionalinformationtable.FieldMeasurementUnit)
+				fieldSeen[nutritionalinformationtable.FieldMeasurementUnit] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		nit.Select(selectedFields...)
+	}
+	return nil
+}
+
+type nutritionalinformationtablePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []NutritionalInformationTablePaginateOption
+}
+
+func newNutritionalInformationTablePaginateArgs(rv map[string]any) *nutritionalinformationtablePaginateArgs {
+	args := &nutritionalinformationtablePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (pr *ProductQuery) CollectFields(ctx context.Context, satisfies ...string) (*ProductQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -168,6 +356,20 @@ func (pr *ProductQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			if _, ok := fieldSeen[product.FieldPromotionID]; !ok {
 				selectedFields = append(selectedFields, product.FieldPromotionID)
 				fieldSeen[product.FieldPromotionID] = struct{}{}
+			}
+		case "nutritionalInformation":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&NutritionalInformationClient{config: pr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, nutritionalinformationImplementors)...); err != nil {
+				return err
+			}
+			pr.withNutritionalInformation = query
+			if _, ok := fieldSeen[product.FieldNutritionalInformationID]; !ok {
+				selectedFields = append(selectedFields, product.FieldNutritionalInformationID)
+				fieldSeen[product.FieldNutritionalInformationID] = struct{}{}
 			}
 		case "name":
 			if _, ok := fieldSeen[product.FieldName]; !ok {
