@@ -11,7 +11,6 @@ var (
 	// AddressesColumns holds the columns for the "addresses" table.
 	AddressesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "address_id", Type: field.TypeInt, Unique: true},
 		{Name: "phone_number", Type: field.TypeString, Size: 20},
 		{Name: "address_line1", Type: field.TypeString, Size: 100},
 		{Name: "address_line2", Type: field.TypeString, Nullable: true, Size: 100},
@@ -29,7 +28,6 @@ var (
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "product_id", Type: field.TypeInt, Unique: true},
 		{Name: "name", Type: field.TypeString, Size: 50},
 		{Name: "description", Type: field.TypeString, Size: 500},
 		{Name: "product_image", Type: field.TypeString, Size: 500},
@@ -49,7 +47,6 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_id", Type: field.TypeInt, Unique: true},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 20},
 		{Name: "email_address", Type: field.TypeString, Unique: true, Size: 60},
 		{Name: "password", Type: field.TypeString, Size: 100},
@@ -94,7 +91,6 @@ var (
 	// UserReviewsColumns holds the columns for the "user_reviews" table.
 	UserReviewsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "user_review_id", Type: field.TypeInt, Unique: true},
 		{Name: "ordered_product_id", Type: field.TypeInt, Unique: true},
 		{Name: "rating", Type: field.TypeInt},
 		{Name: "review", Type: field.TypeString, Size: 500},
@@ -110,7 +106,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_reviews_users_user_review",
-				Columns:    []*schema.Column{UserReviewsColumns[7]},
+				Columns:    []*schema.Column{UserReviewsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

@@ -16,7 +16,6 @@ type UserReview struct {
 // Fields of the UserReview.
 func (UserReview) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("user_review_id").Unique(),
 		field.Int("user_id").Unique(),
 		field.Int("ordered_product_id").Unique(),
 		field.Int("rating").Range(1, 5),

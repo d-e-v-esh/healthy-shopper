@@ -21,12 +21,6 @@ type UserReviewCreate struct {
 	hooks    []Hook
 }
 
-// SetUserReviewID sets the "user_review_id" field.
-func (urc *UserReviewCreate) SetUserReviewID(i int) *UserReviewCreate {
-	urc.mutation.SetUserReviewID(i)
-	return urc
-}
-
 // SetUserID sets the "user_id" field.
 func (urc *UserReviewCreate) SetUserID(i int) *UserReviewCreate {
 	urc.mutation.SetUserID(i)
@@ -131,9 +125,6 @@ func (urc *UserReviewCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (urc *UserReviewCreate) check() error {
-	if _, ok := urc.mutation.UserReviewID(); !ok {
-		return &ValidationError{Name: "user_review_id", err: errors.New(`ent: missing required field "UserReview.user_review_id"`)}
-	}
 	if _, ok := urc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "UserReview.user_id"`)}
 	}
@@ -191,10 +182,6 @@ func (urc *UserReviewCreate) createSpec() (*UserReview, *sqlgraph.CreateSpec) {
 		_node = &UserReview{config: urc.config}
 		_spec = sqlgraph.NewCreateSpec(userreview.Table, sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt))
 	)
-	if value, ok := urc.mutation.UserReviewID(); ok {
-		_spec.SetField(userreview.FieldUserReviewID, field.TypeInt, value)
-		_node.UserReviewID = value
-	}
 	if value, ok := urc.mutation.OrderedProductID(); ok {
 		_spec.SetField(userreview.FieldOrderedProductID, field.TypeInt, value)
 		_node.OrderedProductID = value

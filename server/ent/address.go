@@ -16,8 +16,6 @@ type Address struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// AddressID holds the value of the "address_id" field.
-	AddressID int `json:"address_id,omitempty"`
 	// PhoneNumber holds the value of the "phone_number" field.
 	PhoneNumber string `json:"phone_number,omitempty"`
 	// AddressLine1 holds the value of the "address_line1" field.
@@ -65,7 +63,7 @@ func (*Address) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case address.FieldID, address.FieldAddressID:
+		case address.FieldID:
 			values[i] = new(sql.NullInt64)
 		case address.FieldPhoneNumber, address.FieldAddressLine1, address.FieldAddressLine2, address.FieldCity, address.FieldState, address.FieldCountry, address.FieldPostalCode:
 			values[i] = new(sql.NullString)
@@ -90,12 +88,6 @@ func (a *Address) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			a.ID = int(value.Int64)
-		case address.FieldAddressID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field address_id", values[i])
-			} else if value.Valid {
-				a.AddressID = int(value.Int64)
-			}
 		case address.FieldPhoneNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field phone_number", values[i])
@@ -179,9 +171,6 @@ func (a *Address) String() string {
 	var builder strings.Builder
 	builder.WriteString("Address(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", a.ID))
-	builder.WriteString("address_id=")
-	builder.WriteString(fmt.Sprintf("%v", a.AddressID))
-	builder.WriteString(", ")
 	builder.WriteString("phone_number=")
 	builder.WriteString(a.PhoneNumber)
 	builder.WriteString(", ")

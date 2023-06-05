@@ -299,12 +299,12 @@ func (urq *UserReviewQuery) WithUser(opts ...func(*UserQuery)) *UserReviewQuery 
 // Example:
 //
 //	var v []struct {
-//		UserReviewID int `json:"user_review_id,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UserReview.Query().
-//		GroupBy(userreview.FieldUserReviewID).
+//		GroupBy(userreview.FieldUserID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (urq *UserReviewQuery) GroupBy(field string, fields ...string) *UserReviewGroupBy {
@@ -322,11 +322,11 @@ func (urq *UserReviewQuery) GroupBy(field string, fields ...string) *UserReviewG
 // Example:
 //
 //	var v []struct {
-//		UserReviewID int `json:"user_review_id,omitempty"`
+//		UserID int `json:"user_id,omitempty"`
 //	}
 //
 //	client.UserReview.Query().
-//		Select(userreview.FieldUserReviewID).
+//		Select(userreview.FieldUserID).
 //		Scan(ctx, &v)
 func (urq *UserReviewQuery) Select(fields ...string) *UserReviewSelect {
 	urq.ctx.Fields = append(urq.ctx.Fields, fields...)

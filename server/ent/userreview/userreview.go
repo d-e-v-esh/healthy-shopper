@@ -14,8 +14,6 @@ const (
 	Label = "user_review"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldUserReviewID holds the string denoting the user_review_id field in the database.
-	FieldUserReviewID = "user_review_id"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldOrderedProductID holds the string denoting the ordered_product_id field in the database.
@@ -44,7 +42,6 @@ const (
 // Columns holds all SQL columns for userreview fields.
 var Columns = []string{
 	FieldID,
-	FieldUserReviewID,
 	FieldUserID,
 	FieldOrderedProductID,
 	FieldRating,
@@ -82,11 +79,6 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
-}
-
-// ByUserReviewID orders the results by the user_review_id field.
-func ByUserReviewID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUserReviewID, opts...).ToFunc()
 }
 
 // ByUserID orders the results by the user_id field.

@@ -29,19 +29,6 @@ func (uru *UserReviewUpdate) Where(ps ...predicate.UserReview) *UserReviewUpdate
 	return uru
 }
 
-// SetUserReviewID sets the "user_review_id" field.
-func (uru *UserReviewUpdate) SetUserReviewID(i int) *UserReviewUpdate {
-	uru.mutation.ResetUserReviewID()
-	uru.mutation.SetUserReviewID(i)
-	return uru
-}
-
-// AddUserReviewID adds i to the "user_review_id" field.
-func (uru *UserReviewUpdate) AddUserReviewID(i int) *UserReviewUpdate {
-	uru.mutation.AddUserReviewID(i)
-	return uru
-}
-
 // SetUserID sets the "user_id" field.
 func (uru *UserReviewUpdate) SetUserID(i int) *UserReviewUpdate {
 	uru.mutation.SetUserID(i)
@@ -182,12 +169,6 @@ func (uru *UserReviewUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := uru.mutation.UserReviewID(); ok {
-		_spec.SetField(userreview.FieldUserReviewID, field.TypeInt, value)
-	}
-	if value, ok := uru.mutation.AddedUserReviewID(); ok {
-		_spec.AddField(userreview.FieldUserReviewID, field.TypeInt, value)
-	}
 	if value, ok := uru.mutation.OrderedProductID(); ok {
 		_spec.SetField(userreview.FieldOrderedProductID, field.TypeInt, value)
 	}
@@ -256,19 +237,6 @@ type UserReviewUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserReviewMutation
-}
-
-// SetUserReviewID sets the "user_review_id" field.
-func (uruo *UserReviewUpdateOne) SetUserReviewID(i int) *UserReviewUpdateOne {
-	uruo.mutation.ResetUserReviewID()
-	uruo.mutation.SetUserReviewID(i)
-	return uruo
-}
-
-// AddUserReviewID adds i to the "user_review_id" field.
-func (uruo *UserReviewUpdateOne) AddUserReviewID(i int) *UserReviewUpdateOne {
-	uruo.mutation.AddUserReviewID(i)
-	return uruo
 }
 
 // SetUserID sets the "user_id" field.
@@ -440,12 +408,6 @@ func (uruo *UserReviewUpdateOne) sqlSave(ctx context.Context) (_node *UserReview
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := uruo.mutation.UserReviewID(); ok {
-		_spec.SetField(userreview.FieldUserReviewID, field.TypeInt, value)
-	}
-	if value, ok := uruo.mutation.AddedUserReviewID(); ok {
-		_spec.AddField(userreview.FieldUserReviewID, field.TypeInt, value)
 	}
 	if value, ok := uruo.mutation.OrderedProductID(); ok {
 		_spec.SetField(userreview.FieldOrderedProductID, field.TypeInt, value)

@@ -301,12 +301,12 @@ func (aq *AddressQuery) WithUserAddress(opts ...func(*UserAddressQuery)) *Addres
 // Example:
 //
 //	var v []struct {
-//		AddressID int `json:"address_id,omitempty"`
+//		PhoneNumber string `json:"phone_number,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Address.Query().
-//		GroupBy(address.FieldAddressID).
+//		GroupBy(address.FieldPhoneNumber).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (aq *AddressQuery) GroupBy(field string, fields ...string) *AddressGroupBy {
@@ -324,11 +324,11 @@ func (aq *AddressQuery) GroupBy(field string, fields ...string) *AddressGroupBy 
 // Example:
 //
 //	var v []struct {
-//		AddressID int `json:"address_id,omitempty"`
+//		PhoneNumber string `json:"phone_number,omitempty"`
 //	}
 //
 //	client.Address.Query().
-//		Select(address.FieldAddressID).
+//		Select(address.FieldPhoneNumber).
 //		Scan(ctx, &v)
 func (aq *AddressQuery) Select(fields ...string) *AddressSelect {
 	aq.ctx.Fields = append(aq.ctx.Fields, fields...)

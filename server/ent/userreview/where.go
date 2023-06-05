@@ -55,11 +55,6 @@ func IDLTE(id int) predicate.UserReview {
 	return predicate.UserReview(sql.FieldLTE(FieldID, id))
 }
 
-// UserReviewID applies equality check predicate on the "user_review_id" field. It's identical to UserReviewIDEQ.
-func UserReviewID(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldEQ(FieldUserReviewID, v))
-}
-
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v int) predicate.UserReview {
 	return predicate.UserReview(sql.FieldEQ(FieldUserID, v))
@@ -88,46 +83,6 @@ func CreatedAt(v time.Time) predicate.UserReview {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.UserReview {
 	return predicate.UserReview(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// UserReviewIDEQ applies the EQ predicate on the "user_review_id" field.
-func UserReviewIDEQ(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldEQ(FieldUserReviewID, v))
-}
-
-// UserReviewIDNEQ applies the NEQ predicate on the "user_review_id" field.
-func UserReviewIDNEQ(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldNEQ(FieldUserReviewID, v))
-}
-
-// UserReviewIDIn applies the In predicate on the "user_review_id" field.
-func UserReviewIDIn(vs ...int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldIn(FieldUserReviewID, vs...))
-}
-
-// UserReviewIDNotIn applies the NotIn predicate on the "user_review_id" field.
-func UserReviewIDNotIn(vs ...int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldNotIn(FieldUserReviewID, vs...))
-}
-
-// UserReviewIDGT applies the GT predicate on the "user_review_id" field.
-func UserReviewIDGT(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldGT(FieldUserReviewID, v))
-}
-
-// UserReviewIDGTE applies the GTE predicate on the "user_review_id" field.
-func UserReviewIDGTE(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldGTE(FieldUserReviewID, v))
-}
-
-// UserReviewIDLT applies the LT predicate on the "user_review_id" field.
-func UserReviewIDLT(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldLT(FieldUserReviewID, v))
-}
-
-// UserReviewIDLTE applies the LTE predicate on the "user_review_id" field.
-func UserReviewIDLTE(v int) predicate.UserReview {
-	return predicate.UserReview(sql.FieldLTE(FieldUserReviewID, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

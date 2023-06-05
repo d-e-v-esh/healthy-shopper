@@ -47,11 +47,6 @@ func (a *AddressQuery) collectField(ctx context.Context, opCtx *graphql.Operatio
 			a.WithNamedUserAddress(alias, func(wq *UserAddressQuery) {
 				*wq = *query
 			})
-		case "addressID":
-			if _, ok := fieldSeen[address.FieldAddressID]; !ok {
-				selectedFields = append(selectedFields, address.FieldAddressID)
-				fieldSeen[address.FieldAddressID] = struct{}{}
-			}
 		case "phoneNumber":
 			if _, ok := fieldSeen[address.FieldPhoneNumber]; !ok {
 				selectedFields = append(selectedFields, address.FieldPhoneNumber)
@@ -146,11 +141,6 @@ func (pr *ProductQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
-		case "productID":
-			if _, ok := fieldSeen[product.FieldProductID]; !ok {
-				selectedFields = append(selectedFields, product.FieldProductID)
-				fieldSeen[product.FieldProductID] = struct{}{}
-			}
 		case "name":
 			if _, ok := fieldSeen[product.FieldName]; !ok {
 				selectedFields = append(selectedFields, product.FieldName)
@@ -279,11 +269,6 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			u.WithNamedUserReview(alias, func(wq *UserReviewQuery) {
 				*wq = *query
 			})
-		case "userID":
-			if _, ok := fieldSeen[user.FieldUserID]; !ok {
-				selectedFields = append(selectedFields, user.FieldUserID)
-				fieldSeen[user.FieldUserID] = struct{}{}
-			}
 		case "username":
 			if _, ok := fieldSeen[user.FieldUsername]; !ok {
 				selectedFields = append(selectedFields, user.FieldUsername)
@@ -493,11 +478,6 @@ func (ur *UserReviewQuery) collectField(ctx context.Context, opCtx *graphql.Oper
 			if _, ok := fieldSeen[userreview.FieldUserID]; !ok {
 				selectedFields = append(selectedFields, userreview.FieldUserID)
 				fieldSeen[userreview.FieldUserID] = struct{}{}
-			}
-		case "userReviewID":
-			if _, ok := fieldSeen[userreview.FieldUserReviewID]; !ok {
-				selectedFields = append(selectedFields, userreview.FieldUserReviewID)
-				fieldSeen[userreview.FieldUserReviewID] = struct{}{}
 			}
 		case "userID":
 			if _, ok := fieldSeen[userreview.FieldUserID]; !ok {

@@ -18,8 +18,6 @@ type UserReview struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// UserReviewID holds the value of the "user_review_id" field.
-	UserReviewID int `json:"user_review_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
 	UserID int `json:"user_id,omitempty"`
 	// OrderedProductID holds the value of the "ordered_product_id" field.
@@ -67,7 +65,7 @@ func (*UserReview) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case userreview.FieldID, userreview.FieldUserReviewID, userreview.FieldUserID, userreview.FieldOrderedProductID, userreview.FieldRating:
+		case userreview.FieldID, userreview.FieldUserID, userreview.FieldOrderedProductID, userreview.FieldRating:
 			values[i] = new(sql.NullInt64)
 		case userreview.FieldReview:
 			values[i] = new(sql.NullString)
@@ -94,12 +92,6 @@ func (ur *UserReview) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			ur.ID = int(value.Int64)
-		case userreview.FieldUserReviewID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field user_review_id", values[i])
-			} else if value.Valid {
-				ur.UserReviewID = int(value.Int64)
-			}
 		case userreview.FieldUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
@@ -177,9 +169,6 @@ func (ur *UserReview) String() string {
 	var builder strings.Builder
 	builder.WriteString("UserReview(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ur.ID))
-	builder.WriteString("user_review_id=")
-	builder.WriteString(fmt.Sprintf("%v", ur.UserReviewID))
-	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(fmt.Sprintf("%v", ur.UserID))
 	builder.WriteString(", ")

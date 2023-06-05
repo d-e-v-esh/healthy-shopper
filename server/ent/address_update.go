@@ -28,19 +28,6 @@ func (au *AddressUpdate) Where(ps ...predicate.Address) *AddressUpdate {
 	return au
 }
 
-// SetAddressID sets the "address_id" field.
-func (au *AddressUpdate) SetAddressID(i int) *AddressUpdate {
-	au.mutation.ResetAddressID()
-	au.mutation.SetAddressID(i)
-	return au
-}
-
-// AddAddressID adds i to the "address_id" field.
-func (au *AddressUpdate) AddAddressID(i int) *AddressUpdate {
-	au.mutation.AddAddressID(i)
-	return au
-}
-
 // SetPhoneNumber sets the "phone_number" field.
 func (au *AddressUpdate) SetPhoneNumber(s string) *AddressUpdate {
 	au.mutation.SetPhoneNumber(s)
@@ -217,12 +204,6 @@ func (au *AddressUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := au.mutation.AddressID(); ok {
-		_spec.SetField(address.FieldAddressID, field.TypeInt, value)
-	}
-	if value, ok := au.mutation.AddedAddressID(); ok {
-		_spec.AddField(address.FieldAddressID, field.TypeInt, value)
-	}
 	if value, ok := au.mutation.PhoneNumber(); ok {
 		_spec.SetField(address.FieldPhoneNumber, field.TypeString, value)
 	}
@@ -310,19 +291,6 @@ type AddressUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *AddressMutation
-}
-
-// SetAddressID sets the "address_id" field.
-func (auo *AddressUpdateOne) SetAddressID(i int) *AddressUpdateOne {
-	auo.mutation.ResetAddressID()
-	auo.mutation.SetAddressID(i)
-	return auo
-}
-
-// AddAddressID adds i to the "address_id" field.
-func (auo *AddressUpdateOne) AddAddressID(i int) *AddressUpdateOne {
-	auo.mutation.AddAddressID(i)
-	return auo
 }
 
 // SetPhoneNumber sets the "phone_number" field.
@@ -530,12 +498,6 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := auo.mutation.AddressID(); ok {
-		_spec.SetField(address.FieldAddressID, field.TypeInt, value)
-	}
-	if value, ok := auo.mutation.AddedAddressID(); ok {
-		_spec.AddField(address.FieldAddressID, field.TypeInt, value)
 	}
 	if value, ok := auo.mutation.PhoneNumber(); ok {
 		_spec.SetField(address.FieldPhoneNumber, field.TypeString, value)

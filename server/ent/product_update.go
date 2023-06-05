@@ -28,19 +28,6 @@ func (pu *ProductUpdate) Where(ps ...predicate.Product) *ProductUpdate {
 	return pu
 }
 
-// SetProductID sets the "product_id" field.
-func (pu *ProductUpdate) SetProductID(i int) *ProductUpdate {
-	pu.mutation.ResetProductID()
-	pu.mutation.SetProductID(i)
-	return pu
-}
-
-// AddProductID adds i to the "product_id" field.
-func (pu *ProductUpdate) AddProductID(i int) *ProductUpdate {
-	pu.mutation.AddProductID(i)
-	return pu
-}
-
 // SetName sets the "name" field.
 func (pu *ProductUpdate) SetName(s string) *ProductUpdate {
 	pu.mutation.SetName(s)
@@ -229,12 +216,6 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := pu.mutation.ProductID(); ok {
-		_spec.SetField(product.FieldProductID, field.TypeInt, value)
-	}
-	if value, ok := pu.mutation.AddedProductID(); ok {
-		_spec.AddField(product.FieldProductID, field.TypeInt, value)
-	}
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 	}
@@ -295,19 +276,6 @@ type ProductUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *ProductMutation
-}
-
-// SetProductID sets the "product_id" field.
-func (puo *ProductUpdateOne) SetProductID(i int) *ProductUpdateOne {
-	puo.mutation.ResetProductID()
-	puo.mutation.SetProductID(i)
-	return puo
-}
-
-// AddProductID adds i to the "product_id" field.
-func (puo *ProductUpdateOne) AddProductID(i int) *ProductUpdateOne {
-	puo.mutation.AddProductID(i)
-	return puo
 }
 
 // SetName sets the "name" field.
@@ -527,12 +495,6 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := puo.mutation.ProductID(); ok {
-		_spec.SetField(product.FieldProductID, field.TypeInt, value)
-	}
-	if value, ok := puo.mutation.AddedProductID(); ok {
-		_spec.AddField(product.FieldProductID, field.TypeInt, value)
 	}
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)

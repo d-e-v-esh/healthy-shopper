@@ -48,7 +48,6 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Address struct {
-		AddressID    func(childComplexity int) int
 		AddressLine1 func(childComplexity int) int
 		AddressLine2 func(childComplexity int) int
 		City         func(childComplexity int) int
@@ -80,7 +79,6 @@ type ComplexityRoot struct {
 		Name                     func(childComplexity int) int
 		NutritionalInformationID func(childComplexity int) int
 		ProductCategoryID        func(childComplexity int) int
-		ProductID                func(childComplexity int) int
 		ProductImage             func(childComplexity int) int
 		PromotionID              func(childComplexity int) int
 		UpdatedAt                func(childComplexity int) int
@@ -103,7 +101,6 @@ type ComplexityRoot struct {
 		Password     func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
 		UserAddress  func(childComplexity int) int
-		UserID       func(childComplexity int) int
 		UserReview   func(childComplexity int) int
 		Username     func(childComplexity int) int
 	}
@@ -126,7 +123,6 @@ type ComplexityRoot struct {
 		UpdatedAt        func(childComplexity int) int
 		User             func(childComplexity int) int
 		UserID           func(childComplexity int) int
-		UserReviewID     func(childComplexity int) int
 	}
 }
 
@@ -156,13 +152,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
-
-	case "Address.addressID":
-		if e.complexity.Address.AddressID == nil {
-			break
-		}
-
-		return e.complexity.Address.AddressID(childComplexity), true
 
 	case "Address.addressLine1":
 		if e.complexity.Address.AddressLine1 == nil {
@@ -328,13 +317,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Product.ProductCategoryID(childComplexity), true
 
-	case "Product.productID":
-		if e.complexity.Product.ProductID == nil {
-			break
-		}
-
-		return e.complexity.Product.ProductID(childComplexity), true
-
 	case "Product.productImage":
 		if e.complexity.Product.ProductImage == nil {
 			break
@@ -457,13 +439,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.UserAddress(childComplexity), true
 
-	case "User.userID":
-		if e.complexity.User.UserID == nil {
-			break
-		}
-
-		return e.complexity.User.UserID(childComplexity), true
-
 	case "User.userReview":
 		if e.complexity.User.UserReview == nil {
 			break
@@ -575,13 +550,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserReview.UserID(childComplexity), true
-
-	case "UserReview.userReviewID":
-		if e.complexity.UserReview.UserReviewID == nil {
-			break
-		}
-
-		return e.complexity.UserReview.UserReviewID(childComplexity), true
 
 	}
 	return 0, false
@@ -827,50 +795,6 @@ func (ec *executionContext) fieldContext_Address_id(ctx context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Address_addressID(ctx context.Context, field graphql.CollectedField, obj *ent.Address) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Address_addressID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AddressID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Address_addressID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Address",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1277,8 +1201,6 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_User_userID(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
 			case "emailAddress":
@@ -1356,8 +1278,6 @@ func (ec *executionContext) fieldContext_Mutation_createProduct(ctx context.Cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Product_id(ctx, field)
-			case "productID":
-				return ec.fieldContext_Product_productID(ctx, field)
 			case "name":
 				return ec.fieldContext_Product_name(ctx, field)
 			case "description":
@@ -1603,50 +1523,6 @@ func (ec *executionContext) fieldContext_Product_id(ctx context.Context, field g
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Product_productID(ctx context.Context, field graphql.CollectedField, obj *ent.Product) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Product_productID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ProductID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Product_productID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Product",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2193,8 +2069,6 @@ func (ec *executionContext) fieldContext_Query_products(ctx context.Context, fie
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Product_id(ctx, field)
-			case "productID":
-				return ec.fieldContext_Product_productID(ctx, field)
 			case "name":
 				return ec.fieldContext_Product_name(ctx, field)
 			case "description":
@@ -2261,8 +2135,6 @@ func (ec *executionContext) fieldContext_Query_users(ctx context.Context, field 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_User_userID(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
 			case "emailAddress":
@@ -2514,50 +2386,6 @@ func (ec *executionContext) fieldContext_User_id(ctx context.Context, field grap
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_userID(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_userID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2964,8 +2792,6 @@ func (ec *executionContext) fieldContext_User_userReview(ctx context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_UserReview_id(ctx, field)
-			case "userReviewID":
-				return ec.fieldContext_UserReview_userReviewID(ctx, field)
 			case "userID":
 				return ec.fieldContext_UserReview_userID(ctx, field)
 			case "orderedProductID":
@@ -3204,8 +3030,6 @@ func (ec *executionContext) fieldContext_UserAddress_user(ctx context.Context, f
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_User_userID(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
 			case "emailAddress":
@@ -3272,8 +3096,6 @@ func (ec *executionContext) fieldContext_UserAddress_address(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Address_id(ctx, field)
-			case "addressID":
-				return ec.fieldContext_Address_addressID(ctx, field)
 			case "phoneNumber":
 				return ec.fieldContext_Address_phoneNumber(ctx, field)
 			case "addressLine1":
@@ -3336,50 +3158,6 @@ func (ec *executionContext) fieldContext_UserReview_id(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _UserReview_userReviewID(ctx context.Context, field graphql.CollectedField, obj *ent.UserReview) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserReview_userReviewID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UserReviewID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_UserReview_userReviewID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "UserReview",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3690,8 +3468,6 @@ func (ec *executionContext) fieldContext_UserReview_user(ctx context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_User_id(ctx, field)
-			case "userID":
-				return ec.fieldContext_User_userID(ctx, field)
 			case "username":
 				return ec.fieldContext_User_username(ctx, field)
 			case "emailAddress":
@@ -5497,22 +5273,13 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"productID", "name", "description", "productImage", "productCategoryID", "ingredientsListID", "nutritionalInformationID", "promotionID", "createdAt", "updatedAt"}
+	fieldsInOrder := [...]string{"name", "description", "productImage", "productCategoryID", "ingredientsListID", "nutritionalInformationID", "promotionID", "createdAt", "updatedAt"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "productID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ProductID = data
 		case "name":
 			var err error
 
@@ -5654,22 +5421,13 @@ func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userID", "username", "emailAddress", "password", "firstName", "lastName", "createdAt", "updatedAt", "userAddresIDs", "userReviewIDs"}
+	fieldsInOrder := [...]string{"username", "emailAddress", "password", "firstName", "lastName", "createdAt", "updatedAt", "userAddresIDs", "userReviewIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "userID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.UserID = data
 		case "username":
 			var err error
 
@@ -5812,13 +5570,6 @@ func (ec *executionContext) _Address(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 
 			out.Values[i] = ec._Address_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "addressID":
-
-			out.Values[i] = ec._Address_addressID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -6001,13 +5752,6 @@ func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 
 			out.Values[i] = ec._Product_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "productID":
-
-			out.Values[i] = ec._Product_productID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -6254,13 +5998,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "userID":
-
-			out.Values[i] = ec._User_userID(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "username":
 
 			out.Values[i] = ec._User_username(ctx, field, obj)
@@ -6457,13 +6194,6 @@ func (ec *executionContext) _UserReview(ctx context.Context, sel ast.SelectionSe
 		case "id":
 
 			out.Values[i] = ec._UserReview_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "userReviewID":
-
-			out.Values[i] = ec._UserReview_userReviewID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

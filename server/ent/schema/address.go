@@ -14,7 +14,6 @@ type Address struct {
 // Fields of the Address.
 func (Address) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("address_id").Unique(),
 		field.String("phone_number").MaxLen(20).NotEmpty(),
 		field.String("address_line1").MaxLen(100).NotEmpty(),
 		field.String("address_line2").MaxLen(100).Optional(),

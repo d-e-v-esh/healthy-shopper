@@ -41,8 +41,6 @@ type AddressMutation struct {
 	op                  Op
 	typ                 string
 	id                  *int
-	address_id          *int
-	addaddress_id       *int
 	phone_number        *string
 	address_line1       *string
 	address_line2       *string
@@ -155,62 +153,6 @@ func (m *AddressMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetAddressID sets the "address_id" field.
-func (m *AddressMutation) SetAddressID(i int) {
-	m.address_id = &i
-	m.addaddress_id = nil
-}
-
-// AddressID returns the value of the "address_id" field in the mutation.
-func (m *AddressMutation) AddressID() (r int, exists bool) {
-	v := m.address_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAddressID returns the old "address_id" field's value of the Address entity.
-// If the Address object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AddressMutation) OldAddressID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAddressID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAddressID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAddressID: %w", err)
-	}
-	return oldValue.AddressID, nil
-}
-
-// AddAddressID adds i to the "address_id" field.
-func (m *AddressMutation) AddAddressID(i int) {
-	if m.addaddress_id != nil {
-		*m.addaddress_id += i
-	} else {
-		m.addaddress_id = &i
-	}
-}
-
-// AddedAddressID returns the value that was added to the "address_id" field in this mutation.
-func (m *AddressMutation) AddedAddressID() (r int, exists bool) {
-	v := m.addaddress_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetAddressID resets all changes to the "address_id" field.
-func (m *AddressMutation) ResetAddressID() {
-	m.address_id = nil
-	m.addaddress_id = nil
 }
 
 // SetPhoneNumber sets the "phone_number" field.
@@ -566,10 +508,7 @@ func (m *AddressMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AddressMutation) Fields() []string {
-	fields := make([]string, 0, 8)
-	if m.address_id != nil {
-		fields = append(fields, address.FieldAddressID)
-	}
+	fields := make([]string, 0, 7)
 	if m.phone_number != nil {
 		fields = append(fields, address.FieldPhoneNumber)
 	}
@@ -599,8 +538,6 @@ func (m *AddressMutation) Fields() []string {
 // schema.
 func (m *AddressMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case address.FieldAddressID:
-		return m.AddressID()
 	case address.FieldPhoneNumber:
 		return m.PhoneNumber()
 	case address.FieldAddressLine1:
@@ -624,8 +561,6 @@ func (m *AddressMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AddressMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case address.FieldAddressID:
-		return m.OldAddressID(ctx)
 	case address.FieldPhoneNumber:
 		return m.OldPhoneNumber(ctx)
 	case address.FieldAddressLine1:
@@ -649,13 +584,6 @@ func (m *AddressMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *AddressMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case address.FieldAddressID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAddressID(v)
-		return nil
 	case address.FieldPhoneNumber:
 		v, ok := value.(string)
 		if !ok {
@@ -712,21 +640,13 @@ func (m *AddressMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *AddressMutation) AddedFields() []string {
-	var fields []string
-	if m.addaddress_id != nil {
-		fields = append(fields, address.FieldAddressID)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *AddressMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case address.FieldAddressID:
-		return m.AddedAddressID()
-	}
 	return nil, false
 }
 
@@ -735,13 +655,6 @@ func (m *AddressMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AddressMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case address.FieldAddressID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddAddressID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Address numeric field %s", name)
 }
@@ -778,9 +691,6 @@ func (m *AddressMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AddressMutation) ResetField(name string) error {
 	switch name {
-	case address.FieldAddressID:
-		m.ResetAddressID()
-		return nil
 	case address.FieldPhoneNumber:
 		m.ResetPhoneNumber()
 		return nil
@@ -896,8 +806,6 @@ type ProductMutation struct {
 	op                            Op
 	typ                           string
 	id                            *int
-	product_id                    *int
-	addproduct_id                 *int
 	name                          *string
 	description                   *string
 	product_image                 *string
@@ -1013,62 +921,6 @@ func (m *ProductMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetProductID sets the "product_id" field.
-func (m *ProductMutation) SetProductID(i int) {
-	m.product_id = &i
-	m.addproduct_id = nil
-}
-
-// ProductID returns the value of the "product_id" field in the mutation.
-func (m *ProductMutation) ProductID() (r int, exists bool) {
-	v := m.product_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldProductID returns the old "product_id" field's value of the Product entity.
-// If the Product object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProductMutation) OldProductID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldProductID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldProductID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldProductID: %w", err)
-	}
-	return oldValue.ProductID, nil
-}
-
-// AddProductID adds i to the "product_id" field.
-func (m *ProductMutation) AddProductID(i int) {
-	if m.addproduct_id != nil {
-		*m.addproduct_id += i
-	} else {
-		m.addproduct_id = &i
-	}
-}
-
-// AddedProductID returns the value that was added to the "product_id" field in this mutation.
-func (m *ProductMutation) AddedProductID() (r int, exists bool) {
-	v := m.addproduct_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetProductID resets all changes to the "product_id" field.
-func (m *ProductMutation) ResetProductID() {
-	m.product_id = nil
-	m.addproduct_id = nil
 }
 
 // SetName sets the "name" field.
@@ -1522,10 +1374,7 @@ func (m *ProductMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProductMutation) Fields() []string {
-	fields := make([]string, 0, 10)
-	if m.product_id != nil {
-		fields = append(fields, product.FieldProductID)
-	}
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, product.FieldName)
 	}
@@ -1561,8 +1410,6 @@ func (m *ProductMutation) Fields() []string {
 // schema.
 func (m *ProductMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case product.FieldProductID:
-		return m.ProductID()
 	case product.FieldName:
 		return m.Name()
 	case product.FieldDescription:
@@ -1590,8 +1437,6 @@ func (m *ProductMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *ProductMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case product.FieldProductID:
-		return m.OldProductID(ctx)
 	case product.FieldName:
 		return m.OldName(ctx)
 	case product.FieldDescription:
@@ -1619,13 +1464,6 @@ func (m *ProductMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *ProductMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case product.FieldProductID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetProductID(v)
-		return nil
 	case product.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -1697,9 +1535,6 @@ func (m *ProductMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *ProductMutation) AddedFields() []string {
 	var fields []string
-	if m.addproduct_id != nil {
-		fields = append(fields, product.FieldProductID)
-	}
 	if m.addproduct_category_id != nil {
 		fields = append(fields, product.FieldProductCategoryID)
 	}
@@ -1720,8 +1555,6 @@ func (m *ProductMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *ProductMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case product.FieldProductID:
-		return m.AddedProductID()
 	case product.FieldProductCategoryID:
 		return m.AddedProductCategoryID()
 	case product.FieldIngredientsListID:
@@ -1739,13 +1572,6 @@ func (m *ProductMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ProductMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case product.FieldProductID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddProductID(v)
-		return nil
 	case product.FieldProductCategoryID:
 		v, ok := value.(int)
 		if !ok {
@@ -1810,9 +1636,6 @@ func (m *ProductMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *ProductMutation) ResetField(name string) error {
 	switch name {
-	case product.FieldProductID:
-		m.ResetProductID()
-		return nil
 	case product.FieldName:
 		m.ResetName()
 		return nil
@@ -1898,8 +1721,6 @@ type UserMutation struct {
 	op                  Op
 	typ                 string
 	id                  *int
-	user_id             *int
-	adduser_id          *int
 	username            *string
 	email_address       *string
 	password            *string
@@ -2015,62 +1836,6 @@ func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetUserID sets the "user_id" field.
-func (m *UserMutation) SetUserID(i int) {
-	m.user_id = &i
-	m.adduser_id = nil
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *UserMutation) UserID() (r int, exists bool) {
-	v := m.user_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldUserID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// AddUserID adds i to the "user_id" field.
-func (m *UserMutation) AddUserID(i int) {
-	if m.adduser_id != nil {
-		*m.adduser_id += i
-	} else {
-		m.adduser_id = &i
-	}
-}
-
-// AddedUserID returns the value that was added to the "user_id" field in this mutation.
-func (m *UserMutation) AddedUserID() (r int, exists bool) {
-	v := m.adduser_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *UserMutation) ResetUserID() {
-	m.user_id = nil
-	m.adduser_id = nil
 }
 
 // SetUsername sets the "username" field.
@@ -2467,10 +2232,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 8)
-	if m.user_id != nil {
-		fields = append(fields, user.FieldUserID)
-	}
+	fields := make([]string, 0, 7)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -2500,8 +2262,6 @@ func (m *UserMutation) Fields() []string {
 // schema.
 func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case user.FieldUserID:
-		return m.UserID()
 	case user.FieldUsername:
 		return m.Username()
 	case user.FieldEmailAddress:
@@ -2525,8 +2285,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case user.FieldUserID:
-		return m.OldUserID(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
 	case user.FieldEmailAddress:
@@ -2550,13 +2308,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *UserMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case user.FieldUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
 	case user.FieldUsername:
 		v, ok := value.(string)
 		if !ok {
@@ -2613,21 +2364,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
-	var fields []string
-	if m.adduser_id != nil {
-		fields = append(fields, user.FieldUserID)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case user.FieldUserID:
-		return m.AddedUserID()
-	}
 	return nil, false
 }
 
@@ -2636,13 +2379,6 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case user.FieldUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddUserID(v)
-		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -2670,9 +2406,6 @@ func (m *UserMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserMutation) ResetField(name string) error {
 	switch name {
-	case user.FieldUserID:
-		m.ResetUserID()
-		return nil
 	case user.FieldUsername:
 		m.ResetUsername()
 		return nil
@@ -3349,8 +3082,6 @@ type UserReviewMutation struct {
 	op                    Op
 	typ                   string
 	id                    *int
-	user_review_id        *int
-	adduser_review_id     *int
 	ordered_product_id    *int
 	addordered_product_id *int
 	rating                *int
@@ -3462,62 +3193,6 @@ func (m *UserReviewMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetUserReviewID sets the "user_review_id" field.
-func (m *UserReviewMutation) SetUserReviewID(i int) {
-	m.user_review_id = &i
-	m.adduser_review_id = nil
-}
-
-// UserReviewID returns the value of the "user_review_id" field in the mutation.
-func (m *UserReviewMutation) UserReviewID() (r int, exists bool) {
-	v := m.user_review_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserReviewID returns the old "user_review_id" field's value of the UserReview entity.
-// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserReviewMutation) OldUserReviewID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserReviewID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserReviewID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserReviewID: %w", err)
-	}
-	return oldValue.UserReviewID, nil
-}
-
-// AddUserReviewID adds i to the "user_review_id" field.
-func (m *UserReviewMutation) AddUserReviewID(i int) {
-	if m.adduser_review_id != nil {
-		*m.adduser_review_id += i
-	} else {
-		m.adduser_review_id = &i
-	}
-}
-
-// AddedUserReviewID returns the value that was added to the "user_review_id" field in this mutation.
-func (m *UserReviewMutation) AddedUserReviewID() (r int, exists bool) {
-	v := m.adduser_review_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetUserReviewID resets all changes to the "user_review_id" field.
-func (m *UserReviewMutation) ResetUserReviewID() {
-	m.user_review_id = nil
-	m.adduser_review_id = nil
 }
 
 // SetUserID sets the "user_id" field.
@@ -3836,10 +3511,7 @@ func (m *UserReviewMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserReviewMutation) Fields() []string {
-	fields := make([]string, 0, 7)
-	if m.user_review_id != nil {
-		fields = append(fields, userreview.FieldUserReviewID)
-	}
+	fields := make([]string, 0, 6)
 	if m.user != nil {
 		fields = append(fields, userreview.FieldUserID)
 	}
@@ -3866,8 +3538,6 @@ func (m *UserReviewMutation) Fields() []string {
 // schema.
 func (m *UserReviewMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case userreview.FieldUserReviewID:
-		return m.UserReviewID()
 	case userreview.FieldUserID:
 		return m.UserID()
 	case userreview.FieldOrderedProductID:
@@ -3889,8 +3559,6 @@ func (m *UserReviewMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *UserReviewMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case userreview.FieldUserReviewID:
-		return m.OldUserReviewID(ctx)
 	case userreview.FieldUserID:
 		return m.OldUserID(ctx)
 	case userreview.FieldOrderedProductID:
@@ -3912,13 +3580,6 @@ func (m *UserReviewMutation) OldField(ctx context.Context, name string) (ent.Val
 // type.
 func (m *UserReviewMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case userreview.FieldUserReviewID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserReviewID(v)
-		return nil
 	case userreview.FieldUserID:
 		v, ok := value.(int)
 		if !ok {
@@ -3969,9 +3630,6 @@ func (m *UserReviewMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *UserReviewMutation) AddedFields() []string {
 	var fields []string
-	if m.adduser_review_id != nil {
-		fields = append(fields, userreview.FieldUserReviewID)
-	}
 	if m.addordered_product_id != nil {
 		fields = append(fields, userreview.FieldOrderedProductID)
 	}
@@ -3986,8 +3644,6 @@ func (m *UserReviewMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *UserReviewMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case userreview.FieldUserReviewID:
-		return m.AddedUserReviewID()
 	case userreview.FieldOrderedProductID:
 		return m.AddedOrderedProductID()
 	case userreview.FieldRating:
@@ -4001,13 +3657,6 @@ func (m *UserReviewMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserReviewMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case userreview.FieldUserReviewID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddUserReviewID(v)
-		return nil
 	case userreview.FieldOrderedProductID:
 		v, ok := value.(int)
 		if !ok {
@@ -4049,9 +3698,6 @@ func (m *UserReviewMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *UserReviewMutation) ResetField(name string) error {
 	switch name {
-	case userreview.FieldUserReviewID:
-		m.ResetUserReviewID()
-		return nil
 	case userreview.FieldUserID:
 		m.ResetUserID()
 		return nil

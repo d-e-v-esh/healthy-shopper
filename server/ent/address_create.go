@@ -20,12 +20,6 @@ type AddressCreate struct {
 	hooks    []Hook
 }
 
-// SetAddressID sets the "address_id" field.
-func (ac *AddressCreate) SetAddressID(i int) *AddressCreate {
-	ac.mutation.SetAddressID(i)
-	return ac
-}
-
 // SetPhoneNumber sets the "phone_number" field.
 func (ac *AddressCreate) SetPhoneNumber(s string) *AddressCreate {
 	ac.mutation.SetPhoneNumber(s)
@@ -125,9 +119,6 @@ func (ac *AddressCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (ac *AddressCreate) check() error {
-	if _, ok := ac.mutation.AddressID(); !ok {
-		return &ValidationError{Name: "address_id", err: errors.New(`ent: missing required field "Address.address_id"`)}
-	}
 	if _, ok := ac.mutation.PhoneNumber(); !ok {
 		return &ValidationError{Name: "phone_number", err: errors.New(`ent: missing required field "Address.phone_number"`)}
 	}
@@ -207,10 +198,6 @@ func (ac *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 		_node = &Address{config: ac.config}
 		_spec = sqlgraph.NewCreateSpec(address.Table, sqlgraph.NewFieldSpec(address.FieldID, field.TypeInt))
 	)
-	if value, ok := ac.mutation.AddressID(); ok {
-		_spec.SetField(address.FieldAddressID, field.TypeInt, value)
-		_node.AddressID = value
-	}
 	if value, ok := ac.mutation.PhoneNumber(); ok {
 		_spec.SetField(address.FieldPhoneNumber, field.TypeString, value)
 		_node.PhoneNumber = value

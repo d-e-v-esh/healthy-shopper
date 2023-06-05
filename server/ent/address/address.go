@@ -12,8 +12,6 @@ const (
 	Label = "address"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldAddressID holds the string denoting the address_id field in the database.
-	FieldAddressID = "address_id"
 	// FieldPhoneNumber holds the string denoting the phone_number field in the database.
 	FieldPhoneNumber = "phone_number"
 	// FieldAddressLine1 holds the string denoting the address_line1 field in the database.
@@ -44,7 +42,6 @@ const (
 // Columns holds all SQL columns for address fields.
 var Columns = []string{
 	FieldID,
-	FieldAddressID,
 	FieldPhoneNumber,
 	FieldAddressLine1,
 	FieldAddressLine2,
@@ -87,11 +84,6 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
-}
-
-// ByAddressID orders the results by the address_id field.
-func ByAddressID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAddressID, opts...).ToFunc()
 }
 
 // ByPhoneNumber orders the results by the phone_number field.

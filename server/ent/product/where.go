@@ -54,11 +54,6 @@ func IDLTE(id int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldID, id))
 }
 
-// ProductID applies equality check predicate on the "product_id" field. It's identical to ProductIDEQ.
-func ProductID(v int) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldProductID, v))
-}
-
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldName, v))
@@ -102,46 +97,6 @@ func CreatedAt(v time.Time) predicate.Product {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// ProductIDEQ applies the EQ predicate on the "product_id" field.
-func ProductIDEQ(v int) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldProductID, v))
-}
-
-// ProductIDNEQ applies the NEQ predicate on the "product_id" field.
-func ProductIDNEQ(v int) predicate.Product {
-	return predicate.Product(sql.FieldNEQ(FieldProductID, v))
-}
-
-// ProductIDIn applies the In predicate on the "product_id" field.
-func ProductIDIn(vs ...int) predicate.Product {
-	return predicate.Product(sql.FieldIn(FieldProductID, vs...))
-}
-
-// ProductIDNotIn applies the NotIn predicate on the "product_id" field.
-func ProductIDNotIn(vs ...int) predicate.Product {
-	return predicate.Product(sql.FieldNotIn(FieldProductID, vs...))
-}
-
-// ProductIDGT applies the GT predicate on the "product_id" field.
-func ProductIDGT(v int) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldProductID, v))
-}
-
-// ProductIDGTE applies the GTE predicate on the "product_id" field.
-func ProductIDGTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldProductID, v))
-}
-
-// ProductIDLT applies the LT predicate on the "product_id" field.
-func ProductIDLT(v int) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldProductID, v))
-}
-
-// ProductIDLTE applies the LTE predicate on the "product_id" field.
-func ProductIDLTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldProductID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

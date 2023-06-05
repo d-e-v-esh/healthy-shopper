@@ -54,11 +54,6 @@ func IDLTE(id int) predicate.Address {
 	return predicate.Address(sql.FieldLTE(FieldID, id))
 }
 
-// AddressID applies equality check predicate on the "address_id" field. It's identical to AddressIDEQ.
-func AddressID(v int) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldAddressID, v))
-}
-
 // PhoneNumber applies equality check predicate on the "phone_number" field. It's identical to PhoneNumberEQ.
 func PhoneNumber(v string) predicate.Address {
 	return predicate.Address(sql.FieldEQ(FieldPhoneNumber, v))
@@ -92,46 +87,6 @@ func Country(v string) predicate.Address {
 // PostalCode applies equality check predicate on the "postal_code" field. It's identical to PostalCodeEQ.
 func PostalCode(v string) predicate.Address {
 	return predicate.Address(sql.FieldEQ(FieldPostalCode, v))
-}
-
-// AddressIDEQ applies the EQ predicate on the "address_id" field.
-func AddressIDEQ(v int) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldAddressID, v))
-}
-
-// AddressIDNEQ applies the NEQ predicate on the "address_id" field.
-func AddressIDNEQ(v int) predicate.Address {
-	return predicate.Address(sql.FieldNEQ(FieldAddressID, v))
-}
-
-// AddressIDIn applies the In predicate on the "address_id" field.
-func AddressIDIn(vs ...int) predicate.Address {
-	return predicate.Address(sql.FieldIn(FieldAddressID, vs...))
-}
-
-// AddressIDNotIn applies the NotIn predicate on the "address_id" field.
-func AddressIDNotIn(vs ...int) predicate.Address {
-	return predicate.Address(sql.FieldNotIn(FieldAddressID, vs...))
-}
-
-// AddressIDGT applies the GT predicate on the "address_id" field.
-func AddressIDGT(v int) predicate.Address {
-	return predicate.Address(sql.FieldGT(FieldAddressID, v))
-}
-
-// AddressIDGTE applies the GTE predicate on the "address_id" field.
-func AddressIDGTE(v int) predicate.Address {
-	return predicate.Address(sql.FieldGTE(FieldAddressID, v))
-}
-
-// AddressIDLT applies the LT predicate on the "address_id" field.
-func AddressIDLT(v int) predicate.Address {
-	return predicate.Address(sql.FieldLT(FieldAddressID, v))
-}
-
-// AddressIDLTE applies the LTE predicate on the "address_id" field.
-func AddressIDLTE(v int) predicate.Address {
-	return predicate.Address(sql.FieldLTE(FieldAddressID, v))
 }
 
 // PhoneNumberEQ applies the EQ predicate on the "phone_number" field.
