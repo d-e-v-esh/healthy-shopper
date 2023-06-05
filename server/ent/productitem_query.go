@@ -75,7 +75,7 @@ func (piq *ProductItemQuery) QueryProduct() *ProductQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(productitem.Table, productitem.FieldID, selector),
 			sqlgraph.To(product.Table, product.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, productitem.ProductTable, productitem.ProductColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, productitem.ProductTable, productitem.ProductColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(piq.driver.Dialect(), step)
 		return fromU, nil

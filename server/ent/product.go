@@ -5,6 +5,8 @@ package ent
 import (
 	"fmt"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/promotion"
 	"strings"
 	"time"
 
@@ -44,23 +46,40 @@ type Product struct {
 // ProductEdges holds the relations/edges for other nodes in the graph.
 type ProductEdges struct {
 	// ProductItem holds the value of the product_item edge.
-	ProductItem []*ProductItem `json:"product_item,omitempty"`
+	ProductItem *ProductItem `json:"product_item,omitempty"`
+	// Promotion holds the value of the promotion edge.
+	Promotion *Promotion `json:"promotion,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
-
-	namedProductItem map[string][]*ProductItem
+	totalCount [2]map[string]int
 }
 
 // ProductItemOrErr returns the ProductItem value or an error if the edge
-// was not loaded in eager-loading.
-func (e ProductEdges) ProductItemOrErr() ([]*ProductItem, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) ProductItemOrErr() (*ProductItem, error) {
 	if e.loadedTypes[0] {
+		if e.ProductItem == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: productitem.Label}
+		}
 		return e.ProductItem, nil
 	}
 	return nil, &NotLoadedError{edge: "product_item"}
+}
+
+// PromotionOrErr returns the Promotion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) PromotionOrErr() (*Promotion, error) {
+	if e.loadedTypes[1] {
+		if e.Promotion == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: promotion.Label}
+		}
+		return e.Promotion, nil
+	}
+	return nil, &NotLoadedError{edge: "promotion"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -167,6 +186,11 @@ func (pr *Product) QueryProductItem() *ProductItemQuery {
 	return NewProductClient(pr.config).QueryProductItem(pr)
 }
 
+// QueryPromotion queries the "promotion" edge of the Product entity.
+func (pr *Product) QueryPromotion() *PromotionQuery {
+	return NewProductClient(pr.config).QueryPromotion(pr)
+}
+
 // Update returns a builder for updating this Product.
 // Note that you need to call Product.Unwrap() before calling this method if this Product
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -218,30 +242,6 @@ func (pr *Product) String() string {
 	builder.WriteString(pr.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// NamedProductItem returns the ProductItem named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (pr *Product) NamedProductItem(name string) ([]*ProductItem, error) {
-	if pr.Edges.namedProductItem == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := pr.Edges.namedProductItem[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (pr *Product) appendNamedProductItem(name string, edges ...*ProductItem) {
-	if pr.Edges.namedProductItem == nil {
-		pr.Edges.namedProductItem = make(map[string][]*ProductItem)
-	}
-	if len(edges) == 0 {
-		pr.Edges.namedProductItem[name] = []*ProductItem{}
-	} else {
-		pr.Edges.namedProductItem[name] = append(pr.Edges.namedProductItem[name], edges...)
-	}
 }
 
 // Products is a parsable slice of Product.

@@ -19,13 +19,13 @@ input CreateProductInput {
   name: String!
   description: String!
   productImage: String!
-  ingredientsListID: Int!
-  productCategoryID: Int!
-  nutritionalInformationID: Int!
-  promotionID: Int!
+  ingredientsListID: Int
+  productCategoryID: Int
+  nutritionalInformationID: Int
   createdAt: Time
   updatedAt: Time
-  productItemIDs: [ID!]
+  productItemID: ID
+  promotionID: ID
 }
 """
 CreateProductItemInput is used for create ProductItem object.
@@ -104,13 +104,14 @@ type Product implements Node {
   name: String!
   description: String!
   productImage: String!
-  ingredientsListID: Int!
-  productCategoryID: Int!
-  nutritionalInformationID: Int!
-  promotionID: Int!
+  ingredientsListID: Int
+  productCategoryID: Int
+  nutritionalInformationID: Int
+  promotionID: ID
   createdAt: Time!
   updatedAt: Time
-  productItem: [ProductItem!]
+  productItem: ProductItem
+  promotion: Promotion
 }
 type ProductItem implements Node {
   id: ID!
@@ -122,6 +123,15 @@ type ProductItem implements Node {
   createdAt: Time!
   updatedAt: Time
   product: Product!
+}
+type Promotion implements Node {
+  id: ID!
+  name: String!
+  description: String!
+  discountPercentage: Int!
+  startDate: Time!
+  endDate: Time!
+  product: [Product!]!
 }
 type Query {
   """Fetches an object given its ID."""

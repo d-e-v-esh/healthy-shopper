@@ -13,6 +13,7 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/promotion"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -36,6 +37,8 @@ type Client struct {
 	Product *ProductClient
 	// ProductItem is the client for interacting with the ProductItem builders.
 	ProductItem *ProductItemClient
+	// Promotion is the client for interacting with the Promotion builders.
+	Promotion *PromotionClient
 	// ShoppingCart is the client for interacting with the ShoppingCart builders.
 	ShoppingCart *ShoppingCartClient
 	// ShoppingCartItem is the client for interacting with the ShoppingCartItem builders.
@@ -64,6 +67,7 @@ func (c *Client) init() {
 	c.Address = NewAddressClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.ProductItem = NewProductItemClient(c.config)
+	c.Promotion = NewPromotionClient(c.config)
 	c.ShoppingCart = NewShoppingCartClient(c.config)
 	c.ShoppingCartItem = NewShoppingCartItemClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -154,6 +158,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Address:          NewAddressClient(cfg),
 		Product:          NewProductClient(cfg),
 		ProductItem:      NewProductItemClient(cfg),
+		Promotion:        NewPromotionClient(cfg),
 		ShoppingCart:     NewShoppingCartClient(cfg),
 		ShoppingCartItem: NewShoppingCartItemClient(cfg),
 		User:             NewUserClient(cfg),
@@ -181,6 +186,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Address:          NewAddressClient(cfg),
 		Product:          NewProductClient(cfg),
 		ProductItem:      NewProductItemClient(cfg),
+		Promotion:        NewPromotionClient(cfg),
 		ShoppingCart:     NewShoppingCartClient(cfg),
 		ShoppingCartItem: NewShoppingCartItemClient(cfg),
 		User:             NewUserClient(cfg),
@@ -215,8 +221,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Address, c.Product, c.ProductItem, c.ShoppingCart, c.ShoppingCartItem, c.User,
-		c.UserAddress, c.UserReview,
+		c.Address, c.Product, c.ProductItem, c.Promotion, c.ShoppingCart,
+		c.ShoppingCartItem, c.User, c.UserAddress, c.UserReview,
 	} {
 		n.Use(hooks...)
 	}
@@ -226,8 +232,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Address, c.Product, c.ProductItem, c.ShoppingCart, c.ShoppingCartItem, c.User,
-		c.UserAddress, c.UserReview,
+		c.Address, c.Product, c.ProductItem, c.Promotion, c.ShoppingCart,
+		c.ShoppingCartItem, c.User, c.UserAddress, c.UserReview,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -242,6 +248,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Product.mutate(ctx, m)
 	case *ProductItemMutation:
 		return c.ProductItem.mutate(ctx, m)
+	case *PromotionMutation:
+		return c.Promotion.mutate(ctx, m)
 	case *ShoppingCartMutation:
 		return c.ShoppingCart.mutate(ctx, m)
 	case *ShoppingCartItemMutation:
@@ -492,7 +500,23 @@ func (c *ProductClient) QueryProductItem(pr *Product) *ProductItemQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(productitem.Table, productitem.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, product.ProductItemTable, product.ProductItemColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, product.ProductItemTable, product.ProductItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPromotion queries the promotion edge of a Product.
+func (c *ProductClient) QueryPromotion(pr *Product) *PromotionQuery {
+	query := (&PromotionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, id),
+			sqlgraph.To(promotion.Table, promotion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, product.PromotionTable, product.PromotionColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -626,7 +650,7 @@ func (c *ProductItemClient) QueryProduct(pi *ProductItem) *ProductQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(productitem.Table, productitem.FieldID, id),
 			sqlgraph.To(product.Table, product.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, productitem.ProductTable, productitem.ProductColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, productitem.ProductTable, productitem.ProductColumn),
 		)
 		fromV = sqlgraph.Neighbors(pi.driver.Dialect(), step)
 		return fromV, nil
@@ -656,6 +680,140 @@ func (c *ProductItemClient) mutate(ctx context.Context, m *ProductItemMutation) 
 		return (&ProductItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ProductItem mutation op: %q", m.Op())
+	}
+}
+
+// PromotionClient is a client for the Promotion schema.
+type PromotionClient struct {
+	config
+}
+
+// NewPromotionClient returns a client for the Promotion from the given config.
+func NewPromotionClient(c config) *PromotionClient {
+	return &PromotionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `promotion.Hooks(f(g(h())))`.
+func (c *PromotionClient) Use(hooks ...Hook) {
+	c.hooks.Promotion = append(c.hooks.Promotion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `promotion.Intercept(f(g(h())))`.
+func (c *PromotionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Promotion = append(c.inters.Promotion, interceptors...)
+}
+
+// Create returns a builder for creating a Promotion entity.
+func (c *PromotionClient) Create() *PromotionCreate {
+	mutation := newPromotionMutation(c.config, OpCreate)
+	return &PromotionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Promotion entities.
+func (c *PromotionClient) CreateBulk(builders ...*PromotionCreate) *PromotionCreateBulk {
+	return &PromotionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Promotion.
+func (c *PromotionClient) Update() *PromotionUpdate {
+	mutation := newPromotionMutation(c.config, OpUpdate)
+	return &PromotionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PromotionClient) UpdateOne(pr *Promotion) *PromotionUpdateOne {
+	mutation := newPromotionMutation(c.config, OpUpdateOne, withPromotion(pr))
+	return &PromotionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PromotionClient) UpdateOneID(id int) *PromotionUpdateOne {
+	mutation := newPromotionMutation(c.config, OpUpdateOne, withPromotionID(id))
+	return &PromotionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Promotion.
+func (c *PromotionClient) Delete() *PromotionDelete {
+	mutation := newPromotionMutation(c.config, OpDelete)
+	return &PromotionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PromotionClient) DeleteOne(pr *Promotion) *PromotionDeleteOne {
+	return c.DeleteOneID(pr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PromotionClient) DeleteOneID(id int) *PromotionDeleteOne {
+	builder := c.Delete().Where(promotion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PromotionDeleteOne{builder}
+}
+
+// Query returns a query builder for Promotion.
+func (c *PromotionClient) Query() *PromotionQuery {
+	return &PromotionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePromotion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Promotion entity by its id.
+func (c *PromotionClient) Get(ctx context.Context, id int) (*Promotion, error) {
+	return c.Query().Where(promotion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PromotionClient) GetX(ctx context.Context, id int) *Promotion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProduct queries the product edge of a Promotion.
+func (c *PromotionClient) QueryProduct(pr *Promotion) *ProductQuery {
+	query := (&ProductClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(promotion.Table, promotion.FieldID, id),
+			sqlgraph.To(product.Table, product.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, promotion.ProductTable, promotion.ProductColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PromotionClient) Hooks() []Hook {
+	return c.hooks.Promotion
+}
+
+// Interceptors returns the client interceptors.
+func (c *PromotionClient) Interceptors() []Interceptor {
+	return c.inters.Promotion
+}
+
+func (c *PromotionClient) mutate(ctx context.Context, m *PromotionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PromotionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PromotionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PromotionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PromotionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Promotion mutation op: %q", m.Op())
 	}
 }
 
@@ -1396,11 +1554,11 @@ func (c *UserReviewClient) mutate(ctx context.Context, m *UserReviewMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, Product, ProductItem, ShoppingCart, ShoppingCartItem, User,
+		Address, Product, ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User,
 		UserAddress, UserReview []ent.Hook
 	}
 	inters struct {
-		Address, Product, ProductItem, ShoppingCart, ShoppingCartItem, User,
+		Address, Product, ProductItem, Promotion, ShoppingCart, ShoppingCartItem, User,
 		UserAddress, UserReview []ent.Interceptor
 	}
 )

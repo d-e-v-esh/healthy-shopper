@@ -34,6 +34,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeProductItem holds the string denoting the product_item edge name in mutations.
 	EdgeProductItem = "product_item"
+	// EdgePromotion holds the string denoting the promotion edge name in mutations.
+	EdgePromotion = "promotion"
 	// Table holds the table name of the product in the database.
 	Table = "products"
 	// ProductItemTable is the table that holds the product_item relation/edge.
@@ -43,6 +45,13 @@ const (
 	ProductItemInverseTable = "product_items"
 	// ProductItemColumn is the table column denoting the product_item relation/edge.
 	ProductItemColumn = "product_id"
+	// PromotionTable is the table that holds the promotion relation/edge.
+	PromotionTable = "products"
+	// PromotionInverseTable is the table name for the Promotion entity.
+	// It exists in this package in order to avoid circular dependency with the "promotion" package.
+	PromotionInverseTable = "promotions"
+	// PromotionColumn is the table column denoting the promotion relation/edge.
+	PromotionColumn = "promotion_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -133,23 +142,30 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByProductItemCount orders the results by product_item count.
-func ByProductItemCount(opts ...sql.OrderTermOption) OrderOption {
+// ByProductItemField orders the results by product_item field.
+func ByProductItemField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newProductItemStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newProductItemStep(), sql.OrderByField(field, opts...))
 	}
 }
 
-// ByProductItem orders the results by product_item terms.
-func ByProductItem(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByPromotionField orders the results by promotion field.
+func ByPromotionField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newProductItemStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newPromotionStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newProductItemStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProductItemInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ProductItemTable, ProductItemColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, ProductItemTable, ProductItemColumn),
+	)
+}
+func newPromotionStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PromotionInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, PromotionTable, PromotionColumn),
 	)
 }

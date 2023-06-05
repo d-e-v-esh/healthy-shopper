@@ -15,6 +15,9 @@ type Product func(*sql.Selector)
 // ProductItem is the predicate function for productitem builders.
 type ProductItem func(*sql.Selector)
 
+// Promotion is the predicate function for promotion builders.
+type Promotion func(*sql.Selector)
+
 // ShoppingCart is the predicate function for shoppingcart builders.
 type ShoppingCart func(*sql.Selector)
 

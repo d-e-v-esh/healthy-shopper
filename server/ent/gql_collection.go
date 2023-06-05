@@ -7,6 +7,7 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/promotion"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -153,9 +154,21 @@ func (pr *ProductQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, productitemImplementors)...); err != nil {
 				return err
 			}
-			pr.WithNamedProductItem(alias, func(wq *ProductItemQuery) {
-				*wq = *query
-			})
+			pr.withProductItem = query
+		case "promotion":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&PromotionClient{config: pr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, promotionImplementors)...); err != nil {
+				return err
+			}
+			pr.withPromotion = query
+			if _, ok := fieldSeen[product.FieldPromotionID]; !ok {
+				selectedFields = append(selectedFields, product.FieldPromotionID)
+				fieldSeen[product.FieldPromotionID] = struct{}{}
+			}
 		case "name":
 			if _, ok := fieldSeen[product.FieldName]; !ok {
 				selectedFields = append(selectedFields, product.FieldName)
@@ -329,6 +342,102 @@ type productitemPaginateArgs struct {
 
 func newProductItemPaginateArgs(rv map[string]any) *productitemPaginateArgs {
 	args := &productitemPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (pr *PromotionQuery) CollectFields(ctx context.Context, satisfies ...string) (*PromotionQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return pr, nil
+	}
+	if err := pr.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return pr, nil
+}
+
+func (pr *PromotionQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(promotion.Columns))
+		selectedFields = []string{promotion.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "product":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProductClient{config: pr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, productImplementors)...); err != nil {
+				return err
+			}
+			pr.WithNamedProduct(alias, func(wq *ProductQuery) {
+				*wq = *query
+			})
+		case "name":
+			if _, ok := fieldSeen[promotion.FieldName]; !ok {
+				selectedFields = append(selectedFields, promotion.FieldName)
+				fieldSeen[promotion.FieldName] = struct{}{}
+			}
+		case "description":
+			if _, ok := fieldSeen[promotion.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, promotion.FieldDescription)
+				fieldSeen[promotion.FieldDescription] = struct{}{}
+			}
+		case "discountPercentage":
+			if _, ok := fieldSeen[promotion.FieldDiscountPercentage]; !ok {
+				selectedFields = append(selectedFields, promotion.FieldDiscountPercentage)
+				fieldSeen[promotion.FieldDiscountPercentage] = struct{}{}
+			}
+		case "startDate":
+			if _, ok := fieldSeen[promotion.FieldStartDate]; !ok {
+				selectedFields = append(selectedFields, promotion.FieldStartDate)
+				fieldSeen[promotion.FieldStartDate] = struct{}{}
+			}
+		case "endDate":
+			if _, ok := fieldSeen[promotion.FieldEndDate]; !ok {
+				selectedFields = append(selectedFields, promotion.FieldEndDate)
+				fieldSeen[promotion.FieldEndDate] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		pr.Select(selectedFields...)
+	}
+	return nil
+}
+
+type promotionPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []PromotionPaginateOption
+}
+
+func newPromotionPaginateArgs(rv map[string]any) *promotionPaginateArgs {
+	args := &promotionPaginateArgs{}
 	if rv == nil {
 		return args
 	}

@@ -335,6 +335,16 @@ func IngredientsListIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldIngredientsListID, v))
 }
 
+// IngredientsListIDIsNil applies the IsNil predicate on the "ingredients_list_id" field.
+func IngredientsListIDIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldIngredientsListID))
+}
+
+// IngredientsListIDNotNil applies the NotNil predicate on the "ingredients_list_id" field.
+func IngredientsListIDNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldIngredientsListID))
+}
+
 // ProductCategoryIDEQ applies the EQ predicate on the "product_category_id" field.
 func ProductCategoryIDEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldProductCategoryID, v))
@@ -373,6 +383,16 @@ func ProductCategoryIDLT(v int) predicate.Product {
 // ProductCategoryIDLTE applies the LTE predicate on the "product_category_id" field.
 func ProductCategoryIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldProductCategoryID, v))
+}
+
+// ProductCategoryIDIsNil applies the IsNil predicate on the "product_category_id" field.
+func ProductCategoryIDIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldProductCategoryID))
+}
+
+// ProductCategoryIDNotNil applies the NotNil predicate on the "product_category_id" field.
+func ProductCategoryIDNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldProductCategoryID))
 }
 
 // NutritionalInformationIDEQ applies the EQ predicate on the "nutritional_information_id" field.
@@ -415,6 +435,16 @@ func NutritionalInformationIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldNutritionalInformationID, v))
 }
 
+// NutritionalInformationIDIsNil applies the IsNil predicate on the "nutritional_information_id" field.
+func NutritionalInformationIDIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldNutritionalInformationID))
+}
+
+// NutritionalInformationIDNotNil applies the NotNil predicate on the "nutritional_information_id" field.
+func NutritionalInformationIDNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldNutritionalInformationID))
+}
+
 // PromotionIDEQ applies the EQ predicate on the "promotion_id" field.
 func PromotionIDEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldPromotionID, v))
@@ -435,24 +465,14 @@ func PromotionIDNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldPromotionID, vs...))
 }
 
-// PromotionIDGT applies the GT predicate on the "promotion_id" field.
-func PromotionIDGT(v int) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldPromotionID, v))
+// PromotionIDIsNil applies the IsNil predicate on the "promotion_id" field.
+func PromotionIDIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldPromotionID))
 }
 
-// PromotionIDGTE applies the GTE predicate on the "promotion_id" field.
-func PromotionIDGTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldPromotionID, v))
-}
-
-// PromotionIDLT applies the LT predicate on the "promotion_id" field.
-func PromotionIDLT(v int) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldPromotionID, v))
-}
-
-// PromotionIDLTE applies the LTE predicate on the "promotion_id" field.
-func PromotionIDLTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldPromotionID, v))
+// PromotionIDNotNil applies the NotNil predicate on the "promotion_id" field.
+func PromotionIDNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldPromotionID))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -550,7 +570,7 @@ func HasProductItem() predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ProductItemTable, ProductItemColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, ProductItemTable, ProductItemColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -560,6 +580,29 @@ func HasProductItem() predicate.Product {
 func HasProductItemWith(preds ...predicate.ProductItem) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := newProductItemStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPromotion applies the HasEdge predicate on the "promotion" edge.
+func HasPromotion() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, PromotionTable, PromotionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPromotionWith applies the HasEdge predicate on the "promotion" edge with a given conditions (other predicates).
+func HasPromotionWith(preds ...predicate.Promotion) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newPromotionStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

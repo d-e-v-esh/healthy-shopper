@@ -31,18 +31,26 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 50},
 		{Name: "description", Type: field.TypeString, Size: 500},
 		{Name: "product_image", Type: field.TypeString, Size: 500},
-		{Name: "ingredients_list_id", Type: field.TypeInt, Unique: true},
-		{Name: "product_category_id", Type: field.TypeInt, Unique: true},
-		{Name: "nutritional_information_id", Type: field.TypeInt, Unique: true},
-		{Name: "promotion_id", Type: field.TypeInt, Unique: true},
+		{Name: "ingredients_list_id", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "product_category_id", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "nutritional_information_id", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "promotion_id", Type: field.TypeInt, Nullable: true},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
 		Name:       "products",
 		Columns:    ProductsColumns,
 		PrimaryKey: []*schema.Column{ProductsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "products_promotions_promotion",
+				Columns:    []*schema.Column{ProductsColumns[9]},
+				RefColumns: []*schema.Column{PromotionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// ProductItemsColumns holds the columns for the "product_items" table.
 	ProductItemsColumns = []*schema.Column{
@@ -53,7 +61,7 @@ var (
 		{Name: "price", Type: field.TypeFloat32},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
-		{Name: "product_id", Type: field.TypeInt},
+		{Name: "product_id", Type: field.TypeInt, Unique: true},
 	}
 	// ProductItemsTable holds the schema information for the "product_items" table.
 	ProductItemsTable = &schema.Table{
@@ -68,6 +76,21 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
+	}
+	// PromotionsColumns holds the columns for the "promotions" table.
+	PromotionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "description", Type: field.TypeString, Size: 500},
+		{Name: "discount_percentage", Type: field.TypeInt},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+	}
+	// PromotionsTable holds the schema information for the "promotions" table.
+	PromotionsTable = &schema.Table{
+		Name:       "promotions",
+		Columns:    PromotionsColumns,
+		PrimaryKey: []*schema.Column{PromotionsColumns[0]},
 	}
 	// ShoppingCartsColumns holds the columns for the "shopping_carts" table.
 	ShoppingCartsColumns = []*schema.Column{
@@ -182,6 +205,7 @@ var (
 		AddressesTable,
 		ProductsTable,
 		ProductItemsTable,
+		PromotionsTable,
 		ShoppingCartsTable,
 		ShoppingCartItemsTable,
 		UsersTable,
@@ -191,6 +215,7 @@ var (
 )
 
 func init() {
+	ProductsTable.ForeignKeys[0].RefTable = PromotionsTable
 	ProductItemsTable.ForeignKeys[0].RefTable = ProductsTable
 	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
 	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable

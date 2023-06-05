@@ -6,6 +6,7 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/promotion"
 	"healthyshopper/ent/schema"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -242,6 +243,48 @@ func init() {
 	productitemDescCreatedAt := productitemFields[5].Descriptor()
 	// productitem.DefaultCreatedAt holds the default value on creation for the created_at field.
 	productitem.DefaultCreatedAt = productitemDescCreatedAt.Default.(func() time.Time)
+	promotionFields := schema.Promotion{}.Fields()
+	_ = promotionFields
+	// promotionDescName is the schema descriptor for name field.
+	promotionDescName := promotionFields[0].Descriptor()
+	// promotion.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	promotion.NameValidator = func() func(string) error {
+		validators := promotionDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// promotionDescDescription is the schema descriptor for description field.
+	promotionDescDescription := promotionFields[1].Descriptor()
+	// promotion.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	promotion.DescriptionValidator = func() func(string) error {
+		validators := promotionDescDescription.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(description string) error {
+			for _, fn := range fns {
+				if err := fn(description); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// promotionDescDiscountPercentage is the schema descriptor for discount_percentage field.
+	promotionDescDiscountPercentage := promotionFields[2].Descriptor()
+	// promotion.DiscountPercentageValidator is a validator for the "discount_percentage" field. It is called by the builders before save.
+	promotion.DiscountPercentageValidator = promotionDescDiscountPercentage.Validators[0].(func(int) error)
 	shoppingcartitemFields := schema.ShoppingCartItem{}.Fields()
 	_ = shoppingcartitemFields
 	// shoppingcartitemDescQuantity is the schema descriptor for quantity field.

@@ -219,7 +219,7 @@ func (piu *ProductItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if piu.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   productitem.ProductTable,
 			Columns: []string{productitem.ProductColumn},
@@ -232,7 +232,7 @@ func (piu *ProductItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := piu.mutation.ProductIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   productitem.ProductTable,
 			Columns: []string{productitem.ProductColumn},
@@ -486,7 +486,7 @@ func (piuo *ProductItemUpdateOne) sqlSave(ctx context.Context) (_node *ProductIt
 	}
 	if piuo.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   productitem.ProductTable,
 			Columns: []string{productitem.ProductColumn},
@@ -499,7 +499,7 @@ func (piuo *ProductItemUpdateOne) sqlSave(ctx context.Context) (_node *ProductIt
 	}
 	if nodes := piuo.mutation.ProductIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   productitem.ProductTable,
 			Columns: []string{productitem.ProductColumn},

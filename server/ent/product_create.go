@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/promotion"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -45,9 +46,25 @@ func (pc *ProductCreate) SetIngredientsListID(i int) *ProductCreate {
 	return pc
 }
 
+// SetNillableIngredientsListID sets the "ingredients_list_id" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableIngredientsListID(i *int) *ProductCreate {
+	if i != nil {
+		pc.SetIngredientsListID(*i)
+	}
+	return pc
+}
+
 // SetProductCategoryID sets the "product_category_id" field.
 func (pc *ProductCreate) SetProductCategoryID(i int) *ProductCreate {
 	pc.mutation.SetProductCategoryID(i)
+	return pc
+}
+
+// SetNillableProductCategoryID sets the "product_category_id" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableProductCategoryID(i *int) *ProductCreate {
+	if i != nil {
+		pc.SetProductCategoryID(*i)
+	}
 	return pc
 }
 
@@ -57,9 +74,25 @@ func (pc *ProductCreate) SetNutritionalInformationID(i int) *ProductCreate {
 	return pc
 }
 
+// SetNillableNutritionalInformationID sets the "nutritional_information_id" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableNutritionalInformationID(i *int) *ProductCreate {
+	if i != nil {
+		pc.SetNutritionalInformationID(*i)
+	}
+	return pc
+}
+
 // SetPromotionID sets the "promotion_id" field.
 func (pc *ProductCreate) SetPromotionID(i int) *ProductCreate {
 	pc.mutation.SetPromotionID(i)
+	return pc
+}
+
+// SetNillablePromotionID sets the "promotion_id" field if the given value is not nil.
+func (pc *ProductCreate) SetNillablePromotionID(i *int) *ProductCreate {
+	if i != nil {
+		pc.SetPromotionID(*i)
+	}
 	return pc
 }
 
@@ -91,19 +124,28 @@ func (pc *ProductCreate) SetNillableUpdatedAt(t *time.Time) *ProductCreate {
 	return pc
 }
 
-// AddProductItemIDs adds the "product_item" edge to the ProductItem entity by IDs.
-func (pc *ProductCreate) AddProductItemIDs(ids ...int) *ProductCreate {
-	pc.mutation.AddProductItemIDs(ids...)
+// SetProductItemID sets the "product_item" edge to the ProductItem entity by ID.
+func (pc *ProductCreate) SetProductItemID(id int) *ProductCreate {
+	pc.mutation.SetProductItemID(id)
 	return pc
 }
 
-// AddProductItem adds the "product_item" edges to the ProductItem entity.
-func (pc *ProductCreate) AddProductItem(p ...*ProductItem) *ProductCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// SetNillableProductItemID sets the "product_item" edge to the ProductItem entity by ID if the given value is not nil.
+func (pc *ProductCreate) SetNillableProductItemID(id *int) *ProductCreate {
+	if id != nil {
+		pc = pc.SetProductItemID(*id)
 	}
-	return pc.AddProductItemIDs(ids...)
+	return pc
+}
+
+// SetProductItem sets the "product_item" edge to the ProductItem entity.
+func (pc *ProductCreate) SetProductItem(p *ProductItem) *ProductCreate {
+	return pc.SetProductItemID(p.ID)
+}
+
+// SetPromotion sets the "promotion" edge to the Promotion entity.
+func (pc *ProductCreate) SetPromotion(p *Promotion) *ProductCreate {
+	return pc.SetPromotionID(p.ID)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -173,18 +215,6 @@ func (pc *ProductCreate) check() error {
 			return &ValidationError{Name: "product_image", err: fmt.Errorf(`ent: validator failed for field "Product.product_image": %w`, err)}
 		}
 	}
-	if _, ok := pc.mutation.IngredientsListID(); !ok {
-		return &ValidationError{Name: "ingredients_list_id", err: errors.New(`ent: missing required field "Product.ingredients_list_id"`)}
-	}
-	if _, ok := pc.mutation.ProductCategoryID(); !ok {
-		return &ValidationError{Name: "product_category_id", err: errors.New(`ent: missing required field "Product.product_category_id"`)}
-	}
-	if _, ok := pc.mutation.NutritionalInformationID(); !ok {
-		return &ValidationError{Name: "nutritional_information_id", err: errors.New(`ent: missing required field "Product.nutritional_information_id"`)}
-	}
-	if _, ok := pc.mutation.PromotionID(); !ok {
-		return &ValidationError{Name: "promotion_id", err: errors.New(`ent: missing required field "Product.promotion_id"`)}
-	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Product.created_at"`)}
 	}
@@ -238,10 +268,6 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_spec.SetField(product.FieldNutritionalInformationID, field.TypeInt, value)
 		_node.NutritionalInformationID = value
 	}
-	if value, ok := pc.mutation.PromotionID(); ok {
-		_spec.SetField(product.FieldPromotionID, field.TypeInt, value)
-		_node.PromotionID = value
-	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -252,7 +278,7 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	}
 	if nodes := pc.mutation.ProductItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
 			Table:   product.ProductItemTable,
 			Columns: []string{product.ProductItemColumn},
@@ -264,6 +290,23 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.PromotionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.PromotionTable,
+			Columns: []string{product.PromotionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(promotion.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PromotionID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

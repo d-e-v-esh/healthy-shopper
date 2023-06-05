@@ -11,13 +11,13 @@ type CreateProductInput struct {
 	Name                     string
 	Description              string
 	ProductImage             string
-	IngredientsListID        int
-	ProductCategoryID        int
-	NutritionalInformationID int
-	PromotionID              int
+	IngredientsListID        *int
+	ProductCategoryID        *int
+	NutritionalInformationID *int
 	CreatedAt                *time.Time
 	UpdatedAt                *time.Time
-	ProductItemIDs           []int
+	ProductItemID            *int
+	PromotionID              *int
 }
 
 // Mutate applies the CreateProductInput on the ProductMutation builder.
@@ -25,18 +25,26 @@ func (i *CreateProductInput) Mutate(m *ProductMutation) {
 	m.SetName(i.Name)
 	m.SetDescription(i.Description)
 	m.SetProductImage(i.ProductImage)
-	m.SetIngredientsListID(i.IngredientsListID)
-	m.SetProductCategoryID(i.ProductCategoryID)
-	m.SetNutritionalInformationID(i.NutritionalInformationID)
-	m.SetPromotionID(i.PromotionID)
+	if v := i.IngredientsListID; v != nil {
+		m.SetIngredientsListID(*v)
+	}
+	if v := i.ProductCategoryID; v != nil {
+		m.SetProductCategoryID(*v)
+	}
+	if v := i.NutritionalInformationID; v != nil {
+		m.SetNutritionalInformationID(*v)
+	}
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
 	}
-	if v := i.ProductItemIDs; len(v) > 0 {
-		m.AddProductItemIDs(v...)
+	if v := i.ProductItemID; v != nil {
+		m.SetProductItemID(*v)
+	}
+	if v := i.PromotionID; v != nil {
+		m.SetPromotionID(*v)
 	}
 }
 

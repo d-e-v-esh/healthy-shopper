@@ -220,7 +220,7 @@ func (pic *ProductItemCreate) createSpec() (*ProductItem, *sqlgraph.CreateSpec) 
 	}
 	if nodes := pic.mutation.ProductIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.O2O,
 			Inverse: true,
 			Table:   productitem.ProductTable,
 			Columns: []string{productitem.ProductColumn},

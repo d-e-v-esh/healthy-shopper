@@ -415,7 +415,7 @@ func HasProduct() predicate.ProductItem {
 	return predicate.ProductItem(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ProductTable, ProductColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, ProductTable, ProductColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

@@ -8,6 +8,7 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/promotion"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -44,6 +45,11 @@ var productitemImplementors = []string{"ProductItem", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*ProductItem) IsNode() {}
+
+var promotionImplementors = []string{"Promotion", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Promotion) IsNode() {}
 
 var shoppingcartImplementors = []string{"ShoppingCart", "Node"}
 
@@ -156,6 +162,18 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.ProductItem.Query().
 			Where(productitem.ID(id))
 		query, err := query.CollectFields(ctx, productitemImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case promotion.Table:
+		query := c.Promotion.Query().
+			Where(promotion.ID(id))
+		query, err := query.CollectFields(ctx, promotionImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -333,6 +351,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.ProductItem.Query().
 			Where(productitem.IDIn(ids...))
 		query, err := query.CollectFields(ctx, productitemImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case promotion.Table:
+		query := c.Promotion.Query().
+			Where(promotion.IDIn(ids...))
+		query, err := query.CollectFields(ctx, promotionImplementors...)
 		if err != nil {
 			return nil, err
 		}

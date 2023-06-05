@@ -83,6 +83,7 @@ type ComplexityRoot struct {
 		ProductCategoryID        func(childComplexity int) int
 		ProductImage             func(childComplexity int) int
 		ProductItem              func(childComplexity int) int
+		Promotion                func(childComplexity int) int
 		PromotionID              func(childComplexity int) int
 		UpdatedAt                func(childComplexity int) int
 	}
@@ -97,6 +98,16 @@ type ComplexityRoot struct {
 		QuantityInStock  func(childComplexity int) int
 		StockKeepingUnit func(childComplexity int) int
 		UpdatedAt        func(childComplexity int) int
+	}
+
+	Promotion struct {
+		Description        func(childComplexity int) int
+		DiscountPercentage func(childComplexity int) int
+		EndDate            func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Name               func(childComplexity int) int
+		Product            func(childComplexity int) int
+		StartDate          func(childComplexity int) int
 	}
 
 	Query struct {
@@ -371,6 +382,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Product.ProductItem(childComplexity), true
 
+	case "Product.promotion":
+		if e.complexity.Product.Promotion == nil {
+			break
+		}
+
+		return e.complexity.Product.Promotion(childComplexity), true
+
 	case "Product.promotionID":
 		if e.complexity.Product.PromotionID == nil {
 			break
@@ -447,6 +465,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProductItem.UpdatedAt(childComplexity), true
+
+	case "Promotion.description":
+		if e.complexity.Promotion.Description == nil {
+			break
+		}
+
+		return e.complexity.Promotion.Description(childComplexity), true
+
+	case "Promotion.discountPercentage":
+		if e.complexity.Promotion.DiscountPercentage == nil {
+			break
+		}
+
+		return e.complexity.Promotion.DiscountPercentage(childComplexity), true
+
+	case "Promotion.endDate":
+		if e.complexity.Promotion.EndDate == nil {
+			break
+		}
+
+		return e.complexity.Promotion.EndDate(childComplexity), true
+
+	case "Promotion.id":
+		if e.complexity.Promotion.ID == nil {
+			break
+		}
+
+		return e.complexity.Promotion.ID(childComplexity), true
+
+	case "Promotion.name":
+		if e.complexity.Promotion.Name == nil {
+			break
+		}
+
+		return e.complexity.Promotion.Name(childComplexity), true
+
+	case "Promotion.product":
+		if e.complexity.Promotion.Product == nil {
+			break
+		}
+
+		return e.complexity.Promotion.Product(childComplexity), true
+
+	case "Promotion.startDate":
+		if e.complexity.Promotion.StartDate == nil {
+			break
+		}
+
+		return e.complexity.Promotion.StartDate(childComplexity), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -1488,6 +1555,8 @@ func (ec *executionContext) fieldContext_Mutation_createProduct(ctx context.Cont
 				return ec.fieldContext_Product_updatedAt(ctx, field)
 			case "productItem":
 				return ec.fieldContext_Product_productItem(ctx, field)
+			case "promotion":
+				return ec.fieldContext_Product_promotion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -1873,14 +1942,11 @@ func (ec *executionContext) _Product_ingredientsListID(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Product_ingredientsListID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1917,14 +1983,11 @@ func (ec *executionContext) _Product_productCategoryID(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Product_productCategoryID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1961,14 +2024,11 @@ func (ec *executionContext) _Product_nutritionalInformationID(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Product_nutritionalInformationID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2005,14 +2065,11 @@ func (ec *executionContext) _Product_promotionID(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Product_promotionID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2022,7 +2079,7 @@ func (ec *executionContext) fieldContext_Product_promotionID(ctx context.Context
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2136,9 +2193,9 @@ func (ec *executionContext) _Product_productItem(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.ProductItem)
+	res := resTmp.(*ent.ProductItem)
 	fc.Result = res
-	return ec.marshalOProductItem2ᚕᚖhealthyshopperᚋentᚐProductItemᚄ(ctx, field.Selections, res)
+	return ec.marshalOProductItem2ᚖhealthyshopperᚋentᚐProductItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Product_productItem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2169,6 +2226,63 @@ func (ec *executionContext) fieldContext_Product_productItem(ctx context.Context
 				return ec.fieldContext_ProductItem_product(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ProductItem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Product_promotion(ctx context.Context, field graphql.CollectedField, obj *ent.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_promotion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Promotion(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Promotion)
+	fc.Result = res
+	return ec.marshalOPromotion2ᚖhealthyshopperᚋentᚐPromotion(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Product_promotion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Promotion_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Promotion_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Promotion_description(ctx, field)
+			case "discountPercentage":
+				return ec.fieldContext_Promotion_discountPercentage(ctx, field)
+			case "startDate":
+				return ec.fieldContext_Promotion_startDate(ctx, field)
+			case "endDate":
+				return ec.fieldContext_Promotion_endDate(ctx, field)
+			case "product":
+				return ec.fieldContext_Promotion_product(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Promotion", field.Name)
 		},
 	}
 	return fc, nil
@@ -2584,6 +2698,342 @@ func (ec *executionContext) fieldContext_ProductItem_product(ctx context.Context
 				return ec.fieldContext_Product_updatedAt(ctx, field)
 			case "productItem":
 				return ec.fieldContext_Product_productItem(ctx, field)
+			case "promotion":
+				return ec.fieldContext_Product_promotion(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Promotion_id(ctx context.Context, field graphql.CollectedField, obj *ent.Promotion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Promotion_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Promotion_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Promotion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Promotion_name(ctx context.Context, field graphql.CollectedField, obj *ent.Promotion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Promotion_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Promotion_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Promotion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Promotion_description(ctx context.Context, field graphql.CollectedField, obj *ent.Promotion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Promotion_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Promotion_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Promotion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Promotion_discountPercentage(ctx context.Context, field graphql.CollectedField, obj *ent.Promotion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Promotion_discountPercentage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DiscountPercentage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Promotion_discountPercentage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Promotion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Promotion_startDate(ctx context.Context, field graphql.CollectedField, obj *ent.Promotion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Promotion_startDate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Promotion_startDate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Promotion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Promotion_endDate(ctx context.Context, field graphql.CollectedField, obj *ent.Promotion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Promotion_endDate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Promotion_endDate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Promotion",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Promotion_product(ctx context.Context, field graphql.CollectedField, obj *ent.Promotion) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Promotion_product(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Product(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Product)
+	fc.Result = res
+	return ec.marshalNProduct2ᚕᚖhealthyshopperᚋentᚐProductᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Promotion_product(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Promotion",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Product_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Product_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Product_description(ctx, field)
+			case "productImage":
+				return ec.fieldContext_Product_productImage(ctx, field)
+			case "ingredientsListID":
+				return ec.fieldContext_Product_ingredientsListID(ctx, field)
+			case "productCategoryID":
+				return ec.fieldContext_Product_productCategoryID(ctx, field)
+			case "nutritionalInformationID":
+				return ec.fieldContext_Product_nutritionalInformationID(ctx, field)
+			case "promotionID":
+				return ec.fieldContext_Product_promotionID(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Product_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Product_updatedAt(ctx, field)
+			case "productItem":
+				return ec.fieldContext_Product_productItem(ctx, field)
+			case "promotion":
+				return ec.fieldContext_Product_promotion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -2759,6 +3209,8 @@ func (ec *executionContext) fieldContext_Query_products(ctx context.Context, fie
 				return ec.fieldContext_Product_updatedAt(ctx, field)
 			case "productItem":
 				return ec.fieldContext_Product_productItem(ctx, field)
+			case "promotion":
+				return ec.fieldContext_Product_promotion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -6505,7 +6957,7 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "productImage", "ingredientsListID", "productCategoryID", "nutritionalInformationID", "promotionID", "createdAt", "updatedAt", "productItemIDs"}
+	fieldsInOrder := [...]string{"name", "description", "productImage", "ingredientsListID", "productCategoryID", "nutritionalInformationID", "createdAt", "updatedAt", "productItemID", "promotionID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6543,7 +6995,7 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ingredientsListID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6552,7 +7004,7 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productCategoryID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6561,20 +7013,11 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nutritionalInformationID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.NutritionalInformationID = data
-		case "promotionID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("promotionID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PromotionID = data
 		case "createdAt":
 			var err error
 
@@ -6593,15 +7036,24 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 				return it, err
 			}
 			it.UpdatedAt = data
-		case "productItemIDs":
+		case "productItemID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productItemIDs"))
-			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productItemID"))
+			data, err := ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ProductItemIDs = data
+			it.ProductItemID = data
+		case "promotionID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("promotionID"))
+			data, err := ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PromotionID = data
 		}
 	}
 
@@ -6873,6 +7325,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._ProductItem(ctx, sel, obj)
+	case *ent.Promotion:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Promotion(ctx, sel, obj)
 	case *ent.ShoppingCart:
 		if obj == nil {
 			return graphql.Null
@@ -7131,30 +7588,18 @@ func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Product_ingredientsListID(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "productCategoryID":
 
 			out.Values[i] = ec._Product_productCategoryID(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "nutritionalInformationID":
 
 			out.Values[i] = ec._Product_nutritionalInformationID(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "promotionID":
 
 			out.Values[i] = ec._Product_promotionID(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "createdAt":
 
 			out.Values[i] = ec._Product_createdAt(ctx, field, obj)
@@ -7176,6 +7621,23 @@ func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Product_productItem(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "promotion":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Product_promotion(ctx, field, obj)
 				return res
 			}
 
@@ -7280,6 +7742,89 @@ func (ec *executionContext) _ProductItem(ctx context.Context, sel ast.SelectionS
 					}
 				}()
 				res = ec._ProductItem_product(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var promotionImplementors = []string{"Promotion", "Node"}
+
+func (ec *executionContext) _Promotion(ctx context.Context, sel ast.SelectionSet, obj *ent.Promotion) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, promotionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Promotion")
+		case "id":
+
+			out.Values[i] = ec._Promotion_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+
+			out.Values[i] = ec._Promotion_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+
+			out.Values[i] = ec._Promotion_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "discountPercentage":
+
+			out.Values[i] = ec._Promotion_discountPercentage(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "startDate":
+
+			out.Values[i] = ec._Promotion_startDate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "endDate":
+
+			out.Values[i] = ec._Promotion_endDate(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "product":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Promotion_product(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -8963,6 +9508,16 @@ func (ec *executionContext) marshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCu
 	return v
 }
 
+func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalIntID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalIntID(v)
+	return res
+}
+
 func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
 	if v == nil {
 		return nil, nil
@@ -9001,6 +9556,48 @@ func (ec *executionContext) marshalOID2ᚕintᚄ(ctx context.Context, sel ast.Se
 	return ret
 }
 
+func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalIntID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalIntID(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt(*v)
+	return res
+}
+
 func (ec *executionContext) marshalONode2healthyshopperᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -9008,51 +9605,18 @@ func (ec *executionContext) marshalONode2healthyshopperᚋentᚐNoder(ctx contex
 	return ec._Node(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOProductItem2ᚕᚖhealthyshopperᚋentᚐProductItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ProductItem) graphql.Marshaler {
+func (ec *executionContext) marshalOProductItem2ᚖhealthyshopperᚋentᚐProductItem(ctx context.Context, sel ast.SelectionSet, v *ent.ProductItem) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNProductItem2ᚖhealthyshopperᚋentᚐProductItem(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
+	return ec._ProductItem(ctx, sel, v)
+}
 
+func (ec *executionContext) marshalOPromotion2ᚖhealthyshopperᚋentᚐPromotion(ctx context.Context, sel ast.SelectionSet, v *ent.Promotion) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
 	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
+	return ec._Promotion(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOShoppingCart2ᚕᚖhealthyshopperᚋentᚐShoppingCartᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ShoppingCart) graphql.Marshaler {

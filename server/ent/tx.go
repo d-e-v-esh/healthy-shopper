@@ -18,6 +18,8 @@ type Tx struct {
 	Product *ProductClient
 	// ProductItem is the client for interacting with the ProductItem builders.
 	ProductItem *ProductItemClient
+	// Promotion is the client for interacting with the Promotion builders.
+	Promotion *PromotionClient
 	// ShoppingCart is the client for interacting with the ShoppingCart builders.
 	ShoppingCart *ShoppingCartClient
 	// ShoppingCartItem is the client for interacting with the ShoppingCartItem builders.
@@ -162,6 +164,7 @@ func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.ProductItem = NewProductItemClient(tx.config)
+	tx.Promotion = NewPromotionClient(tx.config)
 	tx.ShoppingCart = NewShoppingCartClient(tx.config)
 	tx.ShoppingCartItem = NewShoppingCartItemClient(tx.config)
 	tx.User = NewUserClient(tx.config)
