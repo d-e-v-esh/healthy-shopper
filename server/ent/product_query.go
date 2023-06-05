@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/productitem"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -17,12 +19,14 @@ import (
 // ProductQuery is the builder for querying Product entities.
 type ProductQuery struct {
 	config
-	ctx        *QueryContext
-	order      []product.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Product
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*Product) error
+	ctx                  *QueryContext
+	order                []product.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Product
+	withProductItem      *ProductItemQuery
+	modifiers            []func(*sql.Selector)
+	loadTotal            []func(context.Context, []*Product) error
+	withNamedProductItem map[string]*ProductItemQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +61,28 @@ func (pq *ProductQuery) Unique(unique bool) *ProductQuery {
 func (pq *ProductQuery) Order(o ...product.OrderOption) *ProductQuery {
 	pq.order = append(pq.order, o...)
 	return pq
+}
+
+// QueryProductItem chains the current query on the "product_item" edge.
+func (pq *ProductQuery) QueryProductItem() *ProductItemQuery {
+	query := (&ProductItemClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(productitem.Table, productitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.ProductItemTable, product.ProductItemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Product entity from the query.
@@ -246,15 +272,27 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		return nil
 	}
 	return &ProductQuery{
-		config:     pq.config,
-		ctx:        pq.ctx.Clone(),
-		order:      append([]product.OrderOption{}, pq.order...),
-		inters:     append([]Interceptor{}, pq.inters...),
-		predicates: append([]predicate.Product{}, pq.predicates...),
+		config:          pq.config,
+		ctx:             pq.ctx.Clone(),
+		order:           append([]product.OrderOption{}, pq.order...),
+		inters:          append([]Interceptor{}, pq.inters...),
+		predicates:      append([]predicate.Product{}, pq.predicates...),
+		withProductItem: pq.withProductItem.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
+}
+
+// WithProductItem tells the query-builder to eager-load the nodes that are connected to
+// the "product_item" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithProductItem(opts ...func(*ProductItemQuery)) *ProductQuery {
+	query := (&ProductItemClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withProductItem = query
+	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,8 +371,11 @@ func (pq *ProductQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Product, error) {
 	var (
-		nodes = []*Product{}
-		_spec = pq.querySpec()
+		nodes       = []*Product{}
+		_spec       = pq.querySpec()
+		loadedTypes = [1]bool{
+			pq.withProductItem != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Product).scanValues(nil, columns)
@@ -342,6 +383,7 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Product{config: pq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(pq.modifiers) > 0 {
@@ -356,12 +398,57 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := pq.withProductItem; query != nil {
+		if err := pq.loadProductItem(ctx, query, nodes,
+			func(n *Product) { n.Edges.ProductItem = []*ProductItem{} },
+			func(n *Product, e *ProductItem) { n.Edges.ProductItem = append(n.Edges.ProductItem, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range pq.withNamedProductItem {
+		if err := pq.loadProductItem(ctx, query, nodes,
+			func(n *Product) { n.appendNamedProductItem(name) },
+			func(n *Product, e *ProductItem) { n.appendNamedProductItem(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range pq.loadTotal {
 		if err := pq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (pq *ProductQuery) loadProductItem(ctx context.Context, query *ProductItemQuery, nodes []*Product, init func(*Product), assign func(*Product, *ProductItem)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Product)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(productitem.FieldProductID)
+	}
+	query.Where(predicate.ProductItem(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(product.ProductItemColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProductID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "product_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (pq *ProductQuery) sqlCount(ctx context.Context) (int, error) {
@@ -446,6 +533,20 @@ func (pq *ProductQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedProductItem tells the query-builder to eager-load the nodes that are connected to the "product_item"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithNamedProductItem(name string, opts ...func(*ProductItemQuery)) *ProductQuery {
+	query := (&ProductItemClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if pq.withNamedProductItem == nil {
+		pq.withNamedProductItem = make(map[string]*ProductItemQuery)
+	}
+	pq.withNamedProductItem[name] = query
+	return pq
 }
 
 // ProductGroupBy is the group-by builder for Product entities.

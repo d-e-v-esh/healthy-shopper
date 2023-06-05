@@ -10,6 +10,11 @@ import (
 	"healthyshopper/ent"
 )
 
+// Price is the resolver for the price field.
+func (r *productItemResolver) Price(ctx context.Context, obj *ent.ProductItem) (float64, error) {
+	panic(fmt.Errorf("not implemented: Price - price"))
+}
+
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
 	panic(fmt.Errorf("not implemented: Node - node"))
@@ -25,6 +30,11 @@ func (r *queryResolver) Products(ctx context.Context) ([]*ent.Product, error) {
 	panic(fmt.Errorf("not implemented: Products - products"))
 }
 
+// ProductItems is the resolver for the productItems field.
+func (r *queryResolver) ProductItems(ctx context.Context) ([]*ent.ProductItem, error) {
+	panic(fmt.Errorf("not implemented: ProductItems - productItems"))
+}
+
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
 	return r.client.User.Query().All(ctx)
@@ -35,7 +45,22 @@ func (r *queryResolver) UserAddresses(ctx context.Context) ([]*ent.UserAddress, 
 	panic(fmt.Errorf("not implemented: UserAddresses - userAddresses"))
 }
 
+// Price is the resolver for the price field.
+func (r *createProductItemInputResolver) Price(ctx context.Context, obj *ent.CreateProductItemInput, data float64) error {
+	panic(fmt.Errorf("not implemented: Price - price"))
+}
+
+// ProductItem returns ProductItemResolver implementation.
+func (r *Resolver) ProductItem() ProductItemResolver { return &productItemResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// CreateProductItemInput returns CreateProductItemInputResolver implementation.
+func (r *Resolver) CreateProductItemInput() CreateProductItemInputResolver {
+	return &createProductItemInputResolver{r}
+}
+
+type productItemResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type createProductItemInputResolver struct{ *Resolver }

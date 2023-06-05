@@ -31,10 +31,10 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 50},
 		{Name: "description", Type: field.TypeString, Size: 500},
 		{Name: "product_image", Type: field.TypeString, Size: 500},
-		{Name: "product_category_id", Type: field.TypeInt},
-		{Name: "ingredients_list_id", Type: field.TypeInt},
-		{Name: "nutritional_information_id", Type: field.TypeInt},
-		{Name: "promotion_id", Type: field.TypeInt},
+		{Name: "ingredients_list_id", Type: field.TypeInt, Unique: true},
+		{Name: "product_category_id", Type: field.TypeInt, Unique: true},
+		{Name: "nutritional_information_id", Type: field.TypeInt, Unique: true},
+		{Name: "promotion_id", Type: field.TypeInt, Unique: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 	}
@@ -43,6 +43,31 @@ var (
 		Name:       "products",
 		Columns:    ProductsColumns,
 		PrimaryKey: []*schema.Column{ProductsColumns[0]},
+	}
+	// ProductItemsColumns holds the columns for the "product_items" table.
+	ProductItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "stock_keeping_unit", Type: field.TypeString, Size: 500},
+		{Name: "quantity_in_stock", Type: field.TypeInt},
+		{Name: "product_image", Type: field.TypeString, Size: 500},
+		{Name: "price", Type: field.TypeFloat32},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "product_id", Type: field.TypeInt},
+	}
+	// ProductItemsTable holds the schema information for the "product_items" table.
+	ProductItemsTable = &schema.Table{
+		Name:       "product_items",
+		Columns:    ProductItemsColumns,
+		PrimaryKey: []*schema.Column{ProductItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "product_items_products_product_item",
+				Columns:    []*schema.Column{ProductItemsColumns[7]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 	}
 	// ShoppingCartsColumns holds the columns for the "shopping_carts" table.
 	ShoppingCartsColumns = []*schema.Column{
@@ -156,6 +181,7 @@ var (
 	Tables = []*schema.Table{
 		AddressesTable,
 		ProductsTable,
+		ProductItemsTable,
 		ShoppingCartsTable,
 		ShoppingCartItemsTable,
 		UsersTable,
@@ -165,6 +191,7 @@ var (
 )
 
 func init() {
+	ProductItemsTable.ForeignKeys[0].RefTable = ProductsTable
 	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
 	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable

@@ -23,10 +23,10 @@ type Product struct {
 	Description string `json:"description,omitempty"`
 	// ProductImage holds the value of the "product_image" field.
 	ProductImage string `json:"product_image,omitempty"`
-	// ProductCategoryID holds the value of the "product_category_id" field.
-	ProductCategoryID int `json:"product_category_id,omitempty"`
 	// IngredientsListID holds the value of the "ingredients_list_id" field.
 	IngredientsListID int `json:"ingredients_list_id,omitempty"`
+	// ProductCategoryID holds the value of the "product_category_id" field.
+	ProductCategoryID int `json:"product_category_id,omitempty"`
 	// NutritionalInformationID holds the value of the "nutritional_information_id" field.
 	NutritionalInformationID int `json:"nutritional_information_id,omitempty"`
 	// PromotionID holds the value of the "promotion_id" field.
@@ -34,8 +34,33 @@ type Product struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProductQuery when eager-loading is set.
+	Edges        ProductEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// ProductEdges holds the relations/edges for other nodes in the graph.
+type ProductEdges struct {
+	// ProductItem holds the value of the product_item edge.
+	ProductItem []*ProductItem `json:"product_item,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedProductItem map[string][]*ProductItem
+}
+
+// ProductItemOrErr returns the ProductItem value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) ProductItemOrErr() ([]*ProductItem, error) {
+	if e.loadedTypes[0] {
+		return e.ProductItem, nil
+	}
+	return nil, &NotLoadedError{edge: "product_item"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,7 +68,7 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case product.FieldID, product.FieldProductCategoryID, product.FieldIngredientsListID, product.FieldNutritionalInformationID, product.FieldPromotionID:
+		case product.FieldID, product.FieldIngredientsListID, product.FieldProductCategoryID, product.FieldNutritionalInformationID, product.FieldPromotionID:
 			values[i] = new(sql.NullInt64)
 		case product.FieldName, product.FieldDescription, product.FieldProductImage:
 			values[i] = new(sql.NullString)
@@ -88,17 +113,17 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.ProductImage = value.String
 			}
-		case product.FieldProductCategoryID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field product_category_id", values[i])
-			} else if value.Valid {
-				pr.ProductCategoryID = int(value.Int64)
-			}
 		case product.FieldIngredientsListID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field ingredients_list_id", values[i])
 			} else if value.Valid {
 				pr.IngredientsListID = int(value.Int64)
+			}
+		case product.FieldProductCategoryID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field product_category_id", values[i])
+			} else if value.Valid {
+				pr.ProductCategoryID = int(value.Int64)
 			}
 		case product.FieldNutritionalInformationID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -137,6 +162,11 @@ func (pr *Product) Value(name string) (ent.Value, error) {
 	return pr.selectValues.Get(name)
 }
 
+// QueryProductItem queries the "product_item" edge of the Product entity.
+func (pr *Product) QueryProductItem() *ProductItemQuery {
+	return NewProductClient(pr.config).QueryProductItem(pr)
+}
+
 // Update returns a builder for updating this Product.
 // Note that you need to call Product.Unwrap() before calling this method if this Product
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -169,11 +199,11 @@ func (pr *Product) String() string {
 	builder.WriteString("product_image=")
 	builder.WriteString(pr.ProductImage)
 	builder.WriteString(", ")
-	builder.WriteString("product_category_id=")
-	builder.WriteString(fmt.Sprintf("%v", pr.ProductCategoryID))
-	builder.WriteString(", ")
 	builder.WriteString("ingredients_list_id=")
 	builder.WriteString(fmt.Sprintf("%v", pr.IngredientsListID))
+	builder.WriteString(", ")
+	builder.WriteString("product_category_id=")
+	builder.WriteString(fmt.Sprintf("%v", pr.ProductCategoryID))
 	builder.WriteString(", ")
 	builder.WriteString("nutritional_information_id=")
 	builder.WriteString(fmt.Sprintf("%v", pr.NutritionalInformationID))
@@ -188,6 +218,30 @@ func (pr *Product) String() string {
 	builder.WriteString(pr.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedProductItem returns the ProductItem named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (pr *Product) NamedProductItem(name string) ([]*ProductItem, error) {
+	if pr.Edges.namedProductItem == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := pr.Edges.namedProductItem[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (pr *Product) appendNamedProductItem(name string, edges ...*ProductItem) {
+	if pr.Edges.namedProductItem == nil {
+		pr.Edges.namedProductItem = make(map[string][]*ProductItem)
+	}
+	if len(edges) == 0 {
+		pr.Edges.namedProductItem[name] = []*ProductItem{}
+	} else {
+		pr.Edges.namedProductItem[name] = append(pr.Edges.namedProductItem[name], edges...)
+	}
 }
 
 // Products is a parsable slice of Product.

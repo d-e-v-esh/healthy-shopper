@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -19,10 +20,10 @@ const (
 	FieldDescription = "description"
 	// FieldProductImage holds the string denoting the product_image field in the database.
 	FieldProductImage = "product_image"
-	// FieldProductCategoryID holds the string denoting the product_category_id field in the database.
-	FieldProductCategoryID = "product_category_id"
 	// FieldIngredientsListID holds the string denoting the ingredients_list_id field in the database.
 	FieldIngredientsListID = "ingredients_list_id"
+	// FieldProductCategoryID holds the string denoting the product_category_id field in the database.
+	FieldProductCategoryID = "product_category_id"
 	// FieldNutritionalInformationID holds the string denoting the nutritional_information_id field in the database.
 	FieldNutritionalInformationID = "nutritional_information_id"
 	// FieldPromotionID holds the string denoting the promotion_id field in the database.
@@ -31,8 +32,17 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeProductItem holds the string denoting the product_item edge name in mutations.
+	EdgeProductItem = "product_item"
 	// Table holds the table name of the product in the database.
 	Table = "products"
+	// ProductItemTable is the table that holds the product_item relation/edge.
+	ProductItemTable = "product_items"
+	// ProductItemInverseTable is the table name for the ProductItem entity.
+	// It exists in this package in order to avoid circular dependency with the "productitem" package.
+	ProductItemInverseTable = "product_items"
+	// ProductItemColumn is the table column denoting the product_item relation/edge.
+	ProductItemColumn = "product_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -41,8 +51,8 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldProductImage,
-	FieldProductCategoryID,
 	FieldIngredientsListID,
+	FieldProductCategoryID,
 	FieldNutritionalInformationID,
 	FieldPromotionID,
 	FieldCreatedAt,
@@ -66,14 +76,6 @@ var (
 	DescriptionValidator func(string) error
 	// ProductImageValidator is a validator for the "product_image" field. It is called by the builders before save.
 	ProductImageValidator func(string) error
-	// ProductCategoryIDValidator is a validator for the "product_category_id" field. It is called by the builders before save.
-	ProductCategoryIDValidator func(int) error
-	// IngredientsListIDValidator is a validator for the "ingredients_list_id" field. It is called by the builders before save.
-	IngredientsListIDValidator func(int) error
-	// NutritionalInformationIDValidator is a validator for the "nutritional_information_id" field. It is called by the builders before save.
-	NutritionalInformationIDValidator func(int) error
-	// PromotionIDValidator is a validator for the "promotion_id" field. It is called by the builders before save.
-	PromotionIDValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -101,14 +103,14 @@ func ByProductImage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProductImage, opts...).ToFunc()
 }
 
-// ByProductCategoryID orders the results by the product_category_id field.
-func ByProductCategoryID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldProductCategoryID, opts...).ToFunc()
-}
-
 // ByIngredientsListID orders the results by the ingredients_list_id field.
 func ByIngredientsListID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIngredientsListID, opts...).ToFunc()
+}
+
+// ByProductCategoryID orders the results by the product_category_id field.
+func ByProductCategoryID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProductCategoryID, opts...).ToFunc()
 }
 
 // ByNutritionalInformationID orders the results by the nutritional_information_id field.
@@ -129,4 +131,25 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByProductItemCount orders the results by product_item count.
+func ByProductItemCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newProductItemStep(), opts...)
+	}
+}
+
+// ByProductItem orders the results by product_item terms.
+func ByProductItem(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProductItemStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newProductItemStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProductItemInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ProductItemTable, ProductItemColumn),
+	)
 }

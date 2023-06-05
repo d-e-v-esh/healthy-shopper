@@ -5,6 +5,7 @@ package ent
 import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/schema"
 	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
@@ -187,26 +188,60 @@ func init() {
 			return nil
 		}
 	}()
-	// productDescProductCategoryID is the schema descriptor for product_category_id field.
-	productDescProductCategoryID := productFields[3].Descriptor()
-	// product.ProductCategoryIDValidator is a validator for the "product_category_id" field. It is called by the builders before save.
-	product.ProductCategoryIDValidator = productDescProductCategoryID.Validators[0].(func(int) error)
-	// productDescIngredientsListID is the schema descriptor for ingredients_list_id field.
-	productDescIngredientsListID := productFields[4].Descriptor()
-	// product.IngredientsListIDValidator is a validator for the "ingredients_list_id" field. It is called by the builders before save.
-	product.IngredientsListIDValidator = productDescIngredientsListID.Validators[0].(func(int) error)
-	// productDescNutritionalInformationID is the schema descriptor for nutritional_information_id field.
-	productDescNutritionalInformationID := productFields[5].Descriptor()
-	// product.NutritionalInformationIDValidator is a validator for the "nutritional_information_id" field. It is called by the builders before save.
-	product.NutritionalInformationIDValidator = productDescNutritionalInformationID.Validators[0].(func(int) error)
-	// productDescPromotionID is the schema descriptor for promotion_id field.
-	productDescPromotionID := productFields[6].Descriptor()
-	// product.PromotionIDValidator is a validator for the "promotion_id" field. It is called by the builders before save.
-	product.PromotionIDValidator = productDescPromotionID.Validators[0].(func(int) error)
 	// productDescCreatedAt is the schema descriptor for created_at field.
 	productDescCreatedAt := productFields[7].Descriptor()
 	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
 	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
+	productitemFields := schema.ProductItem{}.Fields()
+	_ = productitemFields
+	// productitemDescStockKeepingUnit is the schema descriptor for stock_keeping_unit field.
+	productitemDescStockKeepingUnit := productitemFields[1].Descriptor()
+	// productitem.StockKeepingUnitValidator is a validator for the "stock_keeping_unit" field. It is called by the builders before save.
+	productitem.StockKeepingUnitValidator = func() func(string) error {
+		validators := productitemDescStockKeepingUnit.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(stock_keeping_unit string) error {
+			for _, fn := range fns {
+				if err := fn(stock_keeping_unit); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// productitemDescQuantityInStock is the schema descriptor for quantity_in_stock field.
+	productitemDescQuantityInStock := productitemFields[2].Descriptor()
+	// productitem.QuantityInStockValidator is a validator for the "quantity_in_stock" field. It is called by the builders before save.
+	productitem.QuantityInStockValidator = productitemDescQuantityInStock.Validators[0].(func(int) error)
+	// productitemDescProductImage is the schema descriptor for product_image field.
+	productitemDescProductImage := productitemFields[3].Descriptor()
+	// productitem.ProductImageValidator is a validator for the "product_image" field. It is called by the builders before save.
+	productitem.ProductImageValidator = func() func(string) error {
+		validators := productitemDescProductImage.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(product_image string) error {
+			for _, fn := range fns {
+				if err := fn(product_image); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// productitemDescPrice is the schema descriptor for price field.
+	productitemDescPrice := productitemFields[4].Descriptor()
+	// productitem.PriceValidator is a validator for the "price" field. It is called by the builders before save.
+	productitem.PriceValidator = productitemDescPrice.Validators[0].(func(float32) error)
+	// productitemDescCreatedAt is the schema descriptor for created_at field.
+	productitemDescCreatedAt := productitemFields[5].Descriptor()
+	// productitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	productitem.DefaultCreatedAt = productitemDescCreatedAt.Default.(func() time.Time)
 	shoppingcartitemFields := schema.ShoppingCartItem{}.Fields()
 	_ = shoppingcartitemFields
 	// shoppingcartitemDescQuantity is the schema descriptor for quantity field.

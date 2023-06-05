@@ -20,6 +20,26 @@ func (a *Address) UserAddress(ctx context.Context) (result []*UserAddress, err e
 	return result, err
 }
 
+func (pr *Product) ProductItem(ctx context.Context) (result []*ProductItem, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pr.NamedProductItem(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pr.Edges.ProductItemOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pr.QueryProductItem().All(ctx)
+	}
+	return result, err
+}
+
+func (pi *ProductItem) Product(ctx context.Context) (*Product, error) {
+	result, err := pi.Edges.ProductOrErr()
+	if IsNotLoaded(err) {
+		result, err = pi.QueryProduct().Only(ctx)
+	}
+	return result, err
+}
+
 func (sc *ShoppingCart) User(ctx context.Context) (*User, error) {
 	result, err := sc.Edges.UserOrErr()
 	if IsNotLoaded(err) {

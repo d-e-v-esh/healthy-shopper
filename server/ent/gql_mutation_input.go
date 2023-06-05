@@ -11,12 +11,13 @@ type CreateProductInput struct {
 	Name                     string
 	Description              string
 	ProductImage             string
-	ProductCategoryID        int
 	IngredientsListID        int
+	ProductCategoryID        int
 	NutritionalInformationID int
 	PromotionID              int
 	CreatedAt                *time.Time
 	UpdatedAt                *time.Time
+	ProductItemIDs           []int
 }
 
 // Mutate applies the CreateProductInput on the ProductMutation builder.
@@ -24,8 +25,8 @@ func (i *CreateProductInput) Mutate(m *ProductMutation) {
 	m.SetName(i.Name)
 	m.SetDescription(i.Description)
 	m.SetProductImage(i.ProductImage)
-	m.SetProductCategoryID(i.ProductCategoryID)
 	m.SetIngredientsListID(i.IngredientsListID)
+	m.SetProductCategoryID(i.ProductCategoryID)
 	m.SetNutritionalInformationID(i.NutritionalInformationID)
 	m.SetPromotionID(i.PromotionID)
 	if v := i.CreatedAt; v != nil {
@@ -34,10 +35,45 @@ func (i *CreateProductInput) Mutate(m *ProductMutation) {
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
 	}
+	if v := i.ProductItemIDs; len(v) > 0 {
+		m.AddProductItemIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateProductInput on the ProductCreate builder.
 func (c *ProductCreate) SetInput(i CreateProductInput) *ProductCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateProductItemInput represents a mutation input for creating productitems.
+type CreateProductItemInput struct {
+	StockKeepingUnit string
+	QuantityInStock  int
+	ProductImage     string
+	Price            float32
+	CreatedAt        *time.Time
+	UpdatedAt        *time.Time
+	ProductID        int
+}
+
+// Mutate applies the CreateProductItemInput on the ProductItemMutation builder.
+func (i *CreateProductItemInput) Mutate(m *ProductItemMutation) {
+	m.SetStockKeepingUnit(i.StockKeepingUnit)
+	m.SetQuantityInStock(i.QuantityInStock)
+	m.SetProductImage(i.ProductImage)
+	m.SetPrice(i.Price)
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	m.SetProductID(i.ProductID)
+}
+
+// SetInput applies the change-set in the CreateProductItemInput on the ProductItemCreate builder.
+func (c *ProductItemCreate) SetInput(i CreateProductItemInput) *ProductItemCreate {
 	i.Mutate(c.Mutation())
 	return c
 }

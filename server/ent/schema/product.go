@@ -6,6 +6,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -20,10 +21,10 @@ func (Product) Fields() []ent.Field {
 		field.String("name").MaxLen(50).NotEmpty(),
 		field.String("description").MaxLen(500).NotEmpty(),
 		field.String("product_image").MaxLen(500).NotEmpty(),
-		field.Int("product_category_id").Positive(),
-		field.Int("ingredients_list_id").Positive(),
-		field.Int("nutritional_information_id").Positive(),
-		field.Int("promotion_id").Positive(),
+		field.Int("ingredients_list_id").Unique(),
+		field.Int("product_category_id").Unique(),
+		field.Int("nutritional_information_id").Unique(),
+		field.Int("promotion_id").Unique(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Optional(),
 	}
@@ -31,7 +32,9 @@ func (Product) Fields() []ent.Field {
 
 // Edges of the Product.
 func (Product) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("product_item", ProductItem.Type),
+	}
 }
 
 func (Product) Annotations() []schema.Annotation {
