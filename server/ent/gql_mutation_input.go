@@ -55,6 +55,7 @@ type CreateUserInput struct {
 	CreatedAt     *time.Time
 	UpdatedAt     *time.Time
 	UserAddresIDs []int
+	UserReviewIDs []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -73,6 +74,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.UserAddresIDs; len(v) > 0 {
 		m.AddUserAddresIDs(v...)
+	}
+	if v := i.UserReviewIDs; len(v) > 0 {
+		m.AddUserReviewIDs(v...)
 	}
 }
 

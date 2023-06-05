@@ -9,6 +9,7 @@ import (
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -115,6 +116,21 @@ func (uu *UserUpdate) AddUserAddress(u ...*UserAddress) *UserUpdate {
 	return uu.AddUserAddresIDs(ids...)
 }
 
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by IDs.
+func (uu *UserUpdate) AddUserReviewIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddUserReviewIDs(ids...)
+	return uu
+}
+
+// AddUserReview adds the "user_review" edges to the UserReview entity.
+func (uu *UserUpdate) AddUserReview(u ...*UserReview) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.AddUserReviewIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -139,6 +155,27 @@ func (uu *UserUpdate) RemoveUserAddress(u ...*UserAddress) *UserUpdate {
 		ids[i] = u[i].ID
 	}
 	return uu.RemoveUserAddresIDs(ids...)
+}
+
+// ClearUserReview clears all "user_review" edges to the UserReview entity.
+func (uu *UserUpdate) ClearUserReview() *UserUpdate {
+	uu.mutation.ClearUserReview()
+	return uu
+}
+
+// RemoveUserReviewIDs removes the "user_review" edge to UserReview entities by IDs.
+func (uu *UserUpdate) RemoveUserReviewIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveUserReviewIDs(ids...)
+	return uu
+}
+
+// RemoveUserReview removes "user_review" edges to UserReview entities.
+func (uu *UserUpdate) RemoveUserReview(u ...*UserReview) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.RemoveUserReviewIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -282,6 +319,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserReviewTable,
+			Columns: []string{user.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedUserReviewIDs(); len(nodes) > 0 && !uu.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserReviewTable,
+			Columns: []string{user.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UserReviewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserReviewTable,
+			Columns: []string{user.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -388,6 +470,21 @@ func (uuo *UserUpdateOne) AddUserAddress(u ...*UserAddress) *UserUpdateOne {
 	return uuo.AddUserAddresIDs(ids...)
 }
 
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by IDs.
+func (uuo *UserUpdateOne) AddUserReviewIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddUserReviewIDs(ids...)
+	return uuo
+}
+
+// AddUserReview adds the "user_review" edges to the UserReview entity.
+func (uuo *UserUpdateOne) AddUserReview(u ...*UserReview) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.AddUserReviewIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -412,6 +509,27 @@ func (uuo *UserUpdateOne) RemoveUserAddress(u ...*UserAddress) *UserUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return uuo.RemoveUserAddresIDs(ids...)
+}
+
+// ClearUserReview clears all "user_review" edges to the UserReview entity.
+func (uuo *UserUpdateOne) ClearUserReview() *UserUpdateOne {
+	uuo.mutation.ClearUserReview()
+	return uuo
+}
+
+// RemoveUserReviewIDs removes the "user_review" edge to UserReview entities by IDs.
+func (uuo *UserUpdateOne) RemoveUserReviewIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveUserReviewIDs(ids...)
+	return uuo
+}
+
+// RemoveUserReview removes "user_review" edges to UserReview entities.
+func (uuo *UserUpdateOne) RemoveUserReview(u ...*UserReview) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.RemoveUserReviewIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -578,6 +696,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserReviewTable,
+			Columns: []string{user.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedUserReviewIDs(); len(nodes) > 0 && !uuo.mutation.UserReviewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserReviewTable,
+			Columns: []string{user.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UserReviewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserReviewTable,
+			Columns: []string{user.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

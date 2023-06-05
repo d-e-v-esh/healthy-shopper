@@ -56,6 +56,18 @@ func (f UserAddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserAddressMutation", m)
 }
 
+// The UserReviewFunc type is an adapter to allow the use of ordinary
+// function as UserReview mutator.
+type UserReviewFunc func(context.Context, *ent.UserReviewMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserReviewFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserReviewMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserReviewMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

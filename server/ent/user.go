@@ -43,13 +43,16 @@ type User struct {
 type UserEdges struct {
 	// UserAddress holds the value of the user_address edge.
 	UserAddress []*UserAddress `json:"user_address,omitempty"`
+	// UserReview holds the value of the user_review edge.
+	UserReview []*UserReview `json:"user_review,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 
 	namedUserAddress map[string][]*UserAddress
+	namedUserReview  map[string][]*UserReview
 }
 
 // UserAddressOrErr returns the UserAddress value or an error if the edge
@@ -59,6 +62,15 @@ func (e UserEdges) UserAddressOrErr() ([]*UserAddress, error) {
 		return e.UserAddress, nil
 	}
 	return nil, &NotLoadedError{edge: "user_address"}
+}
+
+// UserReviewOrErr returns the UserReview value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) UserReviewOrErr() ([]*UserReview, error) {
+	if e.loadedTypes[1] {
+		return e.UserReview, nil
+	}
+	return nil, &NotLoadedError{edge: "user_review"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -159,6 +171,11 @@ func (u *User) QueryUserAddress() *UserAddressQuery {
 	return NewUserClient(u.config).QueryUserAddress(u)
 }
 
+// QueryUserReview queries the "user_review" edge of the User entity.
+func (u *User) QueryUserReview() *UserReviewQuery {
+	return NewUserClient(u.config).QueryUserReview(u)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -230,6 +247,30 @@ func (u *User) appendNamedUserAddress(name string, edges ...*UserAddress) {
 		u.Edges.namedUserAddress[name] = []*UserAddress{}
 	} else {
 		u.Edges.namedUserAddress[name] = append(u.Edges.namedUserAddress[name], edges...)
+	}
+}
+
+// NamedUserReview returns the UserReview named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedUserReview(name string) ([]*UserReview, error) {
+	if u.Edges.namedUserReview == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedUserReview[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedUserReview(name string, edges ...*UserReview) {
+	if u.Edges.namedUserReview == nil {
+		u.Edges.namedUserReview = make(map[string][]*UserReview)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedUserReview[name] = []*UserReview{}
+	} else {
+		u.Edges.namedUserReview[name] = append(u.Edges.namedUserReview[name], edges...)
 	}
 }
 

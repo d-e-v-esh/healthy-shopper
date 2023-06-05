@@ -20,6 +20,8 @@ type Tx struct {
 	User *UserClient
 	// UserAddress is the client for interacting with the UserAddress builders.
 	UserAddress *UserAddressClient
+	// UserReview is the client for interacting with the UserReview builders.
+	UserReview *UserReviewClient
 
 	// lazily loaded.
 	client     *Client
@@ -155,6 +157,7 @@ func (tx *Tx) init() {
 	tx.Product = NewProductClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAddress = NewUserAddressClient(tx.config)
+	tx.UserReview = NewUserReviewClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

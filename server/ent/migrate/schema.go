@@ -91,16 +91,43 @@ var (
 			},
 		},
 	}
+	// UserReviewsColumns holds the columns for the "user_reviews" table.
+	UserReviewsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_review_id", Type: field.TypeInt, Unique: true},
+		{Name: "ordered_product_id", Type: field.TypeInt, Unique: true},
+		{Name: "rating", Type: field.TypeInt},
+		{Name: "review", Type: field.TypeString, Size: 500},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// UserReviewsTable holds the schema information for the "user_reviews" table.
+	UserReviewsTable = &schema.Table{
+		Name:       "user_reviews",
+		Columns:    UserReviewsColumns,
+		PrimaryKey: []*schema.Column{UserReviewsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_reviews_users_user_review",
+				Columns:    []*schema.Column{UserReviewsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AddressesTable,
 		ProductsTable,
 		UsersTable,
 		UserAddressesTable,
+		UserReviewsTable,
 	}
 )
 
 func init() {
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable
 	UserAddressesTable.ForeignKeys[1].RefTable = AddressesTable
+	UserReviewsTable.ForeignKeys[0].RefTable = UsersTable
 }

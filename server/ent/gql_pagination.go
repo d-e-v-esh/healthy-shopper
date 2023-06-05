@@ -9,6 +9,7 @@ import (
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -1087,5 +1088,253 @@ func (ua *UserAddress) ToEdge(order *UserAddressOrder) *UserAddressEdge {
 	return &UserAddressEdge{
 		Node:   ua,
 		Cursor: order.Field.toCursor(ua),
+	}
+}
+
+// UserReviewEdge is the edge representation of UserReview.
+type UserReviewEdge struct {
+	Node   *UserReview `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// UserReviewConnection is the connection containing edges to UserReview.
+type UserReviewConnection struct {
+	Edges      []*UserReviewEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (c *UserReviewConnection) build(nodes []*UserReview, pager *userreviewPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *UserReview
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *UserReview {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *UserReview {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*UserReviewEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &UserReviewEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// UserReviewPaginateOption enables pagination customization.
+type UserReviewPaginateOption func(*userreviewPager) error
+
+// WithUserReviewOrder configures pagination ordering.
+func WithUserReviewOrder(order *UserReviewOrder) UserReviewPaginateOption {
+	if order == nil {
+		order = DefaultUserReviewOrder
+	}
+	o := *order
+	return func(pager *userreviewPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultUserReviewOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithUserReviewFilter configures pagination filter.
+func WithUserReviewFilter(filter func(*UserReviewQuery) (*UserReviewQuery, error)) UserReviewPaginateOption {
+	return func(pager *userreviewPager) error {
+		if filter == nil {
+			return errors.New("UserReviewQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type userreviewPager struct {
+	reverse bool
+	order   *UserReviewOrder
+	filter  func(*UserReviewQuery) (*UserReviewQuery, error)
+}
+
+func newUserReviewPager(opts []UserReviewPaginateOption, reverse bool) (*userreviewPager, error) {
+	pager := &userreviewPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultUserReviewOrder
+	}
+	return pager, nil
+}
+
+func (p *userreviewPager) applyFilter(query *UserReviewQuery) (*UserReviewQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *userreviewPager) toCursor(ur *UserReview) Cursor {
+	return p.order.Field.toCursor(ur)
+}
+
+func (p *userreviewPager) applyCursors(query *UserReviewQuery, after, before *Cursor) (*UserReviewQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultUserReviewOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *userreviewPager) applyOrder(query *UserReviewQuery) *UserReviewQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultUserReviewOrder.Field {
+		query = query.Order(DefaultUserReviewOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *userreviewPager) orderExpr(query *UserReviewQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultUserReviewOrder.Field {
+			b.Comma().Ident(DefaultUserReviewOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to UserReview.
+func (ur *UserReviewQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...UserReviewPaginateOption,
+) (*UserReviewConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newUserReviewPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if ur, err = pager.applyFilter(ur); err != nil {
+		return nil, err
+	}
+	conn := &UserReviewConnection{Edges: []*UserReviewEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := ur.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if ur, err = pager.applyCursors(ur, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		ur.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ur.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	ur = pager.applyOrder(ur)
+	nodes, err := ur.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// UserReviewOrderField defines the ordering field of UserReview.
+type UserReviewOrderField struct {
+	// Value extracts the ordering value from the given UserReview.
+	Value    func(*UserReview) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) userreview.OrderOption
+	toCursor func(*UserReview) Cursor
+}
+
+// UserReviewOrder defines the ordering of UserReview.
+type UserReviewOrder struct {
+	Direction OrderDirection        `json:"direction"`
+	Field     *UserReviewOrderField `json:"field"`
+}
+
+// DefaultUserReviewOrder is the default ordering of UserReview.
+var DefaultUserReviewOrder = &UserReviewOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &UserReviewOrderField{
+		Value: func(ur *UserReview) (ent.Value, error) {
+			return ur.ID, nil
+		},
+		column: userreview.FieldID,
+		toTerm: userreview.ByID,
+		toCursor: func(ur *UserReview) Cursor {
+			return Cursor{ID: ur.ID}
+		},
+	},
+}
+
+// ToEdge converts UserReview into UserReviewEdge.
+func (ur *UserReview) ToEdge(order *UserReviewOrder) *UserReviewEdge {
+	if order == nil {
+		order = DefaultUserReviewOrder
+	}
+	return &UserReviewEdge{
+		Node:   ur,
+		Cursor: order.Field.toCursor(ur),
 	}
 }

@@ -14,6 +14,7 @@ import (
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -34,6 +35,8 @@ type Client struct {
 	User *UserClient
 	// UserAddress is the client for interacting with the UserAddress builders.
 	UserAddress *UserAddressClient
+	// UserReview is the client for interacting with the UserReview builders.
+	UserReview *UserReviewClient
 	// additional fields for node api
 	tables tables
 }
@@ -53,6 +56,7 @@ func (c *Client) init() {
 	c.Product = NewProductClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserAddress = NewUserAddressClient(c.config)
+	c.UserReview = NewUserReviewClient(c.config)
 }
 
 type (
@@ -139,6 +143,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Product:     NewProductClient(cfg),
 		User:        NewUserClient(cfg),
 		UserAddress: NewUserAddressClient(cfg),
+		UserReview:  NewUserReviewClient(cfg),
 	}, nil
 }
 
@@ -162,6 +167,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Product:     NewProductClient(cfg),
 		User:        NewUserClient(cfg),
 		UserAddress: NewUserAddressClient(cfg),
+		UserReview:  NewUserReviewClient(cfg),
 	}, nil
 }
 
@@ -194,6 +200,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Product.Use(hooks...)
 	c.User.Use(hooks...)
 	c.UserAddress.Use(hooks...)
+	c.UserReview.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -203,6 +210,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Product.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 	c.UserAddress.Intercept(interceptors...)
+	c.UserReview.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -216,6 +224,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *UserAddressMutation:
 		return c.UserAddress.mutate(ctx, m)
+	case *UserReviewMutation:
+		return c.UserReview.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -582,6 +592,22 @@ func (c *UserClient) QueryUserAddress(u *User) *UserAddressQuery {
 	return query
 }
 
+// QueryUserReview queries the user_review edge of a User.
+func (c *UserClient) QueryUserReview(u *User) *UserReviewQuery {
+	query := (&UserReviewClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(userreview.Table, userreview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UserReviewTable, user.UserReviewColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -757,12 +783,146 @@ func (c *UserAddressClient) mutate(ctx context.Context, m *UserAddressMutation) 
 	}
 }
 
+// UserReviewClient is a client for the UserReview schema.
+type UserReviewClient struct {
+	config
+}
+
+// NewUserReviewClient returns a client for the UserReview from the given config.
+func NewUserReviewClient(c config) *UserReviewClient {
+	return &UserReviewClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userreview.Hooks(f(g(h())))`.
+func (c *UserReviewClient) Use(hooks ...Hook) {
+	c.hooks.UserReview = append(c.hooks.UserReview, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userreview.Intercept(f(g(h())))`.
+func (c *UserReviewClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserReview = append(c.inters.UserReview, interceptors...)
+}
+
+// Create returns a builder for creating a UserReview entity.
+func (c *UserReviewClient) Create() *UserReviewCreate {
+	mutation := newUserReviewMutation(c.config, OpCreate)
+	return &UserReviewCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserReview entities.
+func (c *UserReviewClient) CreateBulk(builders ...*UserReviewCreate) *UserReviewCreateBulk {
+	return &UserReviewCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserReview.
+func (c *UserReviewClient) Update() *UserReviewUpdate {
+	mutation := newUserReviewMutation(c.config, OpUpdate)
+	return &UserReviewUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserReviewClient) UpdateOne(ur *UserReview) *UserReviewUpdateOne {
+	mutation := newUserReviewMutation(c.config, OpUpdateOne, withUserReview(ur))
+	return &UserReviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserReviewClient) UpdateOneID(id int) *UserReviewUpdateOne {
+	mutation := newUserReviewMutation(c.config, OpUpdateOne, withUserReviewID(id))
+	return &UserReviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserReview.
+func (c *UserReviewClient) Delete() *UserReviewDelete {
+	mutation := newUserReviewMutation(c.config, OpDelete)
+	return &UserReviewDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserReviewClient) DeleteOne(ur *UserReview) *UserReviewDeleteOne {
+	return c.DeleteOneID(ur.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserReviewClient) DeleteOneID(id int) *UserReviewDeleteOne {
+	builder := c.Delete().Where(userreview.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserReviewDeleteOne{builder}
+}
+
+// Query returns a query builder for UserReview.
+func (c *UserReviewClient) Query() *UserReviewQuery {
+	return &UserReviewQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserReview},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserReview entity by its id.
+func (c *UserReviewClient) Get(ctx context.Context, id int) (*UserReview, error) {
+	return c.Query().Where(userreview.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserReviewClient) GetX(ctx context.Context, id int) *UserReview {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserReview.
+func (c *UserReviewClient) QueryUser(ur *UserReview) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ur.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userreview.Table, userreview.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userreview.UserTable, userreview.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(ur.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserReviewClient) Hooks() []Hook {
+	return c.hooks.UserReview
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserReviewClient) Interceptors() []Interceptor {
+	return c.inters.UserReview
+}
+
+func (c *UserReviewClient) mutate(ctx context.Context, m *UserReviewMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserReviewCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserReviewUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserReviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserReviewDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserReview mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, Product, User, UserAddress []ent.Hook
+		Address, Product, User, UserAddress, UserReview []ent.Hook
 	}
 	inters struct {
-		Address, Product, User, UserAddress []ent.Interceptor
+		Address, Product, User, UserAddress, UserReview []ent.Interceptor
 	}
 )

@@ -32,6 +32,18 @@ func (u *User) UserAddress(ctx context.Context) (result []*UserAddress, err erro
 	return result, err
 }
 
+func (u *User) UserReview(ctx context.Context) (result []*UserReview, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedUserReview(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.UserReviewOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryUserReview().All(ctx)
+	}
+	return result, err
+}
+
 func (ua *UserAddress) User(ctx context.Context) (*User, error) {
 	result, err := ua.Edges.UserOrErr()
 	if IsNotLoaded(err) {
@@ -44,6 +56,14 @@ func (ua *UserAddress) Address(ctx context.Context) (*Address, error) {
 	result, err := ua.Edges.AddressOrErr()
 	if IsNotLoaded(err) {
 		result, err = ua.QueryAddress().Only(ctx)
+	}
+	return result, err
+}
+
+func (ur *UserReview) User(ctx context.Context) (*User, error) {
+	result, err := ur.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = ur.QueryUser().Only(ctx)
 	}
 	return result, err
 }

@@ -32,6 +32,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUserAddress holds the string denoting the user_address edge name in mutations.
 	EdgeUserAddress = "user_address"
+	// EdgeUserReview holds the string denoting the user_review edge name in mutations.
+	EdgeUserReview = "user_review"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// UserAddressTable is the table that holds the user_address relation/edge.
@@ -41,6 +43,13 @@ const (
 	UserAddressInverseTable = "user_addresses"
 	// UserAddressColumn is the table column denoting the user_address relation/edge.
 	UserAddressColumn = "user_id"
+	// UserReviewTable is the table that holds the user_review relation/edge.
+	UserReviewTable = "user_reviews"
+	// UserReviewInverseTable is the table name for the UserReview entity.
+	// It exists in this package in order to avoid circular dependency with the "userreview" package.
+	UserReviewInverseTable = "user_reviews"
+	// UserReviewColumn is the table column denoting the user_review relation/edge.
+	UserReviewColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -144,10 +153,31 @@ func ByUserAddress(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserAddressStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByUserReviewCount orders the results by user_review count.
+func ByUserReviewCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserReviewStep(), opts...)
+	}
+}
+
+// ByUserReview orders the results by user_review terms.
+func ByUserReview(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserReviewStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserAddressStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserAddressInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UserAddressTable, UserAddressColumn),
+	)
+}
+func newUserReviewStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserReviewInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UserReviewTable, UserReviewColumn),
 	)
 }

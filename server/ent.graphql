@@ -51,6 +51,7 @@ input CreateUserInput {
   createdAt: Time
   updatedAt: Time
   userAddresIDs: [ID!]
+  userReviewIDs: [ID!]
 }
 """
 Define a Relay Cursor type:
@@ -127,6 +128,7 @@ type User implements Node {
   createdAt: Time!
   updatedAt: Time!
   userAddress: [UserAddress!]
+  userReview: [UserReview!]
 }
 type UserAddress implements Node {
   id: ID!
@@ -135,4 +137,15 @@ type UserAddress implements Node {
   isDefault: Boolean!
   user: User!
   address: Address!
+}
+type UserReview implements Node {
+  id: ID!
+  userReviewID: Int!
+  userID: ID!
+  orderedProductID: Int!
+  rating: Int!
+  review: String!
+  createdAt: Time!
+  updatedAt: Time!
+  user: User!
 }

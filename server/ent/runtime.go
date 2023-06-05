@@ -8,6 +8,7 @@ import (
 	"healthyshopper/ent/schema"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 	"time"
 )
 
@@ -311,4 +312,38 @@ func init() {
 	useraddressDescIsDefault := useraddressFields[2].Descriptor()
 	// useraddress.DefaultIsDefault holds the default value on creation for the is_default field.
 	useraddress.DefaultIsDefault = useraddressDescIsDefault.Default.(bool)
+	userreviewFields := schema.UserReview{}.Fields()
+	_ = userreviewFields
+	// userreviewDescRating is the schema descriptor for rating field.
+	userreviewDescRating := userreviewFields[3].Descriptor()
+	// userreview.RatingValidator is a validator for the "rating" field. It is called by the builders before save.
+	userreview.RatingValidator = userreviewDescRating.Validators[0].(func(int) error)
+	// userreviewDescReview is the schema descriptor for review field.
+	userreviewDescReview := userreviewFields[4].Descriptor()
+	// userreview.ReviewValidator is a validator for the "review" field. It is called by the builders before save.
+	userreview.ReviewValidator = func() func(string) error {
+		validators := userreviewDescReview.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(review string) error {
+			for _, fn := range fns {
+				if err := fn(review); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// userreviewDescCreatedAt is the schema descriptor for created_at field.
+	userreviewDescCreatedAt := userreviewFields[5].Descriptor()
+	// userreview.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userreview.DefaultCreatedAt = userreviewDescCreatedAt.Default.(func() time.Time)
+	// userreviewDescUpdatedAt is the schema descriptor for updated_at field.
+	userreviewDescUpdatedAt := userreviewFields[6].Descriptor()
+	// userreview.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userreview.DefaultUpdatedAt = userreviewDescUpdatedAt.Default.(func() time.Time)
+	// userreview.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userreview.UpdateDefaultUpdatedAt = userreviewDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

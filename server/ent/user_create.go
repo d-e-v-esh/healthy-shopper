@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -98,6 +99,21 @@ func (uc *UserCreate) AddUserAddress(u ...*UserAddress) *UserCreate {
 		ids[i] = u[i].ID
 	}
 	return uc.AddUserAddresIDs(ids...)
+}
+
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by IDs.
+func (uc *UserCreate) AddUserReviewIDs(ids ...int) *UserCreate {
+	uc.mutation.AddUserReviewIDs(ids...)
+	return uc
+}
+
+// AddUserReview adds the "user_review" edges to the UserReview entity.
+func (uc *UserCreate) AddUserReview(u ...*UserReview) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddUserReviewIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -263,6 +279,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.UserReviewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserReviewTable,
+			Columns: []string{user.UserReviewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -8,6 +8,7 @@ import (
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
@@ -266,6 +267,18 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 			u.WithNamedUserAddress(alias, func(wq *UserAddressQuery) {
 				*wq = *query
 			})
+		case "userReview":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserReviewClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userreviewImplementors)...); err != nil {
+				return err
+			}
+			u.WithNamedUserReview(alias, func(wq *UserReviewQuery) {
+				*wq = *query
+			})
 		case "userID":
 			if _, ok := fieldSeen[user.FieldUserID]; !ok {
 				selectedFields = append(selectedFields, user.FieldUserID)
@@ -428,6 +441,114 @@ type useraddressPaginateArgs struct {
 
 func newUserAddressPaginateArgs(rv map[string]any) *useraddressPaginateArgs {
 	args := &useraddressPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ur *UserReviewQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserReviewQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ur, nil
+	}
+	if err := ur.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ur, nil
+}
+
+func (ur *UserReviewQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(userreview.Columns))
+		selectedFields = []string{userreview.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: ur.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			ur.withUser = query
+			if _, ok := fieldSeen[userreview.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldUserID)
+				fieldSeen[userreview.FieldUserID] = struct{}{}
+			}
+		case "userReviewID":
+			if _, ok := fieldSeen[userreview.FieldUserReviewID]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldUserReviewID)
+				fieldSeen[userreview.FieldUserReviewID] = struct{}{}
+			}
+		case "userID":
+			if _, ok := fieldSeen[userreview.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldUserID)
+				fieldSeen[userreview.FieldUserID] = struct{}{}
+			}
+		case "orderedProductID":
+			if _, ok := fieldSeen[userreview.FieldOrderedProductID]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldOrderedProductID)
+				fieldSeen[userreview.FieldOrderedProductID] = struct{}{}
+			}
+		case "rating":
+			if _, ok := fieldSeen[userreview.FieldRating]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldRating)
+				fieldSeen[userreview.FieldRating] = struct{}{}
+			}
+		case "review":
+			if _, ok := fieldSeen[userreview.FieldReview]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldReview)
+				fieldSeen[userreview.FieldReview] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[userreview.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldCreatedAt)
+				fieldSeen[userreview.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[userreview.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, userreview.FieldUpdatedAt)
+				fieldSeen[userreview.FieldUpdatedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ur.Select(selectedFields...)
+	}
+	return nil
+}
+
+type userreviewPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []UserReviewPaginateOption
+}
+
+func newUserReviewPaginateArgs(rv map[string]any) *userreviewPaginateArgs {
+	args := &userreviewPaginateArgs{}
 	if rv == nil {
 		return args
 	}

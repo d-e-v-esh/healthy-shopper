@@ -10,6 +10,7 @@ import (
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 	"reflect"
 	"sync"
 
@@ -80,6 +81,7 @@ func checkColumn(table, column string) error {
 			product.Table:     product.ValidColumn,
 			user.Table:        user.ValidColumn,
 			useraddress.Table: useraddress.ValidColumn,
+			userreview.Table:  userreview.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

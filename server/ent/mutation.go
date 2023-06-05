@@ -11,6 +11,7 @@ import (
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
+	"healthyshopper/ent/userreview"
 	"sync"
 	"time"
 
@@ -31,6 +32,7 @@ const (
 	TypeProduct     = "Product"
 	TypeUser        = "User"
 	TypeUserAddress = "UserAddress"
+	TypeUserReview  = "UserReview"
 )
 
 // AddressMutation represents an operation that mutates the Address nodes in the graph.
@@ -1909,6 +1911,9 @@ type UserMutation struct {
 	user_address        map[int]struct{}
 	removeduser_address map[int]struct{}
 	cleareduser_address bool
+	user_review         map[int]struct{}
+	removeduser_review  map[int]struct{}
+	cleareduser_review  bool
 	done                bool
 	oldValue            func(context.Context) (*User, error)
 	predicates          []predicate.User
@@ -2374,6 +2379,60 @@ func (m *UserMutation) ResetUserAddress() {
 	m.removeduser_address = nil
 }
 
+// AddUserReviewIDs adds the "user_review" edge to the UserReview entity by ids.
+func (m *UserMutation) AddUserReviewIDs(ids ...int) {
+	if m.user_review == nil {
+		m.user_review = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.user_review[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserReview clears the "user_review" edge to the UserReview entity.
+func (m *UserMutation) ClearUserReview() {
+	m.cleareduser_review = true
+}
+
+// UserReviewCleared reports if the "user_review" edge to the UserReview entity was cleared.
+func (m *UserMutation) UserReviewCleared() bool {
+	return m.cleareduser_review
+}
+
+// RemoveUserReviewIDs removes the "user_review" edge to the UserReview entity by IDs.
+func (m *UserMutation) RemoveUserReviewIDs(ids ...int) {
+	if m.removeduser_review == nil {
+		m.removeduser_review = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.user_review, ids[i])
+		m.removeduser_review[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserReview returns the removed IDs of the "user_review" edge to the UserReview entity.
+func (m *UserMutation) RemovedUserReviewIDs() (ids []int) {
+	for id := range m.removeduser_review {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserReviewIDs returns the "user_review" edge IDs in the mutation.
+func (m *UserMutation) UserReviewIDs() (ids []int) {
+	for id := range m.user_review {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserReview resets all changes to the "user_review" edge.
+func (m *UserMutation) ResetUserReview() {
+	m.user_review = nil
+	m.cleareduser_review = false
+	m.removeduser_review = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -2641,9 +2700,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user_address != nil {
 		edges = append(edges, user.EdgeUserAddress)
+	}
+	if m.user_review != nil {
+		edges = append(edges, user.EdgeUserReview)
 	}
 	return edges
 }
@@ -2658,15 +2720,24 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeUserReview:
+		ids := make([]ent.Value, 0, len(m.user_review))
+		for id := range m.user_review {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removeduser_address != nil {
 		edges = append(edges, user.EdgeUserAddress)
+	}
+	if m.removeduser_review != nil {
+		edges = append(edges, user.EdgeUserReview)
 	}
 	return edges
 }
@@ -2681,15 +2752,24 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeUserReview:
+		ids := make([]ent.Value, 0, len(m.removeduser_review))
+		for id := range m.removeduser_review {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser_address {
 		edges = append(edges, user.EdgeUserAddress)
+	}
+	if m.cleareduser_review {
+		edges = append(edges, user.EdgeUserReview)
 	}
 	return edges
 }
@@ -2700,6 +2780,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeUserAddress:
 		return m.cleareduser_address
+	case user.EdgeUserReview:
+		return m.cleareduser_review
 	}
 	return false
 }
@@ -2718,6 +2800,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeUserAddress:
 		m.ResetUserAddress()
+		return nil
+	case user.EdgeUserReview:
+		m.ResetUserReview()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
@@ -3256,4 +3341,809 @@ func (m *UserAddressMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown UserAddress edge %s", name)
+}
+
+// UserReviewMutation represents an operation that mutates the UserReview nodes in the graph.
+type UserReviewMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	user_review_id        *int
+	adduser_review_id     *int
+	ordered_product_id    *int
+	addordered_product_id *int
+	rating                *int
+	addrating             *int
+	review                *string
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	user                  *int
+	cleareduser           bool
+	done                  bool
+	oldValue              func(context.Context) (*UserReview, error)
+	predicates            []predicate.UserReview
+}
+
+var _ ent.Mutation = (*UserReviewMutation)(nil)
+
+// userreviewOption allows management of the mutation configuration using functional options.
+type userreviewOption func(*UserReviewMutation)
+
+// newUserReviewMutation creates new mutation for the UserReview entity.
+func newUserReviewMutation(c config, op Op, opts ...userreviewOption) *UserReviewMutation {
+	m := &UserReviewMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserReview,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserReviewID sets the ID field of the mutation.
+func withUserReviewID(id int) userreviewOption {
+	return func(m *UserReviewMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserReview
+		)
+		m.oldValue = func(ctx context.Context) (*UserReview, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserReview.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserReview sets the old UserReview of the mutation.
+func withUserReview(node *UserReview) userreviewOption {
+	return func(m *UserReviewMutation) {
+		m.oldValue = func(context.Context) (*UserReview, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserReviewMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserReviewMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserReviewMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserReviewMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserReview.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserReviewID sets the "user_review_id" field.
+func (m *UserReviewMutation) SetUserReviewID(i int) {
+	m.user_review_id = &i
+	m.adduser_review_id = nil
+}
+
+// UserReviewID returns the value of the "user_review_id" field in the mutation.
+func (m *UserReviewMutation) UserReviewID() (r int, exists bool) {
+	v := m.user_review_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserReviewID returns the old "user_review_id" field's value of the UserReview entity.
+// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserReviewMutation) OldUserReviewID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserReviewID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserReviewID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserReviewID: %w", err)
+	}
+	return oldValue.UserReviewID, nil
+}
+
+// AddUserReviewID adds i to the "user_review_id" field.
+func (m *UserReviewMutation) AddUserReviewID(i int) {
+	if m.adduser_review_id != nil {
+		*m.adduser_review_id += i
+	} else {
+		m.adduser_review_id = &i
+	}
+}
+
+// AddedUserReviewID returns the value that was added to the "user_review_id" field in this mutation.
+func (m *UserReviewMutation) AddedUserReviewID() (r int, exists bool) {
+	v := m.adduser_review_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserReviewID resets all changes to the "user_review_id" field.
+func (m *UserReviewMutation) ResetUserReviewID() {
+	m.user_review_id = nil
+	m.adduser_review_id = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *UserReviewMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UserReviewMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UserReview entity.
+// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserReviewMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UserReviewMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetOrderedProductID sets the "ordered_product_id" field.
+func (m *UserReviewMutation) SetOrderedProductID(i int) {
+	m.ordered_product_id = &i
+	m.addordered_product_id = nil
+}
+
+// OrderedProductID returns the value of the "ordered_product_id" field in the mutation.
+func (m *UserReviewMutation) OrderedProductID() (r int, exists bool) {
+	v := m.ordered_product_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderedProductID returns the old "ordered_product_id" field's value of the UserReview entity.
+// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserReviewMutation) OldOrderedProductID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderedProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderedProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderedProductID: %w", err)
+	}
+	return oldValue.OrderedProductID, nil
+}
+
+// AddOrderedProductID adds i to the "ordered_product_id" field.
+func (m *UserReviewMutation) AddOrderedProductID(i int) {
+	if m.addordered_product_id != nil {
+		*m.addordered_product_id += i
+	} else {
+		m.addordered_product_id = &i
+	}
+}
+
+// AddedOrderedProductID returns the value that was added to the "ordered_product_id" field in this mutation.
+func (m *UserReviewMutation) AddedOrderedProductID() (r int, exists bool) {
+	v := m.addordered_product_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetOrderedProductID resets all changes to the "ordered_product_id" field.
+func (m *UserReviewMutation) ResetOrderedProductID() {
+	m.ordered_product_id = nil
+	m.addordered_product_id = nil
+}
+
+// SetRating sets the "rating" field.
+func (m *UserReviewMutation) SetRating(i int) {
+	m.rating = &i
+	m.addrating = nil
+}
+
+// Rating returns the value of the "rating" field in the mutation.
+func (m *UserReviewMutation) Rating() (r int, exists bool) {
+	v := m.rating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRating returns the old "rating" field's value of the UserReview entity.
+// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserReviewMutation) OldRating(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRating is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRating requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRating: %w", err)
+	}
+	return oldValue.Rating, nil
+}
+
+// AddRating adds i to the "rating" field.
+func (m *UserReviewMutation) AddRating(i int) {
+	if m.addrating != nil {
+		*m.addrating += i
+	} else {
+		m.addrating = &i
+	}
+}
+
+// AddedRating returns the value that was added to the "rating" field in this mutation.
+func (m *UserReviewMutation) AddedRating() (r int, exists bool) {
+	v := m.addrating
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRating resets all changes to the "rating" field.
+func (m *UserReviewMutation) ResetRating() {
+	m.rating = nil
+	m.addrating = nil
+}
+
+// SetReview sets the "review" field.
+func (m *UserReviewMutation) SetReview(s string) {
+	m.review = &s
+}
+
+// Review returns the value of the "review" field in the mutation.
+func (m *UserReviewMutation) Review() (r string, exists bool) {
+	v := m.review
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReview returns the old "review" field's value of the UserReview entity.
+// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserReviewMutation) OldReview(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReview is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReview requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReview: %w", err)
+	}
+	return oldValue.Review, nil
+}
+
+// ResetReview resets all changes to the "review" field.
+func (m *UserReviewMutation) ResetReview() {
+	m.review = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UserReviewMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UserReviewMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UserReview entity.
+// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserReviewMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UserReviewMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UserReviewMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UserReviewMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UserReview entity.
+// If the UserReview object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserReviewMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UserReviewMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *UserReviewMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *UserReviewMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *UserReviewMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *UserReviewMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the UserReviewMutation builder.
+func (m *UserReviewMutation) Where(ps ...predicate.UserReview) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserReviewMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserReviewMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserReview, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserReviewMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserReviewMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserReview).
+func (m *UserReviewMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserReviewMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.user_review_id != nil {
+		fields = append(fields, userreview.FieldUserReviewID)
+	}
+	if m.user != nil {
+		fields = append(fields, userreview.FieldUserID)
+	}
+	if m.ordered_product_id != nil {
+		fields = append(fields, userreview.FieldOrderedProductID)
+	}
+	if m.rating != nil {
+		fields = append(fields, userreview.FieldRating)
+	}
+	if m.review != nil {
+		fields = append(fields, userreview.FieldReview)
+	}
+	if m.created_at != nil {
+		fields = append(fields, userreview.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, userreview.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserReviewMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case userreview.FieldUserReviewID:
+		return m.UserReviewID()
+	case userreview.FieldUserID:
+		return m.UserID()
+	case userreview.FieldOrderedProductID:
+		return m.OrderedProductID()
+	case userreview.FieldRating:
+		return m.Rating()
+	case userreview.FieldReview:
+		return m.Review()
+	case userreview.FieldCreatedAt:
+		return m.CreatedAt()
+	case userreview.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserReviewMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case userreview.FieldUserReviewID:
+		return m.OldUserReviewID(ctx)
+	case userreview.FieldUserID:
+		return m.OldUserID(ctx)
+	case userreview.FieldOrderedProductID:
+		return m.OldOrderedProductID(ctx)
+	case userreview.FieldRating:
+		return m.OldRating(ctx)
+	case userreview.FieldReview:
+		return m.OldReview(ctx)
+	case userreview.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case userreview.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserReview field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserReviewMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case userreview.FieldUserReviewID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserReviewID(v)
+		return nil
+	case userreview.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case userreview.FieldOrderedProductID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderedProductID(v)
+		return nil
+	case userreview.FieldRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRating(v)
+		return nil
+	case userreview.FieldReview:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReview(v)
+		return nil
+	case userreview.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case userreview.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserReview field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserReviewMutation) AddedFields() []string {
+	var fields []string
+	if m.adduser_review_id != nil {
+		fields = append(fields, userreview.FieldUserReviewID)
+	}
+	if m.addordered_product_id != nil {
+		fields = append(fields, userreview.FieldOrderedProductID)
+	}
+	if m.addrating != nil {
+		fields = append(fields, userreview.FieldRating)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserReviewMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case userreview.FieldUserReviewID:
+		return m.AddedUserReviewID()
+	case userreview.FieldOrderedProductID:
+		return m.AddedOrderedProductID()
+	case userreview.FieldRating:
+		return m.AddedRating()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserReviewMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case userreview.FieldUserReviewID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserReviewID(v)
+		return nil
+	case userreview.FieldOrderedProductID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderedProductID(v)
+		return nil
+	case userreview.FieldRating:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRating(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserReview numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserReviewMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserReviewMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserReviewMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UserReview nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserReviewMutation) ResetField(name string) error {
+	switch name {
+	case userreview.FieldUserReviewID:
+		m.ResetUserReviewID()
+		return nil
+	case userreview.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case userreview.FieldOrderedProductID:
+		m.ResetOrderedProductID()
+		return nil
+	case userreview.FieldRating:
+		m.ResetRating()
+		return nil
+	case userreview.FieldReview:
+		m.ResetReview()
+		return nil
+	case userreview.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case userreview.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown UserReview field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserReviewMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, userreview.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserReviewMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case userreview.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserReviewMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserReviewMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserReviewMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, userreview.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserReviewMutation) EdgeCleared(name string) bool {
+	switch name {
+	case userreview.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserReviewMutation) ClearEdge(name string) error {
+	switch name {
+	case userreview.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserReview unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserReviewMutation) ResetEdge(name string) error {
+	switch name {
+	case userreview.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserReview edge %s", name)
 }
