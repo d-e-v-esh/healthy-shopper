@@ -32,6 +32,8 @@ const (
 	EdgeUserAddress = "user_address"
 	// EdgeUserReview holds the string denoting the user_review edge name in mutations.
 	EdgeUserReview = "user_review"
+	// EdgeShoppingCart holds the string denoting the shopping_cart edge name in mutations.
+	EdgeShoppingCart = "shopping_cart"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// UserAddressTable is the table that holds the user_address relation/edge.
@@ -48,6 +50,13 @@ const (
 	UserReviewInverseTable = "user_reviews"
 	// UserReviewColumn is the table column denoting the user_review relation/edge.
 	UserReviewColumn = "user_id"
+	// ShoppingCartTable is the table that holds the shopping_cart relation/edge.
+	ShoppingCartTable = "shopping_carts"
+	// ShoppingCartInverseTable is the table name for the ShoppingCart entity.
+	// It exists in this package in order to avoid circular dependency with the "shoppingcart" package.
+	ShoppingCartInverseTable = "shopping_carts"
+	// ShoppingCartColumn is the table column denoting the shopping_cart relation/edge.
+	ShoppingCartColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -159,6 +168,20 @@ func ByUserReview(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserReviewStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByShoppingCartCount orders the results by shopping_cart count.
+func ByShoppingCartCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newShoppingCartStep(), opts...)
+	}
+}
+
+// ByShoppingCart orders the results by shopping_cart terms.
+func ByShoppingCart(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShoppingCartStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserAddressStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -171,5 +194,12 @@ func newUserReviewStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserReviewInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UserReviewTable, UserReviewColumn),
+	)
+}
+func newShoppingCartStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShoppingCartInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ShoppingCartTable, ShoppingCartColumn),
 	)
 }

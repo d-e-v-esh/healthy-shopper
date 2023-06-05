@@ -9,6 +9,8 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/shoppingcart"
+	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
 	"healthyshopper/ent/userreview"
@@ -28,11 +30,13 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAddress     = "Address"
-	TypeProduct     = "Product"
-	TypeUser        = "User"
-	TypeUserAddress = "UserAddress"
-	TypeUserReview  = "UserReview"
+	TypeAddress          = "Address"
+	TypeProduct          = "Product"
+	TypeShoppingCart     = "ShoppingCart"
+	TypeShoppingCartItem = "ShoppingCartItem"
+	TypeUser             = "User"
+	TypeUserAddress      = "UserAddress"
+	TypeUserReview       = "UserReview"
 )
 
 // AddressMutation represents an operation that mutates the Address nodes in the graph.
@@ -1715,29 +1719,1029 @@ func (m *ProductMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Product edge %s", name)
 }
 
+// ShoppingCartMutation represents an operation that mutates the ShoppingCart nodes in the graph.
+type ShoppingCartMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *int
+	clearedFields             map[string]struct{}
+	user                      *int
+	cleareduser               bool
+	shopping_cart_item        *int
+	clearedshopping_cart_item bool
+	done                      bool
+	oldValue                  func(context.Context) (*ShoppingCart, error)
+	predicates                []predicate.ShoppingCart
+}
+
+var _ ent.Mutation = (*ShoppingCartMutation)(nil)
+
+// shoppingcartOption allows management of the mutation configuration using functional options.
+type shoppingcartOption func(*ShoppingCartMutation)
+
+// newShoppingCartMutation creates new mutation for the ShoppingCart entity.
+func newShoppingCartMutation(c config, op Op, opts ...shoppingcartOption) *ShoppingCartMutation {
+	m := &ShoppingCartMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeShoppingCart,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withShoppingCartID sets the ID field of the mutation.
+func withShoppingCartID(id int) shoppingcartOption {
+	return func(m *ShoppingCartMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ShoppingCart
+		)
+		m.oldValue = func(ctx context.Context) (*ShoppingCart, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ShoppingCart.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withShoppingCart sets the old ShoppingCart of the mutation.
+func withShoppingCart(node *ShoppingCart) shoppingcartOption {
+	return func(m *ShoppingCartMutation) {
+		m.oldValue = func(context.Context) (*ShoppingCart, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ShoppingCartMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ShoppingCartMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ShoppingCartMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ShoppingCartMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ShoppingCart.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *ShoppingCartMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *ShoppingCartMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the ShoppingCart entity.
+// If the ShoppingCart object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShoppingCartMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *ShoppingCartMutation) ResetUserID() {
+	m.user = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *ShoppingCartMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *ShoppingCartMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *ShoppingCartMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *ShoppingCartMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// SetShoppingCartItemID sets the "shopping_cart_item" edge to the ShoppingCartItem entity by id.
+func (m *ShoppingCartMutation) SetShoppingCartItemID(id int) {
+	m.shopping_cart_item = &id
+}
+
+// ClearShoppingCartItem clears the "shopping_cart_item" edge to the ShoppingCartItem entity.
+func (m *ShoppingCartMutation) ClearShoppingCartItem() {
+	m.clearedshopping_cart_item = true
+}
+
+// ShoppingCartItemCleared reports if the "shopping_cart_item" edge to the ShoppingCartItem entity was cleared.
+func (m *ShoppingCartMutation) ShoppingCartItemCleared() bool {
+	return m.clearedshopping_cart_item
+}
+
+// ShoppingCartItemID returns the "shopping_cart_item" edge ID in the mutation.
+func (m *ShoppingCartMutation) ShoppingCartItemID() (id int, exists bool) {
+	if m.shopping_cart_item != nil {
+		return *m.shopping_cart_item, true
+	}
+	return
+}
+
+// ShoppingCartItemIDs returns the "shopping_cart_item" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShoppingCartItemID instead. It exists only for internal usage by the builders.
+func (m *ShoppingCartMutation) ShoppingCartItemIDs() (ids []int) {
+	if id := m.shopping_cart_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShoppingCartItem resets all changes to the "shopping_cart_item" edge.
+func (m *ShoppingCartMutation) ResetShoppingCartItem() {
+	m.shopping_cart_item = nil
+	m.clearedshopping_cart_item = false
+}
+
+// Where appends a list predicates to the ShoppingCartMutation builder.
+func (m *ShoppingCartMutation) Where(ps ...predicate.ShoppingCart) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ShoppingCartMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ShoppingCartMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ShoppingCart, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ShoppingCartMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ShoppingCartMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ShoppingCart).
+func (m *ShoppingCartMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ShoppingCartMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.user != nil {
+		fields = append(fields, shoppingcart.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ShoppingCartMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case shoppingcart.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ShoppingCartMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case shoppingcart.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown ShoppingCart field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShoppingCartMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case shoppingcart.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCart field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ShoppingCartMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ShoppingCartMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShoppingCartMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ShoppingCart numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ShoppingCartMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ShoppingCartMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ShoppingCartMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ShoppingCart nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ShoppingCartMutation) ResetField(name string) error {
+	switch name {
+	case shoppingcart.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCart field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ShoppingCartMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, shoppingcart.EdgeUser)
+	}
+	if m.shopping_cart_item != nil {
+		edges = append(edges, shoppingcart.EdgeShoppingCartItem)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ShoppingCartMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case shoppingcart.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case shoppingcart.EdgeShoppingCartItem:
+		if id := m.shopping_cart_item; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ShoppingCartMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ShoppingCartMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ShoppingCartMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, shoppingcart.EdgeUser)
+	}
+	if m.clearedshopping_cart_item {
+		edges = append(edges, shoppingcart.EdgeShoppingCartItem)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ShoppingCartMutation) EdgeCleared(name string) bool {
+	switch name {
+	case shoppingcart.EdgeUser:
+		return m.cleareduser
+	case shoppingcart.EdgeShoppingCartItem:
+		return m.clearedshopping_cart_item
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ShoppingCartMutation) ClearEdge(name string) error {
+	switch name {
+	case shoppingcart.EdgeUser:
+		m.ClearUser()
+		return nil
+	case shoppingcart.EdgeShoppingCartItem:
+		m.ClearShoppingCartItem()
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCart unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ShoppingCartMutation) ResetEdge(name string) error {
+	switch name {
+	case shoppingcart.EdgeUser:
+		m.ResetUser()
+		return nil
+	case shoppingcart.EdgeShoppingCartItem:
+		m.ResetShoppingCartItem()
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCart edge %s", name)
+}
+
+// ShoppingCartItemMutation represents an operation that mutates the ShoppingCartItem nodes in the graph.
+type ShoppingCartItemMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *int
+	product_item_id      *int
+	addproduct_item_id   *int
+	quantity             *int
+	addquantity          *int
+	clearedFields        map[string]struct{}
+	shopping_cart        *int
+	clearedshopping_cart bool
+	done                 bool
+	oldValue             func(context.Context) (*ShoppingCartItem, error)
+	predicates           []predicate.ShoppingCartItem
+}
+
+var _ ent.Mutation = (*ShoppingCartItemMutation)(nil)
+
+// shoppingcartitemOption allows management of the mutation configuration using functional options.
+type shoppingcartitemOption func(*ShoppingCartItemMutation)
+
+// newShoppingCartItemMutation creates new mutation for the ShoppingCartItem entity.
+func newShoppingCartItemMutation(c config, op Op, opts ...shoppingcartitemOption) *ShoppingCartItemMutation {
+	m := &ShoppingCartItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeShoppingCartItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withShoppingCartItemID sets the ID field of the mutation.
+func withShoppingCartItemID(id int) shoppingcartitemOption {
+	return func(m *ShoppingCartItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ShoppingCartItem
+		)
+		m.oldValue = func(ctx context.Context) (*ShoppingCartItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ShoppingCartItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withShoppingCartItem sets the old ShoppingCartItem of the mutation.
+func withShoppingCartItem(node *ShoppingCartItem) shoppingcartitemOption {
+	return func(m *ShoppingCartItemMutation) {
+		m.oldValue = func(context.Context) (*ShoppingCartItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ShoppingCartItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ShoppingCartItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ShoppingCartItemMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ShoppingCartItemMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ShoppingCartItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetShoppingCartID sets the "shopping_cart_id" field.
+func (m *ShoppingCartItemMutation) SetShoppingCartID(i int) {
+	m.shopping_cart = &i
+}
+
+// ShoppingCartID returns the value of the "shopping_cart_id" field in the mutation.
+func (m *ShoppingCartItemMutation) ShoppingCartID() (r int, exists bool) {
+	v := m.shopping_cart
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShoppingCartID returns the old "shopping_cart_id" field's value of the ShoppingCartItem entity.
+// If the ShoppingCartItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShoppingCartItemMutation) OldShoppingCartID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShoppingCartID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShoppingCartID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShoppingCartID: %w", err)
+	}
+	return oldValue.ShoppingCartID, nil
+}
+
+// ResetShoppingCartID resets all changes to the "shopping_cart_id" field.
+func (m *ShoppingCartItemMutation) ResetShoppingCartID() {
+	m.shopping_cart = nil
+}
+
+// SetProductItemID sets the "product_item_id" field.
+func (m *ShoppingCartItemMutation) SetProductItemID(i int) {
+	m.product_item_id = &i
+	m.addproduct_item_id = nil
+}
+
+// ProductItemID returns the value of the "product_item_id" field in the mutation.
+func (m *ShoppingCartItemMutation) ProductItemID() (r int, exists bool) {
+	v := m.product_item_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProductItemID returns the old "product_item_id" field's value of the ShoppingCartItem entity.
+// If the ShoppingCartItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShoppingCartItemMutation) OldProductItemID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProductItemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProductItemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProductItemID: %w", err)
+	}
+	return oldValue.ProductItemID, nil
+}
+
+// AddProductItemID adds i to the "product_item_id" field.
+func (m *ShoppingCartItemMutation) AddProductItemID(i int) {
+	if m.addproduct_item_id != nil {
+		*m.addproduct_item_id += i
+	} else {
+		m.addproduct_item_id = &i
+	}
+}
+
+// AddedProductItemID returns the value that was added to the "product_item_id" field in this mutation.
+func (m *ShoppingCartItemMutation) AddedProductItemID() (r int, exists bool) {
+	v := m.addproduct_item_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetProductItemID resets all changes to the "product_item_id" field.
+func (m *ShoppingCartItemMutation) ResetProductItemID() {
+	m.product_item_id = nil
+	m.addproduct_item_id = nil
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *ShoppingCartItemMutation) SetQuantity(i int) {
+	m.quantity = &i
+	m.addquantity = nil
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *ShoppingCartItemMutation) Quantity() (r int, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the ShoppingCartItem entity.
+// If the ShoppingCartItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ShoppingCartItemMutation) OldQuantity(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// AddQuantity adds i to the "quantity" field.
+func (m *ShoppingCartItemMutation) AddQuantity(i int) {
+	if m.addquantity != nil {
+		*m.addquantity += i
+	} else {
+		m.addquantity = &i
+	}
+}
+
+// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
+func (m *ShoppingCartItemMutation) AddedQuantity() (r int, exists bool) {
+	v := m.addquantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *ShoppingCartItemMutation) ResetQuantity() {
+	m.quantity = nil
+	m.addquantity = nil
+}
+
+// ClearShoppingCart clears the "shopping_cart" edge to the ShoppingCart entity.
+func (m *ShoppingCartItemMutation) ClearShoppingCart() {
+	m.clearedshopping_cart = true
+}
+
+// ShoppingCartCleared reports if the "shopping_cart" edge to the ShoppingCart entity was cleared.
+func (m *ShoppingCartItemMutation) ShoppingCartCleared() bool {
+	return m.clearedshopping_cart
+}
+
+// ShoppingCartIDs returns the "shopping_cart" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ShoppingCartID instead. It exists only for internal usage by the builders.
+func (m *ShoppingCartItemMutation) ShoppingCartIDs() (ids []int) {
+	if id := m.shopping_cart; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetShoppingCart resets all changes to the "shopping_cart" edge.
+func (m *ShoppingCartItemMutation) ResetShoppingCart() {
+	m.shopping_cart = nil
+	m.clearedshopping_cart = false
+}
+
+// Where appends a list predicates to the ShoppingCartItemMutation builder.
+func (m *ShoppingCartItemMutation) Where(ps ...predicate.ShoppingCartItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ShoppingCartItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ShoppingCartItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ShoppingCartItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ShoppingCartItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ShoppingCartItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ShoppingCartItem).
+func (m *ShoppingCartItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ShoppingCartItemMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.shopping_cart != nil {
+		fields = append(fields, shoppingcartitem.FieldShoppingCartID)
+	}
+	if m.product_item_id != nil {
+		fields = append(fields, shoppingcartitem.FieldProductItemID)
+	}
+	if m.quantity != nil {
+		fields = append(fields, shoppingcartitem.FieldQuantity)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ShoppingCartItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case shoppingcartitem.FieldShoppingCartID:
+		return m.ShoppingCartID()
+	case shoppingcartitem.FieldProductItemID:
+		return m.ProductItemID()
+	case shoppingcartitem.FieldQuantity:
+		return m.Quantity()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ShoppingCartItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case shoppingcartitem.FieldShoppingCartID:
+		return m.OldShoppingCartID(ctx)
+	case shoppingcartitem.FieldProductItemID:
+		return m.OldProductItemID(ctx)
+	case shoppingcartitem.FieldQuantity:
+		return m.OldQuantity(ctx)
+	}
+	return nil, fmt.Errorf("unknown ShoppingCartItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShoppingCartItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case shoppingcartitem.FieldShoppingCartID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShoppingCartID(v)
+		return nil
+	case shoppingcartitem.FieldProductItemID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProductItemID(v)
+		return nil
+	case shoppingcartitem.FieldQuantity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCartItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ShoppingCartItemMutation) AddedFields() []string {
+	var fields []string
+	if m.addproduct_item_id != nil {
+		fields = append(fields, shoppingcartitem.FieldProductItemID)
+	}
+	if m.addquantity != nil {
+		fields = append(fields, shoppingcartitem.FieldQuantity)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ShoppingCartItemMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case shoppingcartitem.FieldProductItemID:
+		return m.AddedProductItemID()
+	case shoppingcartitem.FieldQuantity:
+		return m.AddedQuantity()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ShoppingCartItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case shoppingcartitem.FieldProductItemID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddProductItemID(v)
+		return nil
+	case shoppingcartitem.FieldQuantity:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuantity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCartItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ShoppingCartItemMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ShoppingCartItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ShoppingCartItemMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ShoppingCartItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ShoppingCartItemMutation) ResetField(name string) error {
+	switch name {
+	case shoppingcartitem.FieldShoppingCartID:
+		m.ResetShoppingCartID()
+		return nil
+	case shoppingcartitem.FieldProductItemID:
+		m.ResetProductItemID()
+		return nil
+	case shoppingcartitem.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCartItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ShoppingCartItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.shopping_cart != nil {
+		edges = append(edges, shoppingcartitem.EdgeShoppingCart)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ShoppingCartItemMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case shoppingcartitem.EdgeShoppingCart:
+		if id := m.shopping_cart; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ShoppingCartItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ShoppingCartItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ShoppingCartItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedshopping_cart {
+		edges = append(edges, shoppingcartitem.EdgeShoppingCart)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ShoppingCartItemMutation) EdgeCleared(name string) bool {
+	switch name {
+	case shoppingcartitem.EdgeShoppingCart:
+		return m.clearedshopping_cart
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ShoppingCartItemMutation) ClearEdge(name string) error {
+	switch name {
+	case shoppingcartitem.EdgeShoppingCart:
+		m.ClearShoppingCart()
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCartItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ShoppingCartItemMutation) ResetEdge(name string) error {
+	switch name {
+	case shoppingcartitem.EdgeShoppingCart:
+		m.ResetShoppingCart()
+		return nil
+	}
+	return fmt.Errorf("unknown ShoppingCartItem edge %s", name)
+}
+
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	username            *string
-	email_address       *string
-	password            *string
-	first_name          *string
-	last_name           *string
-	created_at          *time.Time
-	updated_at          *time.Time
-	clearedFields       map[string]struct{}
-	user_address        map[int]struct{}
-	removeduser_address map[int]struct{}
-	cleareduser_address bool
-	user_review         map[int]struct{}
-	removeduser_review  map[int]struct{}
-	cleareduser_review  bool
-	done                bool
-	oldValue            func(context.Context) (*User, error)
-	predicates          []predicate.User
+	op                   Op
+	typ                  string
+	id                   *int
+	username             *string
+	email_address        *string
+	password             *string
+	first_name           *string
+	last_name            *string
+	created_at           *time.Time
+	updated_at           *time.Time
+	clearedFields        map[string]struct{}
+	user_address         map[int]struct{}
+	removeduser_address  map[int]struct{}
+	cleareduser_address  bool
+	user_review          map[int]struct{}
+	removeduser_review   map[int]struct{}
+	cleareduser_review   bool
+	shopping_cart        map[int]struct{}
+	removedshopping_cart map[int]struct{}
+	clearedshopping_cart bool
+	done                 bool
+	oldValue             func(context.Context) (*User, error)
+	predicates           []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -2198,6 +3202,60 @@ func (m *UserMutation) ResetUserReview() {
 	m.removeduser_review = nil
 }
 
+// AddShoppingCartIDs adds the "shopping_cart" edge to the ShoppingCart entity by ids.
+func (m *UserMutation) AddShoppingCartIDs(ids ...int) {
+	if m.shopping_cart == nil {
+		m.shopping_cart = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.shopping_cart[ids[i]] = struct{}{}
+	}
+}
+
+// ClearShoppingCart clears the "shopping_cart" edge to the ShoppingCart entity.
+func (m *UserMutation) ClearShoppingCart() {
+	m.clearedshopping_cart = true
+}
+
+// ShoppingCartCleared reports if the "shopping_cart" edge to the ShoppingCart entity was cleared.
+func (m *UserMutation) ShoppingCartCleared() bool {
+	return m.clearedshopping_cart
+}
+
+// RemoveShoppingCartIDs removes the "shopping_cart" edge to the ShoppingCart entity by IDs.
+func (m *UserMutation) RemoveShoppingCartIDs(ids ...int) {
+	if m.removedshopping_cart == nil {
+		m.removedshopping_cart = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.shopping_cart, ids[i])
+		m.removedshopping_cart[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedShoppingCart returns the removed IDs of the "shopping_cart" edge to the ShoppingCart entity.
+func (m *UserMutation) RemovedShoppingCartIDs() (ids []int) {
+	for id := range m.removedshopping_cart {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ShoppingCartIDs returns the "shopping_cart" edge IDs in the mutation.
+func (m *UserMutation) ShoppingCartIDs() (ids []int) {
+	for id := range m.shopping_cart {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetShoppingCart resets all changes to the "shopping_cart" edge.
+func (m *UserMutation) ResetShoppingCart() {
+	m.shopping_cart = nil
+	m.clearedshopping_cart = false
+	m.removedshopping_cart = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -2433,12 +3491,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.user_address != nil {
 		edges = append(edges, user.EdgeUserAddress)
 	}
 	if m.user_review != nil {
 		edges = append(edges, user.EdgeUserReview)
+	}
+	if m.shopping_cart != nil {
+		edges = append(edges, user.EdgeShoppingCart)
 	}
 	return edges
 }
@@ -2459,18 +3520,27 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeShoppingCart:
+		ids := make([]ent.Value, 0, len(m.shopping_cart))
+		for id := range m.shopping_cart {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removeduser_address != nil {
 		edges = append(edges, user.EdgeUserAddress)
 	}
 	if m.removeduser_review != nil {
 		edges = append(edges, user.EdgeUserReview)
+	}
+	if m.removedshopping_cart != nil {
+		edges = append(edges, user.EdgeShoppingCart)
 	}
 	return edges
 }
@@ -2491,18 +3561,27 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeShoppingCart:
+		ids := make([]ent.Value, 0, len(m.removedshopping_cart))
+		for id := range m.removedshopping_cart {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.cleareduser_address {
 		edges = append(edges, user.EdgeUserAddress)
 	}
 	if m.cleareduser_review {
 		edges = append(edges, user.EdgeUserReview)
+	}
+	if m.clearedshopping_cart {
+		edges = append(edges, user.EdgeShoppingCart)
 	}
 	return edges
 }
@@ -2515,6 +3594,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.cleareduser_address
 	case user.EdgeUserReview:
 		return m.cleareduser_review
+	case user.EdgeShoppingCart:
+		return m.clearedshopping_cart
 	}
 	return false
 }
@@ -2536,6 +3617,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeUserReview:
 		m.ResetUserReview()
+		return nil
+	case user.EdgeShoppingCart:
+		m.ResetShoppingCart()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

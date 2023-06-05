@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/shoppingcart"
+	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
 	"healthyshopper/ent/userreview"
@@ -36,6 +38,16 @@ var productImplementors = []string{"Product", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Product) IsNode() {}
+
+var shoppingcartImplementors = []string{"ShoppingCart", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ShoppingCart) IsNode() {}
+
+var shoppingcartitemImplementors = []string{"ShoppingCartItem", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ShoppingCartItem) IsNode() {}
 
 var userImplementors = []string{"User", "Node"}
 
@@ -126,6 +138,30 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.Product.Query().
 			Where(product.ID(id))
 		query, err := query.CollectFields(ctx, productImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case shoppingcart.Table:
+		query := c.ShoppingCart.Query().
+			Where(shoppingcart.ID(id))
+		query, err := query.CollectFields(ctx, shoppingcartImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case shoppingcartitem.Table:
+		query := c.ShoppingCartItem.Query().
+			Where(shoppingcartitem.ID(id))
+		query, err := query.CollectFields(ctx, shoppingcartitemImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -263,6 +299,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Product.Query().
 			Where(product.IDIn(ids...))
 		query, err := query.CollectFields(ctx, productImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case shoppingcart.Table:
+		query := c.ShoppingCart.Query().
+			Where(shoppingcart.IDIn(ids...))
+		query, err := query.CollectFields(ctx, shoppingcartImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case shoppingcartitem.Table:
+		query := c.ShoppingCartItem.Query().
+			Where(shoppingcartitem.IDIn(ids...))
+		query, err := query.CollectFields(ctx, shoppingcartitemImplementors...)
 		if err != nil {
 			return nil, err
 		}

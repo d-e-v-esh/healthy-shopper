@@ -12,6 +12,12 @@ type Address func(*sql.Selector)
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)
 
+// ShoppingCart is the predicate function for shoppingcart builders.
+type ShoppingCart func(*sql.Selector)
+
+// ShoppingCartItem is the predicate function for shoppingcartitem builders.
+type ShoppingCartItem func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

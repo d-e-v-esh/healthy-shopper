@@ -6,6 +6,7 @@ import (
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/schema"
+	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
 	"healthyshopper/ent/userreview"
@@ -206,6 +207,12 @@ func init() {
 	productDescCreatedAt := productFields[7].Descriptor()
 	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
 	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
+	shoppingcartitemFields := schema.ShoppingCartItem{}.Fields()
+	_ = shoppingcartitemFields
+	// shoppingcartitemDescQuantity is the schema descriptor for quantity field.
+	shoppingcartitemDescQuantity := shoppingcartitemFields[2].Descriptor()
+	// shoppingcartitem.QuantityValidator is a validator for the "quantity" field. It is called by the builders before save.
+	shoppingcartitem.QuantityValidator = shoppingcartitemDescQuantity.Validators[0].(func(int) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.

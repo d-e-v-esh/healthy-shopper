@@ -32,6 +32,30 @@ func (f ProductFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProductMutation", m)
 }
 
+// The ShoppingCartFunc type is an adapter to allow the use of ordinary
+// function as ShoppingCart mutator.
+type ShoppingCartFunc func(context.Context, *ent.ShoppingCartMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ShoppingCartFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ShoppingCartMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ShoppingCartMutation", m)
+}
+
+// The ShoppingCartItemFunc type is an adapter to allow the use of ordinary
+// function as ShoppingCartItem mutator.
+type ShoppingCartItemFunc func(context.Context, *ent.ShoppingCartItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ShoppingCartItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ShoppingCartItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ShoppingCartItemMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

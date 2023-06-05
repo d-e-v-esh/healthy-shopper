@@ -44,15 +44,16 @@ func (c *ProductCreate) SetInput(i CreateProductInput) *ProductCreate {
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
-	Username      string
-	EmailAddress  string
-	Password      string
-	FirstName     string
-	LastName      string
-	CreatedAt     *time.Time
-	UpdatedAt     *time.Time
-	UserAddresIDs []int
-	UserReviewIDs []int
+	Username        string
+	EmailAddress    string
+	Password        string
+	FirstName       string
+	LastName        string
+	CreatedAt       *time.Time
+	UpdatedAt       *time.Time
+	UserAddresIDs   []int
+	UserReviewIDs   []int
+	ShoppingCartIDs []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -73,6 +74,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.UserReviewIDs; len(v) > 0 {
 		m.AddUserReviewIDs(v...)
+	}
+	if v := i.ShoppingCartIDs; len(v) > 0 {
+		m.AddShoppingCartIDs(v...)
 	}
 }
 

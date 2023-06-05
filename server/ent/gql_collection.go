@@ -6,6 +6,8 @@ import (
 	"context"
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/shoppingcart"
+	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
 	"healthyshopper/ent/userreview"
@@ -225,6 +227,182 @@ func newProductPaginateArgs(rv map[string]any) *productPaginateArgs {
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (sc *ShoppingCartQuery) CollectFields(ctx context.Context, satisfies ...string) (*ShoppingCartQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return sc, nil
+	}
+	if err := sc.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return sc, nil
+}
+
+func (sc *ShoppingCartQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(shoppingcart.Columns))
+		selectedFields = []string{shoppingcart.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: sc.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			sc.withUser = query
+			if _, ok := fieldSeen[shoppingcart.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, shoppingcart.FieldUserID)
+				fieldSeen[shoppingcart.FieldUserID] = struct{}{}
+			}
+		case "shoppingCartItem":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShoppingCartItemClient{config: sc.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shoppingcartitemImplementors)...); err != nil {
+				return err
+			}
+			sc.withShoppingCartItem = query
+		case "userID":
+			if _, ok := fieldSeen[shoppingcart.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, shoppingcart.FieldUserID)
+				fieldSeen[shoppingcart.FieldUserID] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		sc.Select(selectedFields...)
+	}
+	return nil
+}
+
+type shoppingcartPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ShoppingCartPaginateOption
+}
+
+func newShoppingCartPaginateArgs(rv map[string]any) *shoppingcartPaginateArgs {
+	args := &shoppingcartPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (sci *ShoppingCartItemQuery) CollectFields(ctx context.Context, satisfies ...string) (*ShoppingCartItemQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return sci, nil
+	}
+	if err := sci.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return sci, nil
+}
+
+func (sci *ShoppingCartItemQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(shoppingcartitem.Columns))
+		selectedFields = []string{shoppingcartitem.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "shoppingCart":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShoppingCartClient{config: sci.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shoppingcartImplementors)...); err != nil {
+				return err
+			}
+			sci.withShoppingCart = query
+			if _, ok := fieldSeen[shoppingcartitem.FieldShoppingCartID]; !ok {
+				selectedFields = append(selectedFields, shoppingcartitem.FieldShoppingCartID)
+				fieldSeen[shoppingcartitem.FieldShoppingCartID] = struct{}{}
+			}
+		case "shoppingCartID":
+			if _, ok := fieldSeen[shoppingcartitem.FieldShoppingCartID]; !ok {
+				selectedFields = append(selectedFields, shoppingcartitem.FieldShoppingCartID)
+				fieldSeen[shoppingcartitem.FieldShoppingCartID] = struct{}{}
+			}
+		case "productItemID":
+			if _, ok := fieldSeen[shoppingcartitem.FieldProductItemID]; !ok {
+				selectedFields = append(selectedFields, shoppingcartitem.FieldProductItemID)
+				fieldSeen[shoppingcartitem.FieldProductItemID] = struct{}{}
+			}
+		case "quantity":
+			if _, ok := fieldSeen[shoppingcartitem.FieldQuantity]; !ok {
+				selectedFields = append(selectedFields, shoppingcartitem.FieldQuantity)
+				fieldSeen[shoppingcartitem.FieldQuantity] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		sci.Select(selectedFields...)
+	}
+	return nil
+}
+
+type shoppingcartitemPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ShoppingCartItemPaginateOption
+}
+
+func newShoppingCartItemPaginateArgs(rv map[string]any) *shoppingcartitemPaginateArgs {
+	args := &shoppingcartitemPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (u *UserQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserQuery, error) {
 	fc := graphql.GetFieldContext(ctx)
 	if fc == nil {
@@ -267,6 +445,18 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				return err
 			}
 			u.WithNamedUserReview(alias, func(wq *UserReviewQuery) {
+				*wq = *query
+			})
+		case "shoppingCart":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShoppingCartClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shoppingcartImplementors)...); err != nil {
+				return err
+			}
+			u.WithNamedShoppingCart(alias, func(wq *ShoppingCartQuery) {
 				*wq = *query
 			})
 		case "username":

@@ -16,6 +16,10 @@ type Tx struct {
 	Address *AddressClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
+	// ShoppingCart is the client for interacting with the ShoppingCart builders.
+	ShoppingCart *ShoppingCartClient
+	// ShoppingCartItem is the client for interacting with the ShoppingCartItem builders.
+	ShoppingCartItem *ShoppingCartItemClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAddress is the client for interacting with the UserAddress builders.
@@ -155,6 +159,8 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
+	tx.ShoppingCart = NewShoppingCartClient(tx.config)
+	tx.ShoppingCartItem = NewShoppingCartItemClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAddress = NewUserAddressClient(tx.config)
 	tx.UserReview = NewUserReviewClient(tx.config)

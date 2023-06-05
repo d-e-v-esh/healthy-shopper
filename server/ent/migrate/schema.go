@@ -44,6 +44,46 @@ var (
 		Columns:    ProductsColumns,
 		PrimaryKey: []*schema.Column{ProductsColumns[0]},
 	}
+	// ShoppingCartsColumns holds the columns for the "shopping_carts" table.
+	ShoppingCartsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// ShoppingCartsTable holds the schema information for the "shopping_carts" table.
+	ShoppingCartsTable = &schema.Table{
+		Name:       "shopping_carts",
+		Columns:    ShoppingCartsColumns,
+		PrimaryKey: []*schema.Column{ShoppingCartsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shopping_carts_users_shopping_cart",
+				Columns:    []*schema.Column{ShoppingCartsColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
+	// ShoppingCartItemsColumns holds the columns for the "shopping_cart_items" table.
+	ShoppingCartItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "product_item_id", Type: field.TypeInt, Unique: true},
+		{Name: "quantity", Type: field.TypeInt},
+		{Name: "shopping_cart_id", Type: field.TypeInt, Unique: true},
+	}
+	// ShoppingCartItemsTable holds the schema information for the "shopping_cart_items" table.
+	ShoppingCartItemsTable = &schema.Table{
+		Name:       "shopping_cart_items",
+		Columns:    ShoppingCartItemsColumns,
+		PrimaryKey: []*schema.Column{ShoppingCartItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shopping_cart_items_shopping_carts_shopping_cart_item",
+				Columns:    []*schema.Column{ShoppingCartItemsColumns[3]},
+				RefColumns: []*schema.Column{ShoppingCartsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -116,6 +156,8 @@ var (
 	Tables = []*schema.Table{
 		AddressesTable,
 		ProductsTable,
+		ShoppingCartsTable,
+		ShoppingCartItemsTable,
 		UsersTable,
 		UserAddressesTable,
 		UserReviewsTable,
@@ -123,6 +165,8 @@ var (
 )
 
 func init() {
+	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
+	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable
 	UserAddressesTable.ForeignKeys[1].RefTable = AddressesTable
 	UserReviewsTable.ForeignKeys[0].RefTable = UsersTable

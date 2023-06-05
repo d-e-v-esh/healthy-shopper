@@ -20,6 +20,30 @@ func (a *Address) UserAddress(ctx context.Context) (result []*UserAddress, err e
 	return result, err
 }
 
+func (sc *ShoppingCart) User(ctx context.Context) (*User, error) {
+	result, err := sc.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = sc.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
+func (sc *ShoppingCart) ShoppingCartItem(ctx context.Context) (*ShoppingCartItem, error) {
+	result, err := sc.Edges.ShoppingCartItemOrErr()
+	if IsNotLoaded(err) {
+		result, err = sc.QueryShoppingCartItem().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (sci *ShoppingCartItem) ShoppingCart(ctx context.Context) (*ShoppingCart, error) {
+	result, err := sci.Edges.ShoppingCartOrErr()
+	if IsNotLoaded(err) {
+		result, err = sci.QueryShoppingCart().Only(ctx)
+	}
+	return result, err
+}
+
 func (u *User) UserAddress(ctx context.Context) (result []*UserAddress, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = u.NamedUserAddress(graphql.GetFieldContext(ctx).Field.Alias)
@@ -40,6 +64,18 @@ func (u *User) UserReview(ctx context.Context) (result []*UserReview, err error)
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryUserReview().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) ShoppingCart(ctx context.Context) (result []*ShoppingCart, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedShoppingCart(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.ShoppingCartOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryShoppingCart().All(ctx)
 	}
 	return result, err
 }

@@ -12,6 +12,8 @@ import (
 
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/shoppingcart"
+	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
 	"healthyshopper/ent/userreview"
@@ -31,6 +33,10 @@ type Client struct {
 	Address *AddressClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
+	// ShoppingCart is the client for interacting with the ShoppingCart builders.
+	ShoppingCart *ShoppingCartClient
+	// ShoppingCartItem is the client for interacting with the ShoppingCartItem builders.
+	ShoppingCartItem *ShoppingCartItemClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAddress is the client for interacting with the UserAddress builders.
@@ -54,6 +60,8 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Address = NewAddressClient(c.config)
 	c.Product = NewProductClient(c.config)
+	c.ShoppingCart = NewShoppingCartClient(c.config)
+	c.ShoppingCartItem = NewShoppingCartItemClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserAddress = NewUserAddressClient(c.config)
 	c.UserReview = NewUserReviewClient(c.config)
@@ -137,13 +145,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		Address:     NewAddressClient(cfg),
-		Product:     NewProductClient(cfg),
-		User:        NewUserClient(cfg),
-		UserAddress: NewUserAddressClient(cfg),
-		UserReview:  NewUserReviewClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		Address:          NewAddressClient(cfg),
+		Product:          NewProductClient(cfg),
+		ShoppingCart:     NewShoppingCartClient(cfg),
+		ShoppingCartItem: NewShoppingCartItemClient(cfg),
+		User:             NewUserClient(cfg),
+		UserAddress:      NewUserAddressClient(cfg),
+		UserReview:       NewUserReviewClient(cfg),
 	}, nil
 }
 
@@ -161,13 +171,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		Address:     NewAddressClient(cfg),
-		Product:     NewProductClient(cfg),
-		User:        NewUserClient(cfg),
-		UserAddress: NewUserAddressClient(cfg),
-		UserReview:  NewUserReviewClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		Address:          NewAddressClient(cfg),
+		Product:          NewProductClient(cfg),
+		ShoppingCart:     NewShoppingCartClient(cfg),
+		ShoppingCartItem: NewShoppingCartItemClient(cfg),
+		User:             NewUserClient(cfg),
+		UserAddress:      NewUserAddressClient(cfg),
+		UserReview:       NewUserReviewClient(cfg),
 	}, nil
 }
 
@@ -196,21 +208,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Address.Use(hooks...)
-	c.Product.Use(hooks...)
-	c.User.Use(hooks...)
-	c.UserAddress.Use(hooks...)
-	c.UserReview.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Address, c.Product, c.ShoppingCart, c.ShoppingCartItem, c.User, c.UserAddress,
+		c.UserReview,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Address.Intercept(interceptors...)
-	c.Product.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
-	c.UserAddress.Intercept(interceptors...)
-	c.UserReview.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Address, c.Product, c.ShoppingCart, c.ShoppingCartItem, c.User, c.UserAddress,
+		c.UserReview,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -220,6 +234,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Address.mutate(ctx, m)
 	case *ProductMutation:
 		return c.Product.mutate(ctx, m)
+	case *ShoppingCartMutation:
+		return c.ShoppingCart.mutate(ctx, m)
+	case *ShoppingCartItemMutation:
+		return c.ShoppingCartItem.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	case *UserAddressMutation:
@@ -483,6 +501,290 @@ func (c *ProductClient) mutate(ctx context.Context, m *ProductMutation) (Value, 
 	}
 }
 
+// ShoppingCartClient is a client for the ShoppingCart schema.
+type ShoppingCartClient struct {
+	config
+}
+
+// NewShoppingCartClient returns a client for the ShoppingCart from the given config.
+func NewShoppingCartClient(c config) *ShoppingCartClient {
+	return &ShoppingCartClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `shoppingcart.Hooks(f(g(h())))`.
+func (c *ShoppingCartClient) Use(hooks ...Hook) {
+	c.hooks.ShoppingCart = append(c.hooks.ShoppingCart, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `shoppingcart.Intercept(f(g(h())))`.
+func (c *ShoppingCartClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ShoppingCart = append(c.inters.ShoppingCart, interceptors...)
+}
+
+// Create returns a builder for creating a ShoppingCart entity.
+func (c *ShoppingCartClient) Create() *ShoppingCartCreate {
+	mutation := newShoppingCartMutation(c.config, OpCreate)
+	return &ShoppingCartCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ShoppingCart entities.
+func (c *ShoppingCartClient) CreateBulk(builders ...*ShoppingCartCreate) *ShoppingCartCreateBulk {
+	return &ShoppingCartCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ShoppingCart.
+func (c *ShoppingCartClient) Update() *ShoppingCartUpdate {
+	mutation := newShoppingCartMutation(c.config, OpUpdate)
+	return &ShoppingCartUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ShoppingCartClient) UpdateOne(sc *ShoppingCart) *ShoppingCartUpdateOne {
+	mutation := newShoppingCartMutation(c.config, OpUpdateOne, withShoppingCart(sc))
+	return &ShoppingCartUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ShoppingCartClient) UpdateOneID(id int) *ShoppingCartUpdateOne {
+	mutation := newShoppingCartMutation(c.config, OpUpdateOne, withShoppingCartID(id))
+	return &ShoppingCartUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ShoppingCart.
+func (c *ShoppingCartClient) Delete() *ShoppingCartDelete {
+	mutation := newShoppingCartMutation(c.config, OpDelete)
+	return &ShoppingCartDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ShoppingCartClient) DeleteOne(sc *ShoppingCart) *ShoppingCartDeleteOne {
+	return c.DeleteOneID(sc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ShoppingCartClient) DeleteOneID(id int) *ShoppingCartDeleteOne {
+	builder := c.Delete().Where(shoppingcart.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ShoppingCartDeleteOne{builder}
+}
+
+// Query returns a query builder for ShoppingCart.
+func (c *ShoppingCartClient) Query() *ShoppingCartQuery {
+	return &ShoppingCartQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeShoppingCart},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ShoppingCart entity by its id.
+func (c *ShoppingCartClient) Get(ctx context.Context, id int) (*ShoppingCart, error) {
+	return c.Query().Where(shoppingcart.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ShoppingCartClient) GetX(ctx context.Context, id int) *ShoppingCart {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a ShoppingCart.
+func (c *ShoppingCartClient) QueryUser(sc *ShoppingCart) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoppingcart.Table, shoppingcart.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shoppingcart.UserTable, shoppingcart.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(sc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShoppingCartItem queries the shopping_cart_item edge of a ShoppingCart.
+func (c *ShoppingCartClient) QueryShoppingCartItem(sc *ShoppingCart) *ShoppingCartItemQuery {
+	query := (&ShoppingCartItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoppingcart.Table, shoppingcart.FieldID, id),
+			sqlgraph.To(shoppingcartitem.Table, shoppingcartitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, shoppingcart.ShoppingCartItemTable, shoppingcart.ShoppingCartItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(sc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ShoppingCartClient) Hooks() []Hook {
+	return c.hooks.ShoppingCart
+}
+
+// Interceptors returns the client interceptors.
+func (c *ShoppingCartClient) Interceptors() []Interceptor {
+	return c.inters.ShoppingCart
+}
+
+func (c *ShoppingCartClient) mutate(ctx context.Context, m *ShoppingCartMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ShoppingCartCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ShoppingCartUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ShoppingCartUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ShoppingCartDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ShoppingCart mutation op: %q", m.Op())
+	}
+}
+
+// ShoppingCartItemClient is a client for the ShoppingCartItem schema.
+type ShoppingCartItemClient struct {
+	config
+}
+
+// NewShoppingCartItemClient returns a client for the ShoppingCartItem from the given config.
+func NewShoppingCartItemClient(c config) *ShoppingCartItemClient {
+	return &ShoppingCartItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `shoppingcartitem.Hooks(f(g(h())))`.
+func (c *ShoppingCartItemClient) Use(hooks ...Hook) {
+	c.hooks.ShoppingCartItem = append(c.hooks.ShoppingCartItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `shoppingcartitem.Intercept(f(g(h())))`.
+func (c *ShoppingCartItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ShoppingCartItem = append(c.inters.ShoppingCartItem, interceptors...)
+}
+
+// Create returns a builder for creating a ShoppingCartItem entity.
+func (c *ShoppingCartItemClient) Create() *ShoppingCartItemCreate {
+	mutation := newShoppingCartItemMutation(c.config, OpCreate)
+	return &ShoppingCartItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ShoppingCartItem entities.
+func (c *ShoppingCartItemClient) CreateBulk(builders ...*ShoppingCartItemCreate) *ShoppingCartItemCreateBulk {
+	return &ShoppingCartItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ShoppingCartItem.
+func (c *ShoppingCartItemClient) Update() *ShoppingCartItemUpdate {
+	mutation := newShoppingCartItemMutation(c.config, OpUpdate)
+	return &ShoppingCartItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ShoppingCartItemClient) UpdateOne(sci *ShoppingCartItem) *ShoppingCartItemUpdateOne {
+	mutation := newShoppingCartItemMutation(c.config, OpUpdateOne, withShoppingCartItem(sci))
+	return &ShoppingCartItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ShoppingCartItemClient) UpdateOneID(id int) *ShoppingCartItemUpdateOne {
+	mutation := newShoppingCartItemMutation(c.config, OpUpdateOne, withShoppingCartItemID(id))
+	return &ShoppingCartItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ShoppingCartItem.
+func (c *ShoppingCartItemClient) Delete() *ShoppingCartItemDelete {
+	mutation := newShoppingCartItemMutation(c.config, OpDelete)
+	return &ShoppingCartItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ShoppingCartItemClient) DeleteOne(sci *ShoppingCartItem) *ShoppingCartItemDeleteOne {
+	return c.DeleteOneID(sci.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ShoppingCartItemClient) DeleteOneID(id int) *ShoppingCartItemDeleteOne {
+	builder := c.Delete().Where(shoppingcartitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ShoppingCartItemDeleteOne{builder}
+}
+
+// Query returns a query builder for ShoppingCartItem.
+func (c *ShoppingCartItemClient) Query() *ShoppingCartItemQuery {
+	return &ShoppingCartItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeShoppingCartItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ShoppingCartItem entity by its id.
+func (c *ShoppingCartItemClient) Get(ctx context.Context, id int) (*ShoppingCartItem, error) {
+	return c.Query().Where(shoppingcartitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ShoppingCartItemClient) GetX(ctx context.Context, id int) *ShoppingCartItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryShoppingCart queries the shopping_cart edge of a ShoppingCartItem.
+func (c *ShoppingCartItemClient) QueryShoppingCart(sci *ShoppingCartItem) *ShoppingCartQuery {
+	query := (&ShoppingCartClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoppingcartitem.Table, shoppingcartitem.FieldID, id),
+			sqlgraph.To(shoppingcart.Table, shoppingcart.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, shoppingcartitem.ShoppingCartTable, shoppingcartitem.ShoppingCartColumn),
+		)
+		fromV = sqlgraph.Neighbors(sci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ShoppingCartItemClient) Hooks() []Hook {
+	return c.hooks.ShoppingCartItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *ShoppingCartItemClient) Interceptors() []Interceptor {
+	return c.inters.ShoppingCartItem
+}
+
+func (c *ShoppingCartItemClient) mutate(ctx context.Context, m *ShoppingCartItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ShoppingCartItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ShoppingCartItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ShoppingCartItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ShoppingCartItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ShoppingCartItem mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -601,6 +903,22 @@ func (c *UserClient) QueryUserReview(u *User) *UserReviewQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(userreview.Table, userreview.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.UserReviewTable, user.UserReviewColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShoppingCart queries the shopping_cart edge of a User.
+func (c *UserClient) QueryShoppingCart(u *User) *ShoppingCartQuery {
+	query := (&ShoppingCartClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(shoppingcart.Table, shoppingcart.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ShoppingCartTable, user.ShoppingCartColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -920,9 +1238,11 @@ func (c *UserReviewClient) mutate(ctx context.Context, m *UserReviewMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, Product, User, UserAddress, UserReview []ent.Hook
+		Address, Product, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		UserReview []ent.Hook
 	}
 	inters struct {
-		Address, Product, User, UserAddress, UserReview []ent.Interceptor
+		Address, Product, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		UserReview []ent.Interceptor
 	}
 )

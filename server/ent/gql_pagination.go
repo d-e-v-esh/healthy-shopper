@@ -7,6 +7,8 @@ import (
 	"errors"
 	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
+	"healthyshopper/ent/shoppingcart"
+	"healthyshopper/ent/shoppingcartitem"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
 	"healthyshopper/ent/userreview"
@@ -592,6 +594,502 @@ func (pr *Product) ToEdge(order *ProductOrder) *ProductEdge {
 	return &ProductEdge{
 		Node:   pr,
 		Cursor: order.Field.toCursor(pr),
+	}
+}
+
+// ShoppingCartEdge is the edge representation of ShoppingCart.
+type ShoppingCartEdge struct {
+	Node   *ShoppingCart `json:"node"`
+	Cursor Cursor        `json:"cursor"`
+}
+
+// ShoppingCartConnection is the connection containing edges to ShoppingCart.
+type ShoppingCartConnection struct {
+	Edges      []*ShoppingCartEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
+	TotalCount int                 `json:"totalCount"`
+}
+
+func (c *ShoppingCartConnection) build(nodes []*ShoppingCart, pager *shoppingcartPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *ShoppingCart
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *ShoppingCart {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *ShoppingCart {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*ShoppingCartEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &ShoppingCartEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// ShoppingCartPaginateOption enables pagination customization.
+type ShoppingCartPaginateOption func(*shoppingcartPager) error
+
+// WithShoppingCartOrder configures pagination ordering.
+func WithShoppingCartOrder(order *ShoppingCartOrder) ShoppingCartPaginateOption {
+	if order == nil {
+		order = DefaultShoppingCartOrder
+	}
+	o := *order
+	return func(pager *shoppingcartPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultShoppingCartOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithShoppingCartFilter configures pagination filter.
+func WithShoppingCartFilter(filter func(*ShoppingCartQuery) (*ShoppingCartQuery, error)) ShoppingCartPaginateOption {
+	return func(pager *shoppingcartPager) error {
+		if filter == nil {
+			return errors.New("ShoppingCartQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type shoppingcartPager struct {
+	reverse bool
+	order   *ShoppingCartOrder
+	filter  func(*ShoppingCartQuery) (*ShoppingCartQuery, error)
+}
+
+func newShoppingCartPager(opts []ShoppingCartPaginateOption, reverse bool) (*shoppingcartPager, error) {
+	pager := &shoppingcartPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultShoppingCartOrder
+	}
+	return pager, nil
+}
+
+func (p *shoppingcartPager) applyFilter(query *ShoppingCartQuery) (*ShoppingCartQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *shoppingcartPager) toCursor(sc *ShoppingCart) Cursor {
+	return p.order.Field.toCursor(sc)
+}
+
+func (p *shoppingcartPager) applyCursors(query *ShoppingCartQuery, after, before *Cursor) (*ShoppingCartQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultShoppingCartOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *shoppingcartPager) applyOrder(query *ShoppingCartQuery) *ShoppingCartQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultShoppingCartOrder.Field {
+		query = query.Order(DefaultShoppingCartOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *shoppingcartPager) orderExpr(query *ShoppingCartQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultShoppingCartOrder.Field {
+			b.Comma().Ident(DefaultShoppingCartOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to ShoppingCart.
+func (sc *ShoppingCartQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...ShoppingCartPaginateOption,
+) (*ShoppingCartConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newShoppingCartPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if sc, err = pager.applyFilter(sc); err != nil {
+		return nil, err
+	}
+	conn := &ShoppingCartConnection{Edges: []*ShoppingCartEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := sc.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if sc, err = pager.applyCursors(sc, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		sc.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := sc.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	sc = pager.applyOrder(sc)
+	nodes, err := sc.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// ShoppingCartOrderField defines the ordering field of ShoppingCart.
+type ShoppingCartOrderField struct {
+	// Value extracts the ordering value from the given ShoppingCart.
+	Value    func(*ShoppingCart) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) shoppingcart.OrderOption
+	toCursor func(*ShoppingCart) Cursor
+}
+
+// ShoppingCartOrder defines the ordering of ShoppingCart.
+type ShoppingCartOrder struct {
+	Direction OrderDirection          `json:"direction"`
+	Field     *ShoppingCartOrderField `json:"field"`
+}
+
+// DefaultShoppingCartOrder is the default ordering of ShoppingCart.
+var DefaultShoppingCartOrder = &ShoppingCartOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &ShoppingCartOrderField{
+		Value: func(sc *ShoppingCart) (ent.Value, error) {
+			return sc.ID, nil
+		},
+		column: shoppingcart.FieldID,
+		toTerm: shoppingcart.ByID,
+		toCursor: func(sc *ShoppingCart) Cursor {
+			return Cursor{ID: sc.ID}
+		},
+	},
+}
+
+// ToEdge converts ShoppingCart into ShoppingCartEdge.
+func (sc *ShoppingCart) ToEdge(order *ShoppingCartOrder) *ShoppingCartEdge {
+	if order == nil {
+		order = DefaultShoppingCartOrder
+	}
+	return &ShoppingCartEdge{
+		Node:   sc,
+		Cursor: order.Field.toCursor(sc),
+	}
+}
+
+// ShoppingCartItemEdge is the edge representation of ShoppingCartItem.
+type ShoppingCartItemEdge struct {
+	Node   *ShoppingCartItem `json:"node"`
+	Cursor Cursor            `json:"cursor"`
+}
+
+// ShoppingCartItemConnection is the connection containing edges to ShoppingCartItem.
+type ShoppingCartItemConnection struct {
+	Edges      []*ShoppingCartItemEdge `json:"edges"`
+	PageInfo   PageInfo                `json:"pageInfo"`
+	TotalCount int                     `json:"totalCount"`
+}
+
+func (c *ShoppingCartItemConnection) build(nodes []*ShoppingCartItem, pager *shoppingcartitemPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *ShoppingCartItem
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *ShoppingCartItem {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *ShoppingCartItem {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*ShoppingCartItemEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &ShoppingCartItemEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// ShoppingCartItemPaginateOption enables pagination customization.
+type ShoppingCartItemPaginateOption func(*shoppingcartitemPager) error
+
+// WithShoppingCartItemOrder configures pagination ordering.
+func WithShoppingCartItemOrder(order *ShoppingCartItemOrder) ShoppingCartItemPaginateOption {
+	if order == nil {
+		order = DefaultShoppingCartItemOrder
+	}
+	o := *order
+	return func(pager *shoppingcartitemPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultShoppingCartItemOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithShoppingCartItemFilter configures pagination filter.
+func WithShoppingCartItemFilter(filter func(*ShoppingCartItemQuery) (*ShoppingCartItemQuery, error)) ShoppingCartItemPaginateOption {
+	return func(pager *shoppingcartitemPager) error {
+		if filter == nil {
+			return errors.New("ShoppingCartItemQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type shoppingcartitemPager struct {
+	reverse bool
+	order   *ShoppingCartItemOrder
+	filter  func(*ShoppingCartItemQuery) (*ShoppingCartItemQuery, error)
+}
+
+func newShoppingCartItemPager(opts []ShoppingCartItemPaginateOption, reverse bool) (*shoppingcartitemPager, error) {
+	pager := &shoppingcartitemPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultShoppingCartItemOrder
+	}
+	return pager, nil
+}
+
+func (p *shoppingcartitemPager) applyFilter(query *ShoppingCartItemQuery) (*ShoppingCartItemQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *shoppingcartitemPager) toCursor(sci *ShoppingCartItem) Cursor {
+	return p.order.Field.toCursor(sci)
+}
+
+func (p *shoppingcartitemPager) applyCursors(query *ShoppingCartItemQuery, after, before *Cursor) (*ShoppingCartItemQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultShoppingCartItemOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *shoppingcartitemPager) applyOrder(query *ShoppingCartItemQuery) *ShoppingCartItemQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultShoppingCartItemOrder.Field {
+		query = query.Order(DefaultShoppingCartItemOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *shoppingcartitemPager) orderExpr(query *ShoppingCartItemQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultShoppingCartItemOrder.Field {
+			b.Comma().Ident(DefaultShoppingCartItemOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to ShoppingCartItem.
+func (sci *ShoppingCartItemQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...ShoppingCartItemPaginateOption,
+) (*ShoppingCartItemConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newShoppingCartItemPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if sci, err = pager.applyFilter(sci); err != nil {
+		return nil, err
+	}
+	conn := &ShoppingCartItemConnection{Edges: []*ShoppingCartItemEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := sci.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if sci, err = pager.applyCursors(sci, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		sci.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := sci.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	sci = pager.applyOrder(sci)
+	nodes, err := sci.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// ShoppingCartItemOrderField defines the ordering field of ShoppingCartItem.
+type ShoppingCartItemOrderField struct {
+	// Value extracts the ordering value from the given ShoppingCartItem.
+	Value    func(*ShoppingCartItem) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) shoppingcartitem.OrderOption
+	toCursor func(*ShoppingCartItem) Cursor
+}
+
+// ShoppingCartItemOrder defines the ordering of ShoppingCartItem.
+type ShoppingCartItemOrder struct {
+	Direction OrderDirection              `json:"direction"`
+	Field     *ShoppingCartItemOrderField `json:"field"`
+}
+
+// DefaultShoppingCartItemOrder is the default ordering of ShoppingCartItem.
+var DefaultShoppingCartItemOrder = &ShoppingCartItemOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &ShoppingCartItemOrderField{
+		Value: func(sci *ShoppingCartItem) (ent.Value, error) {
+			return sci.ID, nil
+		},
+		column: shoppingcartitem.FieldID,
+		toTerm: shoppingcartitem.ByID,
+		toCursor: func(sci *ShoppingCartItem) Cursor {
+			return Cursor{ID: sci.ID}
+		},
+	},
+}
+
+// ToEdge converts ShoppingCartItem into ShoppingCartItemEdge.
+func (sci *ShoppingCartItem) ToEdge(order *ShoppingCartItemOrder) *ShoppingCartItemEdge {
+	if order == nil {
+		order = DefaultShoppingCartItemOrder
+	}
+	return &ShoppingCartItemEdge{
+		Node:   sci,
+		Cursor: order.Field.toCursor(sci),
 	}
 }
 

@@ -49,6 +49,7 @@ input CreateUserInput {
   updatedAt: Time
   userAddresIDs: [ID!]
   userReviewIDs: [ID!]
+  shoppingCartIDs: [ID!]
 }
 """
 Define a Relay Cursor type:
@@ -111,6 +112,19 @@ type Query {
   users: [User!]!
   userAddresses: [UserAddress!]!
 }
+type ShoppingCart implements Node {
+  id: ID!
+  userID: ID!
+  user: User!
+  shoppingCartItem: ShoppingCartItem
+}
+type ShoppingCartItem implements Node {
+  id: ID!
+  shoppingCartID: ID!
+  productItemID: Int!
+  quantity: Int!
+  shoppingCart: ShoppingCart!
+}
 """The builtin Time type"""
 scalar Time
 type User implements Node {
@@ -124,6 +138,7 @@ type User implements Node {
   updatedAt: Time!
   userAddress: [UserAddress!]
   userReview: [UserReview!]
+  shoppingCart: [ShoppingCart!]
 }
 type UserAddress implements Node {
   id: ID!

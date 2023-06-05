@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
 	"healthyshopper/ent/userreview"
@@ -118,6 +119,21 @@ func (uu *UserUpdate) AddUserReview(u ...*UserReview) *UserUpdate {
 	return uu.AddUserReviewIDs(ids...)
 }
 
+// AddShoppingCartIDs adds the "shopping_cart" edge to the ShoppingCart entity by IDs.
+func (uu *UserUpdate) AddShoppingCartIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddShoppingCartIDs(ids...)
+	return uu
+}
+
+// AddShoppingCart adds the "shopping_cart" edges to the ShoppingCart entity.
+func (uu *UserUpdate) AddShoppingCart(s ...*ShoppingCart) *UserUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uu.AddShoppingCartIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -163,6 +179,27 @@ func (uu *UserUpdate) RemoveUserReview(u ...*UserReview) *UserUpdate {
 		ids[i] = u[i].ID
 	}
 	return uu.RemoveUserReviewIDs(ids...)
+}
+
+// ClearShoppingCart clears all "shopping_cart" edges to the ShoppingCart entity.
+func (uu *UserUpdate) ClearShoppingCart() *UserUpdate {
+	uu.mutation.ClearShoppingCart()
+	return uu
+}
+
+// RemoveShoppingCartIDs removes the "shopping_cart" edge to ShoppingCart entities by IDs.
+func (uu *UserUpdate) RemoveShoppingCartIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveShoppingCartIDs(ids...)
+	return uu
+}
+
+// RemoveShoppingCart removes "shopping_cart" edges to ShoppingCart entities.
+func (uu *UserUpdate) RemoveShoppingCart(s ...*ShoppingCart) *UserUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uu.RemoveShoppingCartIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -345,6 +382,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.ShoppingCartCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShoppingCartTable,
+			Columns: []string{user.ShoppingCartColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedShoppingCartIDs(); len(nodes) > 0 && !uu.mutation.ShoppingCartCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShoppingCartTable,
+			Columns: []string{user.ShoppingCartColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ShoppingCartIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShoppingCartTable,
+			Columns: []string{user.ShoppingCartColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -453,6 +535,21 @@ func (uuo *UserUpdateOne) AddUserReview(u ...*UserReview) *UserUpdateOne {
 	return uuo.AddUserReviewIDs(ids...)
 }
 
+// AddShoppingCartIDs adds the "shopping_cart" edge to the ShoppingCart entity by IDs.
+func (uuo *UserUpdateOne) AddShoppingCartIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddShoppingCartIDs(ids...)
+	return uuo
+}
+
+// AddShoppingCart adds the "shopping_cart" edges to the ShoppingCart entity.
+func (uuo *UserUpdateOne) AddShoppingCart(s ...*ShoppingCart) *UserUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uuo.AddShoppingCartIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -498,6 +595,27 @@ func (uuo *UserUpdateOne) RemoveUserReview(u ...*UserReview) *UserUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return uuo.RemoveUserReviewIDs(ids...)
+}
+
+// ClearShoppingCart clears all "shopping_cart" edges to the ShoppingCart entity.
+func (uuo *UserUpdateOne) ClearShoppingCart() *UserUpdateOne {
+	uuo.mutation.ClearShoppingCart()
+	return uuo
+}
+
+// RemoveShoppingCartIDs removes the "shopping_cart" edge to ShoppingCart entities by IDs.
+func (uuo *UserUpdateOne) RemoveShoppingCartIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveShoppingCartIDs(ids...)
+	return uuo
+}
+
+// RemoveShoppingCart removes "shopping_cart" edges to ShoppingCart entities.
+func (uuo *UserUpdateOne) RemoveShoppingCart(s ...*ShoppingCart) *UserUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uuo.RemoveShoppingCartIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -703,6 +821,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(userreview.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.ShoppingCartCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShoppingCartTable,
+			Columns: []string{user.ShoppingCartColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedShoppingCartIDs(); len(nodes) > 0 && !uuo.mutation.ShoppingCartCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShoppingCartTable,
+			Columns: []string{user.ShoppingCartColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ShoppingCartIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShoppingCartTable,
+			Columns: []string{user.ShoppingCartColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

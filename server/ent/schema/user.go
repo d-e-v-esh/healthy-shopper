@@ -32,6 +32,7 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("user_address", UserAddress.Type),
 		edge.To("user_review", UserReview.Type),
+		edge.To("shopping_cart", ShoppingCart.Type),
 	}
 }
 
