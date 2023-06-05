@@ -23,7 +23,7 @@ func (User) Fields() []ent.Field {
 		field.String("first_name").MaxLen(50).NotEmpty(),
 		field.String("last_name").MaxLen(50).NotEmpty(),
 		field.Time("created_at").Default(time.Now),
-		field.Time("updated_at").Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

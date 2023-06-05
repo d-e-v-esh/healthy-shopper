@@ -26,7 +26,7 @@ func (Product) Fields() []ent.Field {
 		field.Int("nutritional_information_id").Unique().Optional(),
 		field.Int("promotion_id").Unique().Optional(),
 		field.Time("created_at").Default(time.Now),
-		field.Time("updated_at").Optional(),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

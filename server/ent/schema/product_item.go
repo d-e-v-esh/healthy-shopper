@@ -24,7 +24,7 @@ func (ProductItem) Fields() []ent.Field {
 		field.String("product_image").MaxLen(500).NotEmpty(),
 		field.Float32("price").Positive(),
 		field.Time("created_at").Default(time.Now),
-		field.Time("updated_at").Optional(),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 
