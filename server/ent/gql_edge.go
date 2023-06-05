@@ -116,6 +116,18 @@ func (pi *ProductItem) Product(ctx context.Context) (*Product, error) {
 	return result, err
 }
 
+func (pi *ProductItem) OrderLine(ctx context.Context) (result []*OrderLine, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pi.NamedOrderLine(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pi.Edges.OrderLineOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pi.QueryOrderLine().All(ctx)
+	}
+	return result, err
+}
+
 func (pr *Promotion) Product(ctx context.Context) (result []*Product, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = pr.NamedProduct(graphql.GetFieldContext(ctx).Field.Alias)

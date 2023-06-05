@@ -21,6 +21,7 @@ type OrderLineQuery struct {
 	order      []orderline.OrderOption
 	inters     []Interceptor
 	predicates []predicate.OrderLine
+	withFKs    bool
 	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*OrderLine) error
 	// intermediate query (i.e. traversal path).
@@ -333,9 +334,13 @@ func (olq *OrderLineQuery) prepareQuery(ctx context.Context) error {
 
 func (olq *OrderLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*OrderLine, error) {
 	var (
-		nodes = []*OrderLine{}
-		_spec = olq.querySpec()
+		nodes   = []*OrderLine{}
+		withFKs = olq.withFKs
+		_spec   = olq.querySpec()
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, orderline.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*OrderLine).scanValues(nil, columns)
 	}

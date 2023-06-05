@@ -1428,6 +1428,22 @@ func (c *ProductItemClient) QueryProduct(pi *ProductItem) *ProductQuery {
 	return query
 }
 
+// QueryOrderLine queries the order_line edge of a ProductItem.
+func (c *ProductItemClient) QueryOrderLine(pi *ProductItem) *OrderLineQuery {
+	query := (&OrderLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(productitem.Table, productitem.FieldID, id),
+			sqlgraph.To(orderline.Table, orderline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, productitem.OrderLineTable, productitem.OrderLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(pi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProductItemClient) Hooks() []Hook {
 	return c.hooks.ProductItem

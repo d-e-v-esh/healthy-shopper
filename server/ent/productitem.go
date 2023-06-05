@@ -42,11 +42,15 @@ type ProductItem struct {
 type ProductItemEdges struct {
 	// Product holds the value of the product edge.
 	Product *Product `json:"product,omitempty"`
+	// OrderLine holds the value of the order_line edge.
+	OrderLine []*OrderLine `json:"order_line,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
+
+	namedOrderLine map[string][]*OrderLine
 }
 
 // ProductOrErr returns the Product value or an error if the edge
@@ -60,6 +64,15 @@ func (e ProductItemEdges) ProductOrErr() (*Product, error) {
 		return e.Product, nil
 	}
 	return nil, &NotLoadedError{edge: "product"}
+}
+
+// OrderLineOrErr returns the OrderLine value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductItemEdges) OrderLineOrErr() ([]*OrderLine, error) {
+	if e.loadedTypes[1] {
+		return e.OrderLine, nil
+	}
+	return nil, &NotLoadedError{edge: "order_line"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -156,6 +169,11 @@ func (pi *ProductItem) QueryProduct() *ProductQuery {
 	return NewProductItemClient(pi.config).QueryProduct(pi)
 }
 
+// QueryOrderLine queries the "order_line" edge of the ProductItem entity.
+func (pi *ProductItem) QueryOrderLine() *OrderLineQuery {
+	return NewProductItemClient(pi.config).QueryOrderLine(pi)
+}
+
 // Update returns a builder for updating this ProductItem.
 // Note that you need to call ProductItem.Unwrap() before calling this method if this ProductItem
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -201,6 +219,30 @@ func (pi *ProductItem) String() string {
 	builder.WriteString(pi.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedOrderLine returns the OrderLine named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (pi *ProductItem) NamedOrderLine(name string) ([]*OrderLine, error) {
+	if pi.Edges.namedOrderLine == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := pi.Edges.namedOrderLine[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (pi *ProductItem) appendNamedOrderLine(name string, edges ...*OrderLine) {
+	if pi.Edges.namedOrderLine == nil {
+		pi.Edges.namedOrderLine = make(map[string][]*OrderLine)
+	}
+	if len(edges) == 0 {
+		pi.Edges.namedOrderLine[name] = []*OrderLine{}
+	} else {
+		pi.Edges.namedOrderLine[name] = append(pi.Edges.namedOrderLine[name], edges...)
+	}
 }
 
 // ProductItems is a parsable slice of ProductItem.

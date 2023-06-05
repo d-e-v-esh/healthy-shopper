@@ -4622,6 +4622,9 @@ type ProductItemMutation struct {
 	clearedFields        map[string]struct{}
 	product              *int
 	clearedproduct       bool
+	order_line           map[int]struct{}
+	removedorder_line    map[int]struct{}
+	clearedorder_line    bool
 	done                 bool
 	oldValue             func(context.Context) (*ProductItem, error)
 	predicates           []predicate.ProductItem
@@ -5056,6 +5059,60 @@ func (m *ProductItemMutation) ResetProduct() {
 	m.clearedproduct = false
 }
 
+// AddOrderLineIDs adds the "order_line" edge to the OrderLine entity by ids.
+func (m *ProductItemMutation) AddOrderLineIDs(ids ...int) {
+	if m.order_line == nil {
+		m.order_line = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.order_line[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOrderLine clears the "order_line" edge to the OrderLine entity.
+func (m *ProductItemMutation) ClearOrderLine() {
+	m.clearedorder_line = true
+}
+
+// OrderLineCleared reports if the "order_line" edge to the OrderLine entity was cleared.
+func (m *ProductItemMutation) OrderLineCleared() bool {
+	return m.clearedorder_line
+}
+
+// RemoveOrderLineIDs removes the "order_line" edge to the OrderLine entity by IDs.
+func (m *ProductItemMutation) RemoveOrderLineIDs(ids ...int) {
+	if m.removedorder_line == nil {
+		m.removedorder_line = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.order_line, ids[i])
+		m.removedorder_line[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOrderLine returns the removed IDs of the "order_line" edge to the OrderLine entity.
+func (m *ProductItemMutation) RemovedOrderLineIDs() (ids []int) {
+	for id := range m.removedorder_line {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OrderLineIDs returns the "order_line" edge IDs in the mutation.
+func (m *ProductItemMutation) OrderLineIDs() (ids []int) {
+	for id := range m.order_line {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOrderLine resets all changes to the "order_line" edge.
+func (m *ProductItemMutation) ResetOrderLine() {
+	m.order_line = nil
+	m.clearedorder_line = false
+	m.removedorder_line = nil
+}
+
 // Where appends a list predicates to the ProductItemMutation builder.
 func (m *ProductItemMutation) Where(ps ...predicate.ProductItem) {
 	m.predicates = append(m.predicates, ps...)
@@ -5327,9 +5384,12 @@ func (m *ProductItemMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProductItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.product != nil {
 		edges = append(edges, productitem.EdgeProduct)
+	}
+	if m.order_line != nil {
+		edges = append(edges, productitem.EdgeOrderLine)
 	}
 	return edges
 }
@@ -5342,27 +5402,47 @@ func (m *ProductItemMutation) AddedIDs(name string) []ent.Value {
 		if id := m.product; id != nil {
 			return []ent.Value{*id}
 		}
+	case productitem.EdgeOrderLine:
+		ids := make([]ent.Value, 0, len(m.order_line))
+		for id := range m.order_line {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProductItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedorder_line != nil {
+		edges = append(edges, productitem.EdgeOrderLine)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ProductItemMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case productitem.EdgeOrderLine:
+		ids := make([]ent.Value, 0, len(m.removedorder_line))
+		for id := range m.removedorder_line {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProductItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedproduct {
 		edges = append(edges, productitem.EdgeProduct)
+	}
+	if m.clearedorder_line {
+		edges = append(edges, productitem.EdgeOrderLine)
 	}
 	return edges
 }
@@ -5373,6 +5453,8 @@ func (m *ProductItemMutation) EdgeCleared(name string) bool {
 	switch name {
 	case productitem.EdgeProduct:
 		return m.clearedproduct
+	case productitem.EdgeOrderLine:
+		return m.clearedorder_line
 	}
 	return false
 }
@@ -5394,6 +5476,9 @@ func (m *ProductItemMutation) ResetEdge(name string) error {
 	switch name {
 	case productitem.EdgeProduct:
 		m.ResetProduct()
+		return nil
+	case productitem.EdgeOrderLine:
+		m.ResetOrderLine()
 		return nil
 	}
 	return fmt.Errorf("unknown ProductItem edge %s", name)

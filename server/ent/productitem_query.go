@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
+	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
@@ -18,13 +20,15 @@ import (
 // ProductItemQuery is the builder for querying ProductItem entities.
 type ProductItemQuery struct {
 	config
-	ctx         *QueryContext
-	order       []productitem.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.ProductItem
-	withProduct *ProductQuery
-	modifiers   []func(*sql.Selector)
-	loadTotal   []func(context.Context, []*ProductItem) error
+	ctx                *QueryContext
+	order              []productitem.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.ProductItem
+	withProduct        *ProductQuery
+	withOrderLine      *OrderLineQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*ProductItem) error
+	withNamedOrderLine map[string]*OrderLineQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +80,28 @@ func (piq *ProductItemQuery) QueryProduct() *ProductQuery {
 			sqlgraph.From(productitem.Table, productitem.FieldID, selector),
 			sqlgraph.To(product.Table, product.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, productitem.ProductTable, productitem.ProductColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(piq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrderLine chains the current query on the "order_line" edge.
+func (piq *ProductItemQuery) QueryOrderLine() *OrderLineQuery {
+	query := (&OrderLineClient{config: piq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := piq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := piq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(productitem.Table, productitem.FieldID, selector),
+			sqlgraph.To(orderline.Table, orderline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, productitem.OrderLineTable, productitem.OrderLineColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(piq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +296,13 @@ func (piq *ProductItemQuery) Clone() *ProductItemQuery {
 		return nil
 	}
 	return &ProductItemQuery{
-		config:      piq.config,
-		ctx:         piq.ctx.Clone(),
-		order:       append([]productitem.OrderOption{}, piq.order...),
-		inters:      append([]Interceptor{}, piq.inters...),
-		predicates:  append([]predicate.ProductItem{}, piq.predicates...),
-		withProduct: piq.withProduct.Clone(),
+		config:        piq.config,
+		ctx:           piq.ctx.Clone(),
+		order:         append([]productitem.OrderOption{}, piq.order...),
+		inters:        append([]Interceptor{}, piq.inters...),
+		predicates:    append([]predicate.ProductItem{}, piq.predicates...),
+		withProduct:   piq.withProduct.Clone(),
+		withOrderLine: piq.withOrderLine.Clone(),
 		// clone intermediate query.
 		sql:  piq.sql.Clone(),
 		path: piq.path,
@@ -290,6 +317,17 @@ func (piq *ProductItemQuery) WithProduct(opts ...func(*ProductQuery)) *ProductIt
 		opt(query)
 	}
 	piq.withProduct = query
+	return piq
+}
+
+// WithOrderLine tells the query-builder to eager-load the nodes that are connected to
+// the "order_line" edge. The optional arguments are used to configure the query builder of the edge.
+func (piq *ProductItemQuery) WithOrderLine(opts ...func(*OrderLineQuery)) *ProductItemQuery {
+	query := (&OrderLineClient{config: piq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	piq.withOrderLine = query
 	return piq
 }
 
@@ -371,8 +409,9 @@ func (piq *ProductItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*ProductItem{}
 		_spec       = piq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			piq.withProduct != nil,
+			piq.withOrderLine != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -399,6 +438,20 @@ func (piq *ProductItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if query := piq.withProduct; query != nil {
 		if err := piq.loadProduct(ctx, query, nodes, nil,
 			func(n *ProductItem, e *Product) { n.Edges.Product = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := piq.withOrderLine; query != nil {
+		if err := piq.loadOrderLine(ctx, query, nodes,
+			func(n *ProductItem) { n.Edges.OrderLine = []*OrderLine{} },
+			func(n *ProductItem, e *OrderLine) { n.Edges.OrderLine = append(n.Edges.OrderLine, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range piq.withNamedOrderLine {
+		if err := piq.loadOrderLine(ctx, query, nodes,
+			func(n *ProductItem) { n.appendNamedOrderLine(name) },
+			func(n *ProductItem, e *OrderLine) { n.appendNamedOrderLine(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -436,6 +489,37 @@ func (piq *ProductItemQuery) loadProduct(ctx context.Context, query *ProductQuer
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (piq *ProductItemQuery) loadOrderLine(ctx context.Context, query *OrderLineQuery, nodes []*ProductItem, init func(*ProductItem), assign func(*ProductItem, *OrderLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ProductItem)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.OrderLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(productitem.OrderLineColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.product_item_order_line
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "product_item_order_line" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "product_item_order_line" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -525,6 +609,20 @@ func (piq *ProductItemQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedOrderLine tells the query-builder to eager-load the nodes that are connected to the "order_line"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (piq *ProductItemQuery) WithNamedOrderLine(name string, opts ...func(*OrderLineQuery)) *ProductItemQuery {
+	query := (&OrderLineClient{config: piq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if piq.withNamedOrderLine == nil {
+		piq.withNamedOrderLine = make(map[string]*OrderLineQuery)
+	}
+	piq.withNamedOrderLine[name] = query
+	return piq
 }
 
 // ProductItemGroupBy is the group-by builder for ProductItem entities.

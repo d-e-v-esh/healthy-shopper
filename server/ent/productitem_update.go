@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
@@ -112,6 +113,21 @@ func (piu *ProductItemUpdate) SetProduct(p *Product) *ProductItemUpdate {
 	return piu.SetProductID(p.ID)
 }
 
+// AddOrderLineIDs adds the "order_line" edge to the OrderLine entity by IDs.
+func (piu *ProductItemUpdate) AddOrderLineIDs(ids ...int) *ProductItemUpdate {
+	piu.mutation.AddOrderLineIDs(ids...)
+	return piu
+}
+
+// AddOrderLine adds the "order_line" edges to the OrderLine entity.
+func (piu *ProductItemUpdate) AddOrderLine(o ...*OrderLine) *ProductItemUpdate {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return piu.AddOrderLineIDs(ids...)
+}
+
 // Mutation returns the ProductItemMutation object of the builder.
 func (piu *ProductItemUpdate) Mutation() *ProductItemMutation {
 	return piu.mutation
@@ -121,6 +137,27 @@ func (piu *ProductItemUpdate) Mutation() *ProductItemMutation {
 func (piu *ProductItemUpdate) ClearProduct() *ProductItemUpdate {
 	piu.mutation.ClearProduct()
 	return piu
+}
+
+// ClearOrderLine clears all "order_line" edges to the OrderLine entity.
+func (piu *ProductItemUpdate) ClearOrderLine() *ProductItemUpdate {
+	piu.mutation.ClearOrderLine()
+	return piu
+}
+
+// RemoveOrderLineIDs removes the "order_line" edge to OrderLine entities by IDs.
+func (piu *ProductItemUpdate) RemoveOrderLineIDs(ids ...int) *ProductItemUpdate {
+	piu.mutation.RemoveOrderLineIDs(ids...)
+	return piu
+}
+
+// RemoveOrderLine removes "order_line" edges to OrderLine entities.
+func (piu *ProductItemUpdate) RemoveOrderLine(o ...*OrderLine) *ProductItemUpdate {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return piu.RemoveOrderLineIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -246,6 +283,51 @@ func (piu *ProductItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if piu.mutation.OrderLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.OrderLineTable,
+			Columns: []string{productitem.OrderLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piu.mutation.RemovedOrderLineIDs(); len(nodes) > 0 && !piu.mutation.OrderLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.OrderLineTable,
+			Columns: []string{productitem.OrderLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piu.mutation.OrderLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.OrderLineTable,
+			Columns: []string{productitem.OrderLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, piu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{productitem.Label}
@@ -349,6 +431,21 @@ func (piuo *ProductItemUpdateOne) SetProduct(p *Product) *ProductItemUpdateOne {
 	return piuo.SetProductID(p.ID)
 }
 
+// AddOrderLineIDs adds the "order_line" edge to the OrderLine entity by IDs.
+func (piuo *ProductItemUpdateOne) AddOrderLineIDs(ids ...int) *ProductItemUpdateOne {
+	piuo.mutation.AddOrderLineIDs(ids...)
+	return piuo
+}
+
+// AddOrderLine adds the "order_line" edges to the OrderLine entity.
+func (piuo *ProductItemUpdateOne) AddOrderLine(o ...*OrderLine) *ProductItemUpdateOne {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return piuo.AddOrderLineIDs(ids...)
+}
+
 // Mutation returns the ProductItemMutation object of the builder.
 func (piuo *ProductItemUpdateOne) Mutation() *ProductItemMutation {
 	return piuo.mutation
@@ -358,6 +455,27 @@ func (piuo *ProductItemUpdateOne) Mutation() *ProductItemMutation {
 func (piuo *ProductItemUpdateOne) ClearProduct() *ProductItemUpdateOne {
 	piuo.mutation.ClearProduct()
 	return piuo
+}
+
+// ClearOrderLine clears all "order_line" edges to the OrderLine entity.
+func (piuo *ProductItemUpdateOne) ClearOrderLine() *ProductItemUpdateOne {
+	piuo.mutation.ClearOrderLine()
+	return piuo
+}
+
+// RemoveOrderLineIDs removes the "order_line" edge to OrderLine entities by IDs.
+func (piuo *ProductItemUpdateOne) RemoveOrderLineIDs(ids ...int) *ProductItemUpdateOne {
+	piuo.mutation.RemoveOrderLineIDs(ids...)
+	return piuo
+}
+
+// RemoveOrderLine removes "order_line" edges to OrderLine entities.
+func (piuo *ProductItemUpdateOne) RemoveOrderLine(o ...*OrderLine) *ProductItemUpdateOne {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return piuo.RemoveOrderLineIDs(ids...)
 }
 
 // Where appends a list predicates to the ProductItemUpdate builder.
@@ -506,6 +624,51 @@ func (piuo *ProductItemUpdateOne) sqlSave(ctx context.Context) (_node *ProductIt
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if piuo.mutation.OrderLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.OrderLineTable,
+			Columns: []string{productitem.OrderLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piuo.mutation.RemovedOrderLineIDs(); len(nodes) > 0 && !piuo.mutation.OrderLineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.OrderLineTable,
+			Columns: []string{productitem.OrderLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piuo.mutation.OrderLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.OrderLineTable,
+			Columns: []string{productitem.OrderLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

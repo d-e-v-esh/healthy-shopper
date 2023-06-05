@@ -433,6 +433,29 @@ func HasProductWith(preds ...predicate.Product) predicate.ProductItem {
 	})
 }
 
+// HasOrderLine applies the HasEdge predicate on the "order_line" edge.
+func HasOrderLine() predicate.ProductItem {
+	return predicate.ProductItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OrderLineTable, OrderLineColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOrderLineWith applies the HasEdge predicate on the "order_line" edge with a given conditions (other predicates).
+func HasOrderLineWith(preds ...predicate.OrderLine) predicate.ProductItem {
+	return predicate.ProductItem(func(s *sql.Selector) {
+		step := newOrderLineStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ProductItem) predicate.ProductItem {
 	return predicate.ProductItem(func(s *sql.Selector) {

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
 	"time"
@@ -82,6 +83,21 @@ func (pic *ProductItemCreate) SetNillableUpdatedAt(t *time.Time) *ProductItemCre
 // SetProduct sets the "product" edge to the Product entity.
 func (pic *ProductItemCreate) SetProduct(p *Product) *ProductItemCreate {
 	return pic.SetProductID(p.ID)
+}
+
+// AddOrderLineIDs adds the "order_line" edge to the OrderLine entity by IDs.
+func (pic *ProductItemCreate) AddOrderLineIDs(ids ...int) *ProductItemCreate {
+	pic.mutation.AddOrderLineIDs(ids...)
+	return pic
+}
+
+// AddOrderLine adds the "order_line" edges to the OrderLine entity.
+func (pic *ProductItemCreate) AddOrderLine(o ...*OrderLine) *ProductItemCreate {
+	ids := make([]int, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return pic.AddOrderLineIDs(ids...)
 }
 
 // Mutation returns the ProductItemMutation object of the builder.
@@ -233,6 +249,22 @@ func (pic *ProductItemCreate) createSpec() (*ProductItem, *sqlgraph.CreateSpec) 
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ProductID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pic.mutation.OrderLineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.OrderLineTable,
+			Columns: []string{productitem.OrderLineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -23,8 +23,9 @@ type OrderLine struct {
 	// Quantity holds the value of the "quantity" field.
 	Quantity int `json:"quantity,omitempty"`
 	// Price holds the value of the "price" field.
-	Price        float64 `json:"price,omitempty"`
-	selectValues sql.SelectValues
+	Price                   float64 `json:"price,omitempty"`
+	product_item_order_line *int
+	selectValues            sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,6 +36,8 @@ func (*OrderLine) scanValues(columns []string) ([]any, error) {
 		case orderline.FieldPrice:
 			values[i] = new(sql.NullFloat64)
 		case orderline.FieldID, orderline.FieldProductItemID, orderline.FieldShopOrderID, orderline.FieldQuantity:
+			values[i] = new(sql.NullInt64)
+		case orderline.ForeignKeys[0]: // product_item_order_line
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -80,6 +83,13 @@ func (ol *OrderLine) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field price", values[i])
 			} else if value.Valid {
 				ol.Price = value.Float64
+			}
+		case orderline.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field product_item_order_line", value)
+			} else if value.Valid {
+				ol.product_item_order_line = new(int)
+				*ol.product_item_order_line = int(value.Int64)
 			}
 		default:
 			ol.selectValues.Set(columns[i], values[i])

@@ -745,6 +745,18 @@ func (pi *ProductItemQuery) collectField(ctx context.Context, opCtx *graphql.Ope
 				selectedFields = append(selectedFields, productitem.FieldProductID)
 				fieldSeen[productitem.FieldProductID] = struct{}{}
 			}
+		case "orderLine":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&OrderLineClient{config: pi.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, orderlineImplementors)...); err != nil {
+				return err
+			}
+			pi.WithNamedOrderLine(alias, func(wq *OrderLineQuery) {
+				*wq = *query
+			})
 		case "productID":
 			if _, ok := fieldSeen[productitem.FieldProductID]; !ok {
 				selectedFields = append(selectedFields, productitem.FieldProductID)

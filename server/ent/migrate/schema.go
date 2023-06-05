@@ -78,12 +78,21 @@ var (
 		{Name: "shop_order_id", Type: field.TypeInt, Unique: true},
 		{Name: "quantity", Type: field.TypeInt},
 		{Name: "price", Type: field.TypeFloat64},
+		{Name: "product_item_order_line", Type: field.TypeInt, Nullable: true},
 	}
 	// OrderLinesTable holds the schema information for the "order_lines" table.
 	OrderLinesTable = &schema.Table{
 		Name:       "order_lines",
 		Columns:    OrderLinesColumns,
 		PrimaryKey: []*schema.Column{OrderLinesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_lines_product_items_order_line",
+				Columns:    []*schema.Column{OrderLinesColumns[5]},
+				RefColumns: []*schema.Column{ProductItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// OrderStatusColumns holds the columns for the "order_status" table.
 	OrderStatusColumns = []*schema.Column{
@@ -379,6 +388,7 @@ var (
 
 func init() {
 	NutritionalInformationsTable.ForeignKeys[0].RefTable = NutritionalInformationTablesTable
+	OrderLinesTable.ForeignKeys[0].RefTable = ProductItemsTable
 	ProductsTable.ForeignKeys[0].RefTable = PromotionsTable
 	ProductsTable.ForeignKeys[1].RefTable = IngredientsTablesTable
 	ProductsTable.ForeignKeys[2].RefTable = NutritionalInformationsTable

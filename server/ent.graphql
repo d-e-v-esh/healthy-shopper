@@ -39,6 +39,7 @@ input CreateProductItemInput {
   createdAt: Time
   updatedAt: Time
   productID: ID!
+  orderLineIDs: [ID!]
 }
 """
 CreateUserAddressInput is used for create UserAddress object.
@@ -159,6 +160,7 @@ type ProductItem implements Node {
   createdAt: Time!
   updatedAt: Time
   product: Product!
+  orderLine: [OrderLine!]
 }
 type Promotion implements Node {
   id: ID!

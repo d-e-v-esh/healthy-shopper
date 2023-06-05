@@ -63,6 +63,7 @@ type CreateProductItemInput struct {
 	CreatedAt        *time.Time
 	UpdatedAt        *time.Time
 	ProductID        int
+	OrderLineIDs     []int
 }
 
 // Mutate applies the CreateProductItemInput on the ProductItemMutation builder.
@@ -78,6 +79,9 @@ func (i *CreateProductItemInput) Mutate(m *ProductItemMutation) {
 		m.SetUpdatedAt(*v)
 	}
 	m.SetProductID(i.ProductID)
+	if v := i.OrderLineIDs; len(v) > 0 {
+		m.AddOrderLineIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateProductItemInput on the ProductItemCreate builder.
