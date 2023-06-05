@@ -98,6 +98,7 @@ type CreateUserInput struct {
 	UserAddresIDs   []int
 	UserReviewIDs   []int
 	ShoppingCartIDs []int
+	ShopOrderIDs    []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -121,6 +122,9 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.ShoppingCartIDs; len(v) > 0 {
 		m.AddShoppingCartIDs(v...)
+	}
+	if v := i.ShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
 	}
 }
 

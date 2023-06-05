@@ -255,26 +255,6 @@ func UserIDNotIn(vs ...int) predicate.ShopOrder {
 	return predicate.ShopOrder(sql.FieldNotIn(FieldUserID, vs...))
 }
 
-// UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldGT(FieldUserID, v))
-}
-
-// UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldGTE(FieldUserID, v))
-}
-
-// UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldLT(FieldUserID, v))
-}
-
-// UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldLTE(FieldUserID, v))
-}
-
 // ShippingAddressIDEQ applies the EQ predicate on the "shipping_address_id" field.
 func ShippingAddressIDEQ(v int) predicate.ShopOrder {
 	return predicate.ShopOrder(sql.FieldEQ(FieldShippingAddressID, v))
@@ -373,6 +353,29 @@ func OrderStatusIDLT(v int) predicate.ShopOrder {
 // OrderStatusIDLTE applies the LTE predicate on the "order_status_id" field.
 func OrderStatusIDLTE(v int) predicate.ShopOrder {
 	return predicate.ShopOrder(sql.FieldLTE(FieldOrderStatusID, v))
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.ShopOrder {
+	return predicate.ShopOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.ShopOrder {
+	return predicate.ShopOrder(func(s *sql.Selector) {
+		step := newUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasShippingAddress applies the HasEdge predicate on the "shipping_address" edge.

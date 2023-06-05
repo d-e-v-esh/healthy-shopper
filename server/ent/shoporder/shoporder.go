@@ -28,10 +28,19 @@ const (
 	FieldShippingMethodID = "shipping_method_id"
 	// FieldOrderStatusID holds the string denoting the order_status_id field in the database.
 	FieldOrderStatusID = "order_status_id"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
 	// EdgeShippingAddress holds the string denoting the shipping_address edge name in mutations.
 	EdgeShippingAddress = "shipping_address"
 	// Table holds the table name of the shoporder in the database.
 	Table = "shop_orders"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "shop_orders"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_id"
 	// ShippingAddressTable is the table that holds the shipping_address relation/edge.
 	ShippingAddressTable = "shop_orders"
 	// ShippingAddressInverseTable is the table name for the ShippingAddress entity.
@@ -115,11 +124,25 @@ func ByOrderStatusID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderStatusID, opts...).ToFunc()
 }
 
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByShippingAddressField orders the results by shipping_address field.
 func ByShippingAddressField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newShippingAddressStep(), sql.OrderByField(field, opts...))
 	}
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
 }
 func newShippingAddressStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

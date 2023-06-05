@@ -1002,6 +1002,20 @@ func (so *ShopOrderQuery) collectField(ctx context.Context, opCtx *graphql.Opera
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: so.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			so.withUser = query
+			if _, ok := fieldSeen[shoporder.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, shoporder.FieldUserID)
+				fieldSeen[shoporder.FieldUserID] = struct{}{}
+			}
 		case "shippingAddress":
 			var (
 				alias = field.Alias
@@ -1320,6 +1334,18 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 				return err
 			}
 			u.WithNamedShoppingCart(alias, func(wq *ShoppingCartQuery) {
+				*wq = *query
+			})
+		case "shopOrder":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShopOrderClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shoporderImplementors)...); err != nil {
+				return err
+			}
+			u.WithNamedShopOrder(alias, func(wq *ShopOrderQuery) {
 				*wq = *query
 			})
 		case "username":

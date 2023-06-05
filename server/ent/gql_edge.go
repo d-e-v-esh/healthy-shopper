@@ -108,6 +108,14 @@ func (sa *ShippingAddress) ShopOrder(ctx context.Context) (result []*ShopOrder, 
 	return result, err
 }
 
+func (so *ShopOrder) User(ctx context.Context) (*User, error) {
+	result, err := so.Edges.UserOrErr()
+	if IsNotLoaded(err) {
+		result, err = so.QueryUser().Only(ctx)
+	}
+	return result, err
+}
+
 func (so *ShopOrder) ShippingAddress(ctx context.Context) (*ShippingAddress, error) {
 	result, err := so.Edges.ShippingAddressOrErr()
 	if IsNotLoaded(err) {
@@ -172,6 +180,18 @@ func (u *User) ShoppingCart(ctx context.Context) (result []*ShoppingCart, err er
 	}
 	if IsNotLoaded(err) {
 		result, err = u.QueryShoppingCart().All(ctx)
+	}
+	return result, err
+}
+
+func (u *User) ShopOrder(ctx context.Context) (result []*ShopOrder, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = u.NamedShopOrder(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = u.Edges.ShopOrderOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = u.QueryShopOrder().All(ctx)
 	}
 	return result, err
 }

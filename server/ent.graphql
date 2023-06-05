@@ -64,6 +64,7 @@ input CreateUserInput {
   userAddresIDs: [ID!]
   userReviewIDs: [ID!]
   shoppingCartIDs: [ID!]
+  shopOrderIDs: [ID!]
 }
 """
 Define a Relay Cursor type:
@@ -197,10 +198,11 @@ type ShopOrder implements Node {
   orderDateAndTime: Time!
   paymentMethod: String!
   totalPrice: Float!
-  userID: Int!
+  userID: ID!
   shippingAddressID: ID!
   shippingMethodID: Int!
   orderStatusID: Int!
+  user: User!
   shippingAddress: ShippingAddress!
 }
 type ShoppingCart implements Node {
@@ -230,6 +232,7 @@ type User implements Node {
   userAddress: [UserAddress!]
   userReview: [UserReview!]
   shoppingCart: [ShoppingCart!]
+  shopOrder: [ShopOrder!]
 }
 type UserAddress implements Node {
   id: ID!

@@ -9,6 +9,7 @@ import (
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/shippingaddress"
 	"healthyshopper/ent/shoporder"
+	"healthyshopper/ent/user"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -64,14 +65,7 @@ func (sou *ShopOrderUpdate) AddTotalPrice(f float64) *ShopOrderUpdate {
 
 // SetUserID sets the "user_id" field.
 func (sou *ShopOrderUpdate) SetUserID(i int) *ShopOrderUpdate {
-	sou.mutation.ResetUserID()
 	sou.mutation.SetUserID(i)
-	return sou
-}
-
-// AddUserID adds i to the "user_id" field.
-func (sou *ShopOrderUpdate) AddUserID(i int) *ShopOrderUpdate {
-	sou.mutation.AddUserID(i)
 	return sou
 }
 
@@ -107,6 +101,11 @@ func (sou *ShopOrderUpdate) AddOrderStatusID(i int) *ShopOrderUpdate {
 	return sou
 }
 
+// SetUser sets the "user" edge to the User entity.
+func (sou *ShopOrderUpdate) SetUser(u *User) *ShopOrderUpdate {
+	return sou.SetUserID(u.ID)
+}
+
 // SetShippingAddress sets the "shipping_address" edge to the ShippingAddress entity.
 func (sou *ShopOrderUpdate) SetShippingAddress(s *ShippingAddress) *ShopOrderUpdate {
 	return sou.SetShippingAddressID(s.ID)
@@ -115,6 +114,12 @@ func (sou *ShopOrderUpdate) SetShippingAddress(s *ShippingAddress) *ShopOrderUpd
 // Mutation returns the ShopOrderMutation object of the builder.
 func (sou *ShopOrderUpdate) Mutation() *ShopOrderMutation {
 	return sou.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (sou *ShopOrderUpdate) ClearUser() *ShopOrderUpdate {
+	sou.mutation.ClearUser()
+	return sou
 }
 
 // ClearShippingAddress clears the "shipping_address" edge to the ShippingAddress entity.
@@ -162,6 +167,9 @@ func (sou *ShopOrderUpdate) check() error {
 			return &ValidationError{Name: "total_price", err: fmt.Errorf(`ent: validator failed for field "ShopOrder.total_price": %w`, err)}
 		}
 	}
+	if _, ok := sou.mutation.UserID(); sou.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ShopOrder.user"`)
+	}
 	if _, ok := sou.mutation.ShippingAddressID(); sou.mutation.ShippingAddressCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShopOrder.shipping_address"`)
 	}
@@ -192,12 +200,6 @@ func (sou *ShopOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := sou.mutation.AddedTotalPrice(); ok {
 		_spec.AddField(shoporder.FieldTotalPrice, field.TypeFloat64, value)
 	}
-	if value, ok := sou.mutation.UserID(); ok {
-		_spec.SetField(shoporder.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := sou.mutation.AddedUserID(); ok {
-		_spec.AddField(shoporder.FieldUserID, field.TypeInt, value)
-	}
 	if value, ok := sou.mutation.ShippingMethodID(); ok {
 		_spec.SetField(shoporder.FieldShippingMethodID, field.TypeInt, value)
 	}
@@ -209,6 +211,35 @@ func (sou *ShopOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := sou.mutation.AddedOrderStatusID(); ok {
 		_spec.AddField(shoporder.FieldOrderStatusID, field.TypeInt, value)
+	}
+	if sou.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.UserTable,
+			Columns: []string{shoporder.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := sou.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.UserTable,
+			Columns: []string{shoporder.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if sou.mutation.ShippingAddressCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -294,14 +325,7 @@ func (souo *ShopOrderUpdateOne) AddTotalPrice(f float64) *ShopOrderUpdateOne {
 
 // SetUserID sets the "user_id" field.
 func (souo *ShopOrderUpdateOne) SetUserID(i int) *ShopOrderUpdateOne {
-	souo.mutation.ResetUserID()
 	souo.mutation.SetUserID(i)
-	return souo
-}
-
-// AddUserID adds i to the "user_id" field.
-func (souo *ShopOrderUpdateOne) AddUserID(i int) *ShopOrderUpdateOne {
-	souo.mutation.AddUserID(i)
 	return souo
 }
 
@@ -337,6 +361,11 @@ func (souo *ShopOrderUpdateOne) AddOrderStatusID(i int) *ShopOrderUpdateOne {
 	return souo
 }
 
+// SetUser sets the "user" edge to the User entity.
+func (souo *ShopOrderUpdateOne) SetUser(u *User) *ShopOrderUpdateOne {
+	return souo.SetUserID(u.ID)
+}
+
 // SetShippingAddress sets the "shipping_address" edge to the ShippingAddress entity.
 func (souo *ShopOrderUpdateOne) SetShippingAddress(s *ShippingAddress) *ShopOrderUpdateOne {
 	return souo.SetShippingAddressID(s.ID)
@@ -345,6 +374,12 @@ func (souo *ShopOrderUpdateOne) SetShippingAddress(s *ShippingAddress) *ShopOrde
 // Mutation returns the ShopOrderMutation object of the builder.
 func (souo *ShopOrderUpdateOne) Mutation() *ShopOrderMutation {
 	return souo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (souo *ShopOrderUpdateOne) ClearUser() *ShopOrderUpdateOne {
+	souo.mutation.ClearUser()
+	return souo
 }
 
 // ClearShippingAddress clears the "shipping_address" edge to the ShippingAddress entity.
@@ -405,6 +440,9 @@ func (souo *ShopOrderUpdateOne) check() error {
 			return &ValidationError{Name: "total_price", err: fmt.Errorf(`ent: validator failed for field "ShopOrder.total_price": %w`, err)}
 		}
 	}
+	if _, ok := souo.mutation.UserID(); souo.mutation.UserCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ShopOrder.user"`)
+	}
 	if _, ok := souo.mutation.ShippingAddressID(); souo.mutation.ShippingAddressCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShopOrder.shipping_address"`)
 	}
@@ -452,12 +490,6 @@ func (souo *ShopOrderUpdateOne) sqlSave(ctx context.Context) (_node *ShopOrder, 
 	if value, ok := souo.mutation.AddedTotalPrice(); ok {
 		_spec.AddField(shoporder.FieldTotalPrice, field.TypeFloat64, value)
 	}
-	if value, ok := souo.mutation.UserID(); ok {
-		_spec.SetField(shoporder.FieldUserID, field.TypeInt, value)
-	}
-	if value, ok := souo.mutation.AddedUserID(); ok {
-		_spec.AddField(shoporder.FieldUserID, field.TypeInt, value)
-	}
 	if value, ok := souo.mutation.ShippingMethodID(); ok {
 		_spec.SetField(shoporder.FieldShippingMethodID, field.TypeInt, value)
 	}
@@ -469,6 +501,35 @@ func (souo *ShopOrderUpdateOne) sqlSave(ctx context.Context) (_node *ShopOrder, 
 	}
 	if value, ok := souo.mutation.AddedOrderStatusID(); ok {
 		_spec.AddField(shoporder.FieldOrderStatusID, field.TypeInt, value)
+	}
+	if souo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.UserTable,
+			Columns: []string{shoporder.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := souo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.UserTable,
+			Columns: []string{shoporder.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if souo.mutation.ShippingAddressCleared() {
 		edge := &sqlgraph.EdgeSpec{

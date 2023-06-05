@@ -45,15 +45,18 @@ type UserEdges struct {
 	UserReview []*UserReview `json:"user_review,omitempty"`
 	// ShoppingCart holds the value of the shopping_cart edge.
 	ShoppingCart []*ShoppingCart `json:"shopping_cart,omitempty"`
+	// ShopOrder holds the value of the shop_order edge.
+	ShopOrder []*ShopOrder `json:"shop_order,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 
 	namedUserAddress  map[string][]*UserAddress
 	namedUserReview   map[string][]*UserReview
 	namedShoppingCart map[string][]*ShoppingCart
+	namedShopOrder    map[string][]*ShopOrder
 }
 
 // UserAddressOrErr returns the UserAddress value or an error if the edge
@@ -81,6 +84,15 @@ func (e UserEdges) ShoppingCartOrErr() ([]*ShoppingCart, error) {
 		return e.ShoppingCart, nil
 	}
 	return nil, &NotLoadedError{edge: "shopping_cart"}
+}
+
+// ShopOrderOrErr returns the ShopOrder value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ShopOrderOrErr() ([]*ShopOrder, error) {
+	if e.loadedTypes[3] {
+		return e.ShopOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "shop_order"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -183,6 +195,11 @@ func (u *User) QueryUserReview() *UserReviewQuery {
 // QueryShoppingCart queries the "shopping_cart" edge of the User entity.
 func (u *User) QueryShoppingCart() *ShoppingCartQuery {
 	return NewUserClient(u.config).QueryShoppingCart(u)
+}
+
+// QueryShopOrder queries the "shop_order" edge of the User entity.
+func (u *User) QueryShopOrder() *ShopOrderQuery {
+	return NewUserClient(u.config).QueryShopOrder(u)
 }
 
 // Update returns a builder for updating this User.
@@ -301,6 +318,30 @@ func (u *User) appendNamedShoppingCart(name string, edges ...*ShoppingCart) {
 		u.Edges.namedShoppingCart[name] = []*ShoppingCart{}
 	} else {
 		u.Edges.namedShoppingCart[name] = append(u.Edges.namedShoppingCart[name], edges...)
+	}
+}
+
+// NamedShopOrder returns the ShopOrder named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedShopOrder(name string) ([]*ShopOrder, error) {
+	if u.Edges.namedShopOrder == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedShopOrder[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedShopOrder(name string, edges ...*ShopOrder) {
+	if u.Edges.namedShopOrder == nil {
+		u.Edges.namedShopOrder = make(map[string][]*ShopOrder)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedShopOrder[name] = []*ShopOrder{}
+	} else {
+		u.Edges.namedShopOrder[name] = append(u.Edges.namedShopOrder[name], edges...)
 	}
 }
 

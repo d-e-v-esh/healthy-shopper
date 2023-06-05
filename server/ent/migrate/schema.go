@@ -192,10 +192,10 @@ var (
 		{Name: "order_date_and_time", Type: field.TypeTime},
 		{Name: "payment_method", Type: field.TypeString, Size: 20},
 		{Name: "total_price", Type: field.TypeFloat64},
-		{Name: "user_id", Type: field.TypeInt, Unique: true},
 		{Name: "shipping_method_id", Type: field.TypeInt, Unique: true},
 		{Name: "order_status_id", Type: field.TypeInt, Unique: true},
 		{Name: "shipping_address_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
 	}
 	// ShopOrdersTable holds the schema information for the "shop_orders" table.
 	ShopOrdersTable = &schema.Table{
@@ -205,8 +205,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "shop_orders_shipping_addresses_shipping_address",
-				Columns:    []*schema.Column{ShopOrdersColumns[7]},
+				Columns:    []*schema.Column{ShopOrdersColumns[6]},
 				RefColumns: []*schema.Column{ShippingAddressesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "shop_orders_users_shop_order",
+				Columns:    []*schema.Column{ShopOrdersColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -346,6 +352,7 @@ func init() {
 	ProductsTable.ForeignKeys[1].RefTable = NutritionalInformationsTable
 	ProductItemsTable.ForeignKeys[0].RefTable = ProductsTable
 	ShopOrdersTable.ForeignKeys[0].RefTable = ShippingAddressesTable
+	ShopOrdersTable.ForeignKeys[1].RefTable = UsersTable
 	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
 	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable

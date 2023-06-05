@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
@@ -28,11 +29,13 @@ type UserQuery struct {
 	withUserAddress       *UserAddressQuery
 	withUserReview        *UserReviewQuery
 	withShoppingCart      *ShoppingCartQuery
+	withShopOrder         *ShopOrderQuery
 	modifiers             []func(*sql.Selector)
 	loadTotal             []func(context.Context, []*User) error
 	withNamedUserAddress  map[string]*UserAddressQuery
 	withNamedUserReview   map[string]*UserReviewQuery
 	withNamedShoppingCart map[string]*ShoppingCartQuery
+	withNamedShopOrder    map[string]*ShopOrderQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -128,6 +131,28 @@ func (uq *UserQuery) QueryShoppingCart() *ShoppingCartQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(shoppingcart.Table, shoppingcart.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ShoppingCartTable, user.ShoppingCartColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryShopOrder chains the current query on the "shop_order" edge.
+func (uq *UserQuery) QueryShopOrder() *ShopOrderQuery {
+	query := (&ShopOrderClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(shoporder.Table, shoporder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ShopOrderTable, user.ShopOrderColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -330,6 +355,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withUserAddress:  uq.withUserAddress.Clone(),
 		withUserReview:   uq.withUserReview.Clone(),
 		withShoppingCart: uq.withShoppingCart.Clone(),
+		withShopOrder:    uq.withShopOrder.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -366,6 +392,17 @@ func (uq *UserQuery) WithShoppingCart(opts ...func(*ShoppingCartQuery)) *UserQue
 		opt(query)
 	}
 	uq.withShoppingCart = query
+	return uq
+}
+
+// WithShopOrder tells the query-builder to eager-load the nodes that are connected to
+// the "shop_order" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithShopOrder(opts ...func(*ShopOrderQuery)) *UserQuery {
+	query := (&ShopOrderClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withShopOrder = query
 	return uq
 }
 
@@ -447,10 +484,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			uq.withUserAddress != nil,
 			uq.withUserReview != nil,
 			uq.withShoppingCart != nil,
+			uq.withShopOrder != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -495,6 +533,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withShopOrder; query != nil {
+		if err := uq.loadShopOrder(ctx, query, nodes,
+			func(n *User) { n.Edges.ShopOrder = []*ShopOrder{} },
+			func(n *User, e *ShopOrder) { n.Edges.ShopOrder = append(n.Edges.ShopOrder, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range uq.withNamedUserAddress {
 		if err := uq.loadUserAddress(ctx, query, nodes,
 			func(n *User) { n.appendNamedUserAddress(name) },
@@ -513,6 +558,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadShoppingCart(ctx, query, nodes,
 			func(n *User) { n.appendNamedShoppingCart(name) },
 			func(n *User, e *ShoppingCart) { n.appendNamedShoppingCart(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedShopOrder {
+		if err := uq.loadShopOrder(ctx, query, nodes,
+			func(n *User) { n.appendNamedShopOrder(name) },
+			func(n *User, e *ShopOrder) { n.appendNamedShopOrder(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -599,6 +651,36 @@ func (uq *UserQuery) loadShoppingCart(ctx context.Context, query *ShoppingCartQu
 	}
 	query.Where(predicate.ShoppingCart(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.ShoppingCartColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadShopOrder(ctx context.Context, query *ShopOrderQuery, nodes []*User, init func(*User), assign func(*User, *ShopOrder)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(shoporder.FieldUserID)
+	}
+	query.Where(predicate.ShopOrder(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ShopOrderColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -738,6 +820,20 @@ func (uq *UserQuery) WithNamedShoppingCart(name string, opts ...func(*ShoppingCa
 		uq.withNamedShoppingCart = make(map[string]*ShoppingCartQuery)
 	}
 	uq.withNamedShoppingCart[name] = query
+	return uq
+}
+
+// WithNamedShopOrder tells the query-builder to eager-load the nodes that are connected to the "shop_order"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedShopOrder(name string, opts ...func(*ShopOrderQuery)) *UserQuery {
+	query := (&ShopOrderClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedShopOrder == nil {
+		uq.withNamedShopOrder = make(map[string]*ShopOrderQuery)
+	}
+	uq.withNamedShopOrder[name] = query
 	return uq
 }
 

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
@@ -124,6 +125,21 @@ func (uc *UserCreate) AddShoppingCart(s ...*ShoppingCart) *UserCreate {
 		ids[i] = s[i].ID
 	}
 	return uc.AddShoppingCartIDs(ids...)
+}
+
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (uc *UserCreate) AddShopOrderIDs(ids ...int) *UserCreate {
+	uc.mutation.AddShopOrderIDs(ids...)
+	return uc
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (uc *UserCreate) AddShopOrder(s ...*ShopOrder) *UserCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uc.AddShopOrderIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -314,6 +330,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShopOrderTable,
+			Columns: []string{user.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

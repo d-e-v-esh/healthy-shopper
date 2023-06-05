@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/user"
 	"healthyshopper/ent/useraddress"
@@ -134,6 +135,21 @@ func (uu *UserUpdate) AddShoppingCart(s ...*ShoppingCart) *UserUpdate {
 	return uu.AddShoppingCartIDs(ids...)
 }
 
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (uu *UserUpdate) AddShopOrderIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddShopOrderIDs(ids...)
+	return uu
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (uu *UserUpdate) AddShopOrder(s ...*ShopOrder) *UserUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uu.AddShopOrderIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -200,6 +216,27 @@ func (uu *UserUpdate) RemoveShoppingCart(s ...*ShoppingCart) *UserUpdate {
 		ids[i] = s[i].ID
 	}
 	return uu.RemoveShoppingCartIDs(ids...)
+}
+
+// ClearShopOrder clears all "shop_order" edges to the ShopOrder entity.
+func (uu *UserUpdate) ClearShopOrder() *UserUpdate {
+	uu.mutation.ClearShopOrder()
+	return uu
+}
+
+// RemoveShopOrderIDs removes the "shop_order" edge to ShopOrder entities by IDs.
+func (uu *UserUpdate) RemoveShopOrderIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveShopOrderIDs(ids...)
+	return uu
+}
+
+// RemoveShopOrder removes "shop_order" edges to ShopOrder entities.
+func (uu *UserUpdate) RemoveShopOrder(s ...*ShopOrder) *UserUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uu.RemoveShopOrderIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -427,6 +464,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShopOrderTable,
+			Columns: []string{user.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedShopOrderIDs(); len(nodes) > 0 && !uu.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShopOrderTable,
+			Columns: []string{user.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShopOrderTable,
+			Columns: []string{user.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -550,6 +632,21 @@ func (uuo *UserUpdateOne) AddShoppingCart(s ...*ShoppingCart) *UserUpdateOne {
 	return uuo.AddShoppingCartIDs(ids...)
 }
 
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (uuo *UserUpdateOne) AddShopOrderIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddShopOrderIDs(ids...)
+	return uuo
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (uuo *UserUpdateOne) AddShopOrder(s ...*ShopOrder) *UserUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uuo.AddShopOrderIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -616,6 +713,27 @@ func (uuo *UserUpdateOne) RemoveShoppingCart(s ...*ShoppingCart) *UserUpdateOne 
 		ids[i] = s[i].ID
 	}
 	return uuo.RemoveShoppingCartIDs(ids...)
+}
+
+// ClearShopOrder clears all "shop_order" edges to the ShopOrder entity.
+func (uuo *UserUpdateOne) ClearShopOrder() *UserUpdateOne {
+	uuo.mutation.ClearShopOrder()
+	return uuo
+}
+
+// RemoveShopOrderIDs removes the "shop_order" edge to ShopOrder entities by IDs.
+func (uuo *UserUpdateOne) RemoveShopOrderIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveShopOrderIDs(ids...)
+	return uuo
+}
+
+// RemoveShopOrder removes "shop_order" edges to ShopOrder entities.
+func (uuo *UserUpdateOne) RemoveShopOrder(s ...*ShopOrder) *UserUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uuo.RemoveShopOrderIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -866,6 +984,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShopOrderTable,
+			Columns: []string{user.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedShopOrderIDs(); len(nodes) > 0 && !uuo.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShopOrderTable,
+			Columns: []string{user.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ShopOrderTable,
+			Columns: []string{user.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

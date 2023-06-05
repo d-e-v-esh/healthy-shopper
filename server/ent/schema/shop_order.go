@@ -29,6 +29,9 @@ func (ShopOrder) Fields() []ent.Field {
 // Edges of the ShopOrder.
 func (ShopOrder) Edges() []ent.Edge {
 	return []ent.Edge{
+
+		edge.From("user", User.Type).Ref("shop_order").Field("user_id").Unique().Required(),
+
 		edge.To("shipping_address", ShippingAddress.Type).Field("shipping_address_id").Unique().Required(),
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/shippingaddress"
 	"healthyshopper/ent/shoporder"
+	"healthyshopper/ent/user"
 	"strings"
 	"time"
 
@@ -40,19 +41,34 @@ type ShopOrder struct {
 
 // ShopOrderEdges holds the relations/edges for other nodes in the graph.
 type ShopOrderEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
 	// ShippingAddress holds the value of the shipping_address edge.
 	ShippingAddress *ShippingAddress `json:"shipping_address,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ShopOrderEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // ShippingAddressOrErr returns the ShippingAddress value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ShopOrderEdges) ShippingAddressOrErr() (*ShippingAddress, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.ShippingAddress == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: shippingaddress.Label}
@@ -149,6 +165,11 @@ func (so *ShopOrder) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (so *ShopOrder) Value(name string) (ent.Value, error) {
 	return so.selectValues.Get(name)
+}
+
+// QueryUser queries the "user" edge of the ShopOrder entity.
+func (so *ShopOrder) QueryUser() *UserQuery {
+	return NewShopOrderClient(so.config).QueryUser(so)
 }
 
 // QueryShippingAddress queries the "shipping_address" edge of the ShopOrder entity.

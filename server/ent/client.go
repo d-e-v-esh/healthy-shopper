@@ -1758,6 +1758,22 @@ func (c *ShopOrderClient) GetX(ctx context.Context, id int) *ShopOrder {
 	return obj
 }
 
+// QueryUser queries the user edge of a ShopOrder.
+func (c *ShopOrderClient) QueryUser(so *ShopOrder) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := so.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoporder.Table, shoporder.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shoporder.UserTable, shoporder.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(so.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryShippingAddress queries the shipping_address edge of a ShopOrder.
 func (c *ShopOrderClient) QueryShippingAddress(so *ShopOrder) *ShippingAddressQuery {
 	query := (&ShippingAddressClient{config: c.config}).Query()
@@ -2217,6 +2233,22 @@ func (c *UserClient) QueryShoppingCart(u *User) *ShoppingCartQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(shoppingcart.Table, shoppingcart.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ShoppingCartTable, user.ShoppingCartColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShopOrder queries the shop_order edge of a User.
+func (c *UserClient) QueryShopOrder(u *User) *ShopOrderQuery {
+	query := (&ShopOrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(shoporder.Table, shoporder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ShopOrderTable, user.ShopOrderColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
