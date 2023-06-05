@@ -9,6 +9,7 @@ import (
 	"healthyshopper/ent/orderline"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/shoppingcartitem"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -98,6 +99,21 @@ func (pic *ProductItemCreate) AddOrderLine(o ...*OrderLine) *ProductItemCreate {
 		ids[i] = o[i].ID
 	}
 	return pic.AddOrderLineIDs(ids...)
+}
+
+// AddShoppingCartItemIDs adds the "shopping_cart_item" edge to the ShoppingCartItem entity by IDs.
+func (pic *ProductItemCreate) AddShoppingCartItemIDs(ids ...int) *ProductItemCreate {
+	pic.mutation.AddShoppingCartItemIDs(ids...)
+	return pic
+}
+
+// AddShoppingCartItem adds the "shopping_cart_item" edges to the ShoppingCartItem entity.
+func (pic *ProductItemCreate) AddShoppingCartItem(s ...*ShoppingCartItem) *ProductItemCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return pic.AddShoppingCartItemIDs(ids...)
 }
 
 // Mutation returns the ProductItemMutation object of the builder.
@@ -260,6 +276,22 @@ func (pic *ProductItemCreate) createSpec() (*ProductItem, *sqlgraph.CreateSpec) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pic.mutation.ShoppingCartItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.ShoppingCartItemTable,
+			Columns: []string{productitem.ShoppingCartItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

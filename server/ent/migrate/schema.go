@@ -278,8 +278,8 @@ var (
 	// ShoppingCartItemsColumns holds the columns for the "shopping_cart_items" table.
 	ShoppingCartItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "product_item_id", Type: field.TypeInt, Unique: true},
 		{Name: "quantity", Type: field.TypeInt},
+		{Name: "product_item_id", Type: field.TypeInt},
 		{Name: "shopping_cart_id", Type: field.TypeInt, Unique: true},
 	}
 	// ShoppingCartItemsTable holds the schema information for the "shopping_cart_items" table.
@@ -288,6 +288,12 @@ var (
 		Columns:    ShoppingCartItemsColumns,
 		PrimaryKey: []*schema.Column{ShoppingCartItemsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shopping_cart_items_product_items_shopping_cart_item",
+				Columns:    []*schema.Column{ShoppingCartItemsColumns[2]},
+				RefColumns: []*schema.Column{ProductItemsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
 			{
 				Symbol:     "shopping_cart_items_shopping_carts_shopping_cart_item",
 				Columns:    []*schema.Column{ShoppingCartItemsColumns[3]},
@@ -398,7 +404,8 @@ func init() {
 	ShopOrdersTable.ForeignKeys[2].RefTable = ShippingAddressesTable
 	ShopOrdersTable.ForeignKeys[3].RefTable = UsersTable
 	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
-	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable
+	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ProductItemsTable
+	ShoppingCartItemsTable.ForeignKeys[1].RefTable = ShoppingCartsTable
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable
 	UserAddressesTable.ForeignKeys[1].RefTable = AddressesTable
 	UserReviewsTable.ForeignKeys[0].RefTable = UsersTable

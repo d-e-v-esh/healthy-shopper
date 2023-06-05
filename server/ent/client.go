@@ -1444,6 +1444,22 @@ func (c *ProductItemClient) QueryOrderLine(pi *ProductItem) *OrderLineQuery {
 	return query
 }
 
+// QueryShoppingCartItem queries the shopping_cart_item edge of a ProductItem.
+func (c *ProductItemClient) QueryShoppingCartItem(pi *ProductItem) *ShoppingCartItemQuery {
+	query := (&ShoppingCartItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(productitem.Table, productitem.FieldID, id),
+			sqlgraph.To(shoppingcartitem.Table, shoppingcartitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, productitem.ShoppingCartItemTable, productitem.ShoppingCartItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(pi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProductItemClient) Hooks() []Hook {
 	return c.hooks.ProductItem
@@ -2305,6 +2321,22 @@ func (c *ShoppingCartItemClient) QueryShoppingCart(sci *ShoppingCartItem) *Shopp
 			sqlgraph.From(shoppingcartitem.Table, shoppingcartitem.FieldID, id),
 			sqlgraph.To(shoppingcart.Table, shoppingcart.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, shoppingcartitem.ShoppingCartTable, shoppingcartitem.ShoppingCartColumn),
+		)
+		fromV = sqlgraph.Neighbors(sci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProductItem queries the product_item edge of a ShoppingCartItem.
+func (c *ShoppingCartItemClient) QueryProductItem(sci *ShoppingCartItem) *ProductItemQuery {
+	query := (&ProductItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoppingcartitem.Table, shoppingcartitem.FieldID, id),
+			sqlgraph.To(productitem.Table, productitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shoppingcartitem.ProductItemTable, shoppingcartitem.ProductItemColumn),
 		)
 		fromV = sqlgraph.Neighbors(sci.driver.Dialect(), step)
 		return fromV, nil

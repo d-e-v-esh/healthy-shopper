@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"math"
@@ -23,6 +24,7 @@ type ShoppingCartItemQuery struct {
 	inters           []Interceptor
 	predicates       []predicate.ShoppingCartItem
 	withShoppingCart *ShoppingCartQuery
+	withProductItem  *ProductItemQuery
 	modifiers        []func(*sql.Selector)
 	loadTotal        []func(context.Context, []*ShoppingCartItem) error
 	// intermediate query (i.e. traversal path).
@@ -76,6 +78,28 @@ func (sciq *ShoppingCartItemQuery) QueryShoppingCart() *ShoppingCartQuery {
 			sqlgraph.From(shoppingcartitem.Table, shoppingcartitem.FieldID, selector),
 			sqlgraph.To(shoppingcart.Table, shoppingcart.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, shoppingcartitem.ShoppingCartTable, shoppingcartitem.ShoppingCartColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sciq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProductItem chains the current query on the "product_item" edge.
+func (sciq *ShoppingCartItemQuery) QueryProductItem() *ProductItemQuery {
+	query := (&ProductItemClient{config: sciq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sciq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sciq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoppingcartitem.Table, shoppingcartitem.FieldID, selector),
+			sqlgraph.To(productitem.Table, productitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shoppingcartitem.ProductItemTable, shoppingcartitem.ProductItemColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sciq.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (sciq *ShoppingCartItemQuery) Clone() *ShoppingCartItemQuery {
 		inters:           append([]Interceptor{}, sciq.inters...),
 		predicates:       append([]predicate.ShoppingCartItem{}, sciq.predicates...),
 		withShoppingCart: sciq.withShoppingCart.Clone(),
+		withProductItem:  sciq.withProductItem.Clone(),
 		// clone intermediate query.
 		sql:  sciq.sql.Clone(),
 		path: sciq.path,
@@ -290,6 +315,17 @@ func (sciq *ShoppingCartItemQuery) WithShoppingCart(opts ...func(*ShoppingCartQu
 		opt(query)
 	}
 	sciq.withShoppingCart = query
+	return sciq
+}
+
+// WithProductItem tells the query-builder to eager-load the nodes that are connected to
+// the "product_item" edge. The optional arguments are used to configure the query builder of the edge.
+func (sciq *ShoppingCartItemQuery) WithProductItem(opts ...func(*ProductItemQuery)) *ShoppingCartItemQuery {
+	query := (&ProductItemClient{config: sciq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sciq.withProductItem = query
 	return sciq
 }
 
@@ -371,8 +407,9 @@ func (sciq *ShoppingCartItemQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	var (
 		nodes       = []*ShoppingCartItem{}
 		_spec       = sciq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			sciq.withShoppingCart != nil,
+			sciq.withProductItem != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -399,6 +436,12 @@ func (sciq *ShoppingCartItemQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	if query := sciq.withShoppingCart; query != nil {
 		if err := sciq.loadShoppingCart(ctx, query, nodes, nil,
 			func(n *ShoppingCartItem, e *ShoppingCart) { n.Edges.ShoppingCart = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sciq.withProductItem; query != nil {
+		if err := sciq.loadProductItem(ctx, query, nodes, nil,
+			func(n *ShoppingCartItem, e *ProductItem) { n.Edges.ProductItem = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -439,6 +482,35 @@ func (sciq *ShoppingCartItemQuery) loadShoppingCart(ctx context.Context, query *
 	}
 	return nil
 }
+func (sciq *ShoppingCartItemQuery) loadProductItem(ctx context.Context, query *ProductItemQuery, nodes []*ShoppingCartItem, init func(*ShoppingCartItem), assign func(*ShoppingCartItem, *ProductItem)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*ShoppingCartItem)
+	for i := range nodes {
+		fk := nodes[i].ProductItemID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(productitem.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "product_item_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (sciq *ShoppingCartItemQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := sciq.querySpec()
@@ -470,6 +542,9 @@ func (sciq *ShoppingCartItemQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if sciq.withShoppingCart != nil {
 			_spec.Node.AddColumnOnce(shoppingcartitem.FieldShoppingCartID)
+		}
+		if sciq.withProductItem != nil {
+			_spec.Node.AddColumnOnce(shoppingcartitem.FieldProductItemID)
 		}
 	}
 	if ps := sciq.predicates; len(ps) > 0 {

@@ -34,6 +34,7 @@ func (ProductItem) Edges() []ent.Edge {
 		edge.From("product", Product.Type).Ref("product_item").Unique().Field("product_id").Required(),
 
 		edge.To("order_line", OrderLine.Type),
+		edge.To("shopping_cart_item", ShoppingCartItem.Type),
 	}
 }
 

@@ -757,6 +757,18 @@ func (pi *ProductItemQuery) collectField(ctx context.Context, opCtx *graphql.Ope
 			pi.WithNamedOrderLine(alias, func(wq *OrderLineQuery) {
 				*wq = *query
 			})
+		case "shoppingCartItem":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ShoppingCartItemClient{config: pi.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, shoppingcartitemImplementors)...); err != nil {
+				return err
+			}
+			pi.WithNamedShoppingCartItem(alias, func(wq *ShoppingCartItemQuery) {
+				*wq = *query
+			})
 		case "productID":
 			if _, ok := fieldSeen[productitem.FieldProductID]; !ok {
 				selectedFields = append(selectedFields, productitem.FieldProductID)
@@ -1385,6 +1397,20 @@ func (sci *ShoppingCartItemQuery) collectField(ctx context.Context, opCtx *graph
 			if _, ok := fieldSeen[shoppingcartitem.FieldShoppingCartID]; !ok {
 				selectedFields = append(selectedFields, shoppingcartitem.FieldShoppingCartID)
 				fieldSeen[shoppingcartitem.FieldShoppingCartID] = struct{}{}
+			}
+		case "productItem":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProductItemClient{config: sci.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, productitemImplementors)...); err != nil {
+				return err
+			}
+			sci.withProductItem = query
+			if _, ok := fieldSeen[shoppingcartitem.FieldProductItemID]; !ok {
+				selectedFields = append(selectedFields, shoppingcartitem.FieldProductItemID)
+				fieldSeen[shoppingcartitem.FieldProductItemID] = struct{}{}
 			}
 		case "shoppingCartID":
 			if _, ok := fieldSeen[shoppingcartitem.FieldShoppingCartID]; !ok {

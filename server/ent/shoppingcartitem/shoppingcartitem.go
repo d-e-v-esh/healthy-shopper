@@ -20,6 +20,8 @@ const (
 	FieldQuantity = "quantity"
 	// EdgeShoppingCart holds the string denoting the shopping_cart edge name in mutations.
 	EdgeShoppingCart = "shopping_cart"
+	// EdgeProductItem holds the string denoting the product_item edge name in mutations.
+	EdgeProductItem = "product_item"
 	// Table holds the table name of the shoppingcartitem in the database.
 	Table = "shopping_cart_items"
 	// ShoppingCartTable is the table that holds the shopping_cart relation/edge.
@@ -29,6 +31,13 @@ const (
 	ShoppingCartInverseTable = "shopping_carts"
 	// ShoppingCartColumn is the table column denoting the shopping_cart relation/edge.
 	ShoppingCartColumn = "shopping_cart_id"
+	// ProductItemTable is the table that holds the product_item relation/edge.
+	ProductItemTable = "shopping_cart_items"
+	// ProductItemInverseTable is the table name for the ProductItem entity.
+	// It exists in this package in order to avoid circular dependency with the "productitem" package.
+	ProductItemInverseTable = "product_items"
+	// ProductItemColumn is the table column denoting the product_item relation/edge.
+	ProductItemColumn = "product_item_id"
 )
 
 // Columns holds all SQL columns for shoppingcartitem fields.
@@ -83,10 +92,24 @@ func ByShoppingCartField(field string, opts ...sql.OrderTermOption) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newShoppingCartStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByProductItemField orders the results by product_item field.
+func ByProductItemField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProductItemStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newShoppingCartStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ShoppingCartInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, true, ShoppingCartTable, ShoppingCartColumn),
+	)
+}
+func newProductItemStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProductItemInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProductItemTable, ProductItemColumn),
 	)
 }

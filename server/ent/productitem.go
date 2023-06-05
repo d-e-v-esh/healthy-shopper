@@ -44,13 +44,16 @@ type ProductItemEdges struct {
 	Product *Product `json:"product,omitempty"`
 	// OrderLine holds the value of the order_line edge.
 	OrderLine []*OrderLine `json:"order_line,omitempty"`
+	// ShoppingCartItem holds the value of the shopping_cart_item edge.
+	ShoppingCartItem []*ShoppingCartItem `json:"shopping_cart_item,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 
-	namedOrderLine map[string][]*OrderLine
+	namedOrderLine        map[string][]*OrderLine
+	namedShoppingCartItem map[string][]*ShoppingCartItem
 }
 
 // ProductOrErr returns the Product value or an error if the edge
@@ -73,6 +76,15 @@ func (e ProductItemEdges) OrderLineOrErr() ([]*OrderLine, error) {
 		return e.OrderLine, nil
 	}
 	return nil, &NotLoadedError{edge: "order_line"}
+}
+
+// ShoppingCartItemOrErr returns the ShoppingCartItem value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductItemEdges) ShoppingCartItemOrErr() ([]*ShoppingCartItem, error) {
+	if e.loadedTypes[2] {
+		return e.ShoppingCartItem, nil
+	}
+	return nil, &NotLoadedError{edge: "shopping_cart_item"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -174,6 +186,11 @@ func (pi *ProductItem) QueryOrderLine() *OrderLineQuery {
 	return NewProductItemClient(pi.config).QueryOrderLine(pi)
 }
 
+// QueryShoppingCartItem queries the "shopping_cart_item" edge of the ProductItem entity.
+func (pi *ProductItem) QueryShoppingCartItem() *ShoppingCartItemQuery {
+	return NewProductItemClient(pi.config).QueryShoppingCartItem(pi)
+}
+
 // Update returns a builder for updating this ProductItem.
 // Note that you need to call ProductItem.Unwrap() before calling this method if this ProductItem
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -242,6 +259,30 @@ func (pi *ProductItem) appendNamedOrderLine(name string, edges ...*OrderLine) {
 		pi.Edges.namedOrderLine[name] = []*OrderLine{}
 	} else {
 		pi.Edges.namedOrderLine[name] = append(pi.Edges.namedOrderLine[name], edges...)
+	}
+}
+
+// NamedShoppingCartItem returns the ShoppingCartItem named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (pi *ProductItem) NamedShoppingCartItem(name string) ([]*ShoppingCartItem, error) {
+	if pi.Edges.namedShoppingCartItem == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := pi.Edges.namedShoppingCartItem[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (pi *ProductItem) appendNamedShoppingCartItem(name string, edges ...*ShoppingCartItem) {
+	if pi.Edges.namedShoppingCartItem == nil {
+		pi.Edges.namedShoppingCartItem = make(map[string][]*ShoppingCartItem)
+	}
+	if len(edges) == 0 {
+		pi.Edges.namedShoppingCartItem[name] = []*ShoppingCartItem{}
+	} else {
+		pi.Edges.namedShoppingCartItem[name] = append(pi.Edges.namedShoppingCartItem[name], edges...)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/predicate"
+	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 
@@ -36,14 +37,7 @@ func (sciu *ShoppingCartItemUpdate) SetShoppingCartID(i int) *ShoppingCartItemUp
 
 // SetProductItemID sets the "product_item_id" field.
 func (sciu *ShoppingCartItemUpdate) SetProductItemID(i int) *ShoppingCartItemUpdate {
-	sciu.mutation.ResetProductItemID()
 	sciu.mutation.SetProductItemID(i)
-	return sciu
-}
-
-// AddProductItemID adds i to the "product_item_id" field.
-func (sciu *ShoppingCartItemUpdate) AddProductItemID(i int) *ShoppingCartItemUpdate {
-	sciu.mutation.AddProductItemID(i)
 	return sciu
 }
 
@@ -65,6 +59,11 @@ func (sciu *ShoppingCartItemUpdate) SetShoppingCart(s *ShoppingCart) *ShoppingCa
 	return sciu.SetShoppingCartID(s.ID)
 }
 
+// SetProductItem sets the "product_item" edge to the ProductItem entity.
+func (sciu *ShoppingCartItemUpdate) SetProductItem(p *ProductItem) *ShoppingCartItemUpdate {
+	return sciu.SetProductItemID(p.ID)
+}
+
 // Mutation returns the ShoppingCartItemMutation object of the builder.
 func (sciu *ShoppingCartItemUpdate) Mutation() *ShoppingCartItemMutation {
 	return sciu.mutation
@@ -73,6 +72,12 @@ func (sciu *ShoppingCartItemUpdate) Mutation() *ShoppingCartItemMutation {
 // ClearShoppingCart clears the "shopping_cart" edge to the ShoppingCart entity.
 func (sciu *ShoppingCartItemUpdate) ClearShoppingCart() *ShoppingCartItemUpdate {
 	sciu.mutation.ClearShoppingCart()
+	return sciu
+}
+
+// ClearProductItem clears the "product_item" edge to the ProductItem entity.
+func (sciu *ShoppingCartItemUpdate) ClearProductItem() *ShoppingCartItemUpdate {
+	sciu.mutation.ClearProductItem()
 	return sciu
 }
 
@@ -113,6 +118,9 @@ func (sciu *ShoppingCartItemUpdate) check() error {
 	if _, ok := sciu.mutation.ShoppingCartID(); sciu.mutation.ShoppingCartCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShoppingCartItem.shopping_cart"`)
 	}
+	if _, ok := sciu.mutation.ProductItemID(); sciu.mutation.ProductItemCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ShoppingCartItem.product_item"`)
+	}
 	return nil
 }
 
@@ -127,12 +135,6 @@ func (sciu *ShoppingCartItemUpdate) sqlSave(ctx context.Context) (n int, err err
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := sciu.mutation.ProductItemID(); ok {
-		_spec.SetField(shoppingcartitem.FieldProductItemID, field.TypeInt, value)
-	}
-	if value, ok := sciu.mutation.AddedProductItemID(); ok {
-		_spec.AddField(shoppingcartitem.FieldProductItemID, field.TypeInt, value)
 	}
 	if value, ok := sciu.mutation.Quantity(); ok {
 		_spec.SetField(shoppingcartitem.FieldQuantity, field.TypeInt, value)
@@ -169,6 +171,35 @@ func (sciu *ShoppingCartItemUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if sciu.mutation.ProductItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoppingcartitem.ProductItemTable,
+			Columns: []string{shoppingcartitem.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := sciu.mutation.ProductItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoppingcartitem.ProductItemTable,
+			Columns: []string{shoppingcartitem.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, sciu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{shoppingcartitem.Label}
@@ -197,14 +228,7 @@ func (sciuo *ShoppingCartItemUpdateOne) SetShoppingCartID(i int) *ShoppingCartIt
 
 // SetProductItemID sets the "product_item_id" field.
 func (sciuo *ShoppingCartItemUpdateOne) SetProductItemID(i int) *ShoppingCartItemUpdateOne {
-	sciuo.mutation.ResetProductItemID()
 	sciuo.mutation.SetProductItemID(i)
-	return sciuo
-}
-
-// AddProductItemID adds i to the "product_item_id" field.
-func (sciuo *ShoppingCartItemUpdateOne) AddProductItemID(i int) *ShoppingCartItemUpdateOne {
-	sciuo.mutation.AddProductItemID(i)
 	return sciuo
 }
 
@@ -226,6 +250,11 @@ func (sciuo *ShoppingCartItemUpdateOne) SetShoppingCart(s *ShoppingCart) *Shoppi
 	return sciuo.SetShoppingCartID(s.ID)
 }
 
+// SetProductItem sets the "product_item" edge to the ProductItem entity.
+func (sciuo *ShoppingCartItemUpdateOne) SetProductItem(p *ProductItem) *ShoppingCartItemUpdateOne {
+	return sciuo.SetProductItemID(p.ID)
+}
+
 // Mutation returns the ShoppingCartItemMutation object of the builder.
 func (sciuo *ShoppingCartItemUpdateOne) Mutation() *ShoppingCartItemMutation {
 	return sciuo.mutation
@@ -234,6 +263,12 @@ func (sciuo *ShoppingCartItemUpdateOne) Mutation() *ShoppingCartItemMutation {
 // ClearShoppingCart clears the "shopping_cart" edge to the ShoppingCart entity.
 func (sciuo *ShoppingCartItemUpdateOne) ClearShoppingCart() *ShoppingCartItemUpdateOne {
 	sciuo.mutation.ClearShoppingCart()
+	return sciuo
+}
+
+// ClearProductItem clears the "product_item" edge to the ProductItem entity.
+func (sciuo *ShoppingCartItemUpdateOne) ClearProductItem() *ShoppingCartItemUpdateOne {
+	sciuo.mutation.ClearProductItem()
 	return sciuo
 }
 
@@ -287,6 +322,9 @@ func (sciuo *ShoppingCartItemUpdateOne) check() error {
 	if _, ok := sciuo.mutation.ShoppingCartID(); sciuo.mutation.ShoppingCartCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShoppingCartItem.shopping_cart"`)
 	}
+	if _, ok := sciuo.mutation.ProductItemID(); sciuo.mutation.ProductItemCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ShoppingCartItem.product_item"`)
+	}
 	return nil
 }
 
@@ -319,12 +357,6 @@ func (sciuo *ShoppingCartItemUpdateOne) sqlSave(ctx context.Context) (_node *Sho
 			}
 		}
 	}
-	if value, ok := sciuo.mutation.ProductItemID(); ok {
-		_spec.SetField(shoppingcartitem.FieldProductItemID, field.TypeInt, value)
-	}
-	if value, ok := sciuo.mutation.AddedProductItemID(); ok {
-		_spec.AddField(shoppingcartitem.FieldProductItemID, field.TypeInt, value)
-	}
 	if value, ok := sciuo.mutation.Quantity(); ok {
 		_spec.SetField(shoppingcartitem.FieldQuantity, field.TypeInt, value)
 	}
@@ -353,6 +385,35 @@ func (sciuo *ShoppingCartItemUpdateOne) sqlSave(ctx context.Context) (_node *Sho
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(shoppingcart.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if sciuo.mutation.ProductItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoppingcartitem.ProductItemTable,
+			Columns: []string{shoppingcartitem.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := sciuo.mutation.ProductItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoppingcartitem.ProductItemTable,
+			Columns: []string{shoppingcartitem.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

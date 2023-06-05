@@ -4608,26 +4608,29 @@ func (m *ProductMutation) ResetEdge(name string) error {
 // ProductItemMutation represents an operation that mutates the ProductItem nodes in the graph.
 type ProductItemMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	stock_keeping_unit   *string
-	quantity_in_stock    *int
-	addquantity_in_stock *int
-	product_image        *string
-	price                *float32
-	addprice             *float32
-	created_at           *time.Time
-	updated_at           *time.Time
-	clearedFields        map[string]struct{}
-	product              *int
-	clearedproduct       bool
-	order_line           map[int]struct{}
-	removedorder_line    map[int]struct{}
-	clearedorder_line    bool
-	done                 bool
-	oldValue             func(context.Context) (*ProductItem, error)
-	predicates           []predicate.ProductItem
+	op                        Op
+	typ                       string
+	id                        *int
+	stock_keeping_unit        *string
+	quantity_in_stock         *int
+	addquantity_in_stock      *int
+	product_image             *string
+	price                     *float32
+	addprice                  *float32
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	product                   *int
+	clearedproduct            bool
+	order_line                map[int]struct{}
+	removedorder_line         map[int]struct{}
+	clearedorder_line         bool
+	shopping_cart_item        map[int]struct{}
+	removedshopping_cart_item map[int]struct{}
+	clearedshopping_cart_item bool
+	done                      bool
+	oldValue                  func(context.Context) (*ProductItem, error)
+	predicates                []predicate.ProductItem
 }
 
 var _ ent.Mutation = (*ProductItemMutation)(nil)
@@ -5113,6 +5116,60 @@ func (m *ProductItemMutation) ResetOrderLine() {
 	m.removedorder_line = nil
 }
 
+// AddShoppingCartItemIDs adds the "shopping_cart_item" edge to the ShoppingCartItem entity by ids.
+func (m *ProductItemMutation) AddShoppingCartItemIDs(ids ...int) {
+	if m.shopping_cart_item == nil {
+		m.shopping_cart_item = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.shopping_cart_item[ids[i]] = struct{}{}
+	}
+}
+
+// ClearShoppingCartItem clears the "shopping_cart_item" edge to the ShoppingCartItem entity.
+func (m *ProductItemMutation) ClearShoppingCartItem() {
+	m.clearedshopping_cart_item = true
+}
+
+// ShoppingCartItemCleared reports if the "shopping_cart_item" edge to the ShoppingCartItem entity was cleared.
+func (m *ProductItemMutation) ShoppingCartItemCleared() bool {
+	return m.clearedshopping_cart_item
+}
+
+// RemoveShoppingCartItemIDs removes the "shopping_cart_item" edge to the ShoppingCartItem entity by IDs.
+func (m *ProductItemMutation) RemoveShoppingCartItemIDs(ids ...int) {
+	if m.removedshopping_cart_item == nil {
+		m.removedshopping_cart_item = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.shopping_cart_item, ids[i])
+		m.removedshopping_cart_item[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedShoppingCartItem returns the removed IDs of the "shopping_cart_item" edge to the ShoppingCartItem entity.
+func (m *ProductItemMutation) RemovedShoppingCartItemIDs() (ids []int) {
+	for id := range m.removedshopping_cart_item {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ShoppingCartItemIDs returns the "shopping_cart_item" edge IDs in the mutation.
+func (m *ProductItemMutation) ShoppingCartItemIDs() (ids []int) {
+	for id := range m.shopping_cart_item {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetShoppingCartItem resets all changes to the "shopping_cart_item" edge.
+func (m *ProductItemMutation) ResetShoppingCartItem() {
+	m.shopping_cart_item = nil
+	m.clearedshopping_cart_item = false
+	m.removedshopping_cart_item = nil
+}
+
 // Where appends a list predicates to the ProductItemMutation builder.
 func (m *ProductItemMutation) Where(ps ...predicate.ProductItem) {
 	m.predicates = append(m.predicates, ps...)
@@ -5384,12 +5441,15 @@ func (m *ProductItemMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProductItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.product != nil {
 		edges = append(edges, productitem.EdgeProduct)
 	}
 	if m.order_line != nil {
 		edges = append(edges, productitem.EdgeOrderLine)
+	}
+	if m.shopping_cart_item != nil {
+		edges = append(edges, productitem.EdgeShoppingCartItem)
 	}
 	return edges
 }
@@ -5408,15 +5468,24 @@ func (m *ProductItemMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case productitem.EdgeShoppingCartItem:
+		ids := make([]ent.Value, 0, len(m.shopping_cart_item))
+		for id := range m.shopping_cart_item {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProductItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedorder_line != nil {
 		edges = append(edges, productitem.EdgeOrderLine)
+	}
+	if m.removedshopping_cart_item != nil {
+		edges = append(edges, productitem.EdgeShoppingCartItem)
 	}
 	return edges
 }
@@ -5431,18 +5500,27 @@ func (m *ProductItemMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case productitem.EdgeShoppingCartItem:
+		ids := make([]ent.Value, 0, len(m.removedshopping_cart_item))
+		for id := range m.removedshopping_cart_item {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProductItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedproduct {
 		edges = append(edges, productitem.EdgeProduct)
 	}
 	if m.clearedorder_line {
 		edges = append(edges, productitem.EdgeOrderLine)
+	}
+	if m.clearedshopping_cart_item {
+		edges = append(edges, productitem.EdgeShoppingCartItem)
 	}
 	return edges
 }
@@ -5455,6 +5533,8 @@ func (m *ProductItemMutation) EdgeCleared(name string) bool {
 		return m.clearedproduct
 	case productitem.EdgeOrderLine:
 		return m.clearedorder_line
+	case productitem.EdgeShoppingCartItem:
+		return m.clearedshopping_cart_item
 	}
 	return false
 }
@@ -5479,6 +5559,9 @@ func (m *ProductItemMutation) ResetEdge(name string) error {
 		return nil
 	case productitem.EdgeOrderLine:
 		m.ResetOrderLine()
+		return nil
+	case productitem.EdgeShoppingCartItem:
+		m.ResetShoppingCartItem()
 		return nil
 	}
 	return fmt.Errorf("unknown ProductItem edge %s", name)
@@ -8750,13 +8833,13 @@ type ShoppingCartItemMutation struct {
 	op                   Op
 	typ                  string
 	id                   *int
-	product_item_id      *int
-	addproduct_item_id   *int
 	quantity             *int
 	addquantity          *int
 	clearedFields        map[string]struct{}
 	shopping_cart        *int
 	clearedshopping_cart bool
+	product_item         *int
+	clearedproduct_item  bool
 	done                 bool
 	oldValue             func(context.Context) (*ShoppingCartItem, error)
 	predicates           []predicate.ShoppingCartItem
@@ -8898,13 +8981,12 @@ func (m *ShoppingCartItemMutation) ResetShoppingCartID() {
 
 // SetProductItemID sets the "product_item_id" field.
 func (m *ShoppingCartItemMutation) SetProductItemID(i int) {
-	m.product_item_id = &i
-	m.addproduct_item_id = nil
+	m.product_item = &i
 }
 
 // ProductItemID returns the value of the "product_item_id" field in the mutation.
 func (m *ShoppingCartItemMutation) ProductItemID() (r int, exists bool) {
-	v := m.product_item_id
+	v := m.product_item
 	if v == nil {
 		return
 	}
@@ -8928,28 +9010,9 @@ func (m *ShoppingCartItemMutation) OldProductItemID(ctx context.Context) (v int,
 	return oldValue.ProductItemID, nil
 }
 
-// AddProductItemID adds i to the "product_item_id" field.
-func (m *ShoppingCartItemMutation) AddProductItemID(i int) {
-	if m.addproduct_item_id != nil {
-		*m.addproduct_item_id += i
-	} else {
-		m.addproduct_item_id = &i
-	}
-}
-
-// AddedProductItemID returns the value that was added to the "product_item_id" field in this mutation.
-func (m *ShoppingCartItemMutation) AddedProductItemID() (r int, exists bool) {
-	v := m.addproduct_item_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
 // ResetProductItemID resets all changes to the "product_item_id" field.
 func (m *ShoppingCartItemMutation) ResetProductItemID() {
-	m.product_item_id = nil
-	m.addproduct_item_id = nil
+	m.product_item = nil
 }
 
 // SetQuantity sets the "quantity" field.
@@ -9034,6 +9097,32 @@ func (m *ShoppingCartItemMutation) ResetShoppingCart() {
 	m.clearedshopping_cart = false
 }
 
+// ClearProductItem clears the "product_item" edge to the ProductItem entity.
+func (m *ShoppingCartItemMutation) ClearProductItem() {
+	m.clearedproduct_item = true
+}
+
+// ProductItemCleared reports if the "product_item" edge to the ProductItem entity was cleared.
+func (m *ShoppingCartItemMutation) ProductItemCleared() bool {
+	return m.clearedproduct_item
+}
+
+// ProductItemIDs returns the "product_item" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProductItemID instead. It exists only for internal usage by the builders.
+func (m *ShoppingCartItemMutation) ProductItemIDs() (ids []int) {
+	if id := m.product_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProductItem resets all changes to the "product_item" edge.
+func (m *ShoppingCartItemMutation) ResetProductItem() {
+	m.product_item = nil
+	m.clearedproduct_item = false
+}
+
 // Where appends a list predicates to the ShoppingCartItemMutation builder.
 func (m *ShoppingCartItemMutation) Where(ps ...predicate.ShoppingCartItem) {
 	m.predicates = append(m.predicates, ps...)
@@ -9072,7 +9161,7 @@ func (m *ShoppingCartItemMutation) Fields() []string {
 	if m.shopping_cart != nil {
 		fields = append(fields, shoppingcartitem.FieldShoppingCartID)
 	}
-	if m.product_item_id != nil {
+	if m.product_item != nil {
 		fields = append(fields, shoppingcartitem.FieldProductItemID)
 	}
 	if m.quantity != nil {
@@ -9145,9 +9234,6 @@ func (m *ShoppingCartItemMutation) SetField(name string, value ent.Value) error 
 // this mutation.
 func (m *ShoppingCartItemMutation) AddedFields() []string {
 	var fields []string
-	if m.addproduct_item_id != nil {
-		fields = append(fields, shoppingcartitem.FieldProductItemID)
-	}
 	if m.addquantity != nil {
 		fields = append(fields, shoppingcartitem.FieldQuantity)
 	}
@@ -9159,8 +9245,6 @@ func (m *ShoppingCartItemMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *ShoppingCartItemMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case shoppingcartitem.FieldProductItemID:
-		return m.AddedProductItemID()
 	case shoppingcartitem.FieldQuantity:
 		return m.AddedQuantity()
 	}
@@ -9172,13 +9256,6 @@ func (m *ShoppingCartItemMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ShoppingCartItemMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case shoppingcartitem.FieldProductItemID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddProductItemID(v)
-		return nil
 	case shoppingcartitem.FieldQuantity:
 		v, ok := value.(int)
 		if !ok {
@@ -9228,9 +9305,12 @@ func (m *ShoppingCartItemMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ShoppingCartItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.shopping_cart != nil {
 		edges = append(edges, shoppingcartitem.EdgeShoppingCart)
+	}
+	if m.product_item != nil {
+		edges = append(edges, shoppingcartitem.EdgeProductItem)
 	}
 	return edges
 }
@@ -9243,13 +9323,17 @@ func (m *ShoppingCartItemMutation) AddedIDs(name string) []ent.Value {
 		if id := m.shopping_cart; id != nil {
 			return []ent.Value{*id}
 		}
+	case shoppingcartitem.EdgeProductItem:
+		if id := m.product_item; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ShoppingCartItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -9261,9 +9345,12 @@ func (m *ShoppingCartItemMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ShoppingCartItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedshopping_cart {
 		edges = append(edges, shoppingcartitem.EdgeShoppingCart)
+	}
+	if m.clearedproduct_item {
+		edges = append(edges, shoppingcartitem.EdgeProductItem)
 	}
 	return edges
 }
@@ -9274,6 +9361,8 @@ func (m *ShoppingCartItemMutation) EdgeCleared(name string) bool {
 	switch name {
 	case shoppingcartitem.EdgeShoppingCart:
 		return m.clearedshopping_cart
+	case shoppingcartitem.EdgeProductItem:
+		return m.clearedproduct_item
 	}
 	return false
 }
@@ -9285,6 +9374,9 @@ func (m *ShoppingCartItemMutation) ClearEdge(name string) error {
 	case shoppingcartitem.EdgeShoppingCart:
 		m.ClearShoppingCart()
 		return nil
+	case shoppingcartitem.EdgeProductItem:
+		m.ClearProductItem()
+		return nil
 	}
 	return fmt.Errorf("unknown ShoppingCartItem unique edge %s", name)
 }
@@ -9295,6 +9387,9 @@ func (m *ShoppingCartItemMutation) ResetEdge(name string) error {
 	switch name {
 	case shoppingcartitem.EdgeShoppingCart:
 		m.ResetShoppingCart()
+		return nil
+	case shoppingcartitem.EdgeProductItem:
+		m.ResetProductItem()
 		return nil
 	}
 	return fmt.Errorf("unknown ShoppingCartItem edge %s", name)

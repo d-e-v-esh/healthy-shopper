@@ -25,5 +25,6 @@ func (ShoppingCartItem) Edges() []ent.Edge {
 	return []ent.Edge{
 
 		edge.From("shopping_cart", ShoppingCart.Type).Ref("shopping_cart_item").Unique().Field("shopping_cart_id").Required(),
+		edge.From("product_item", ProductItem.Type).Ref("shopping_cart_item").Unique().Field("product_item_id").Required(),
 	}
 }

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 	"strings"
@@ -33,11 +34,13 @@ type ShoppingCartItem struct {
 type ShoppingCartItemEdges struct {
 	// ShoppingCart holds the value of the shopping_cart edge.
 	ShoppingCart *ShoppingCart `json:"shopping_cart,omitempty"`
+	// ProductItem holds the value of the product_item edge.
+	ProductItem *ProductItem `json:"product_item,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 }
 
 // ShoppingCartOrErr returns the ShoppingCart value or an error if the edge
@@ -51,6 +54,19 @@ func (e ShoppingCartItemEdges) ShoppingCartOrErr() (*ShoppingCart, error) {
 		return e.ShoppingCart, nil
 	}
 	return nil, &NotLoadedError{edge: "shopping_cart"}
+}
+
+// ProductItemOrErr returns the ProductItem value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ShoppingCartItemEdges) ProductItemOrErr() (*ProductItem, error) {
+	if e.loadedTypes[1] {
+		if e.ProductItem == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: productitem.Label}
+		}
+		return e.ProductItem, nil
+	}
+	return nil, &NotLoadedError{edge: "product_item"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -115,6 +131,11 @@ func (sci *ShoppingCartItem) Value(name string) (ent.Value, error) {
 // QueryShoppingCart queries the "shopping_cart" edge of the ShoppingCartItem entity.
 func (sci *ShoppingCartItem) QueryShoppingCart() *ShoppingCartQuery {
 	return NewShoppingCartItemClient(sci.config).QueryShoppingCart(sci)
+}
+
+// QueryProductItem queries the "product_item" edge of the ShoppingCartItem entity.
+func (sci *ShoppingCartItem) QueryProductItem() *ProductItemQuery {
+	return NewShoppingCartItemClient(sci.config).QueryProductItem(sci)
 }
 
 // Update returns a builder for updating this ShoppingCartItem.

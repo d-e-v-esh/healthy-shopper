@@ -128,6 +128,18 @@ func (pi *ProductItem) OrderLine(ctx context.Context) (result []*OrderLine, err 
 	return result, err
 }
 
+func (pi *ProductItem) ShoppingCartItem(ctx context.Context) (result []*ShoppingCartItem, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pi.NamedShoppingCartItem(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pi.Edges.ShoppingCartItemOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pi.QueryShoppingCartItem().All(ctx)
+	}
+	return result, err
+}
+
 func (pr *Promotion) Product(ctx context.Context) (result []*Product, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = pr.NamedProduct(graphql.GetFieldContext(ctx).Field.Alias)
@@ -216,6 +228,14 @@ func (sci *ShoppingCartItem) ShoppingCart(ctx context.Context) (*ShoppingCart, e
 	result, err := sci.Edges.ShoppingCartOrErr()
 	if IsNotLoaded(err) {
 		result, err = sci.QueryShoppingCart().Only(ctx)
+	}
+	return result, err
+}
+
+func (sci *ShoppingCartItem) ProductItem(ctx context.Context) (*ProductItem, error) {
+	result, err := sci.Edges.ProductItemOrErr()
+	if IsNotLoaded(err) {
+		result, err = sci.QueryProductItem().Only(ctx)
 	}
 	return result, err
 }

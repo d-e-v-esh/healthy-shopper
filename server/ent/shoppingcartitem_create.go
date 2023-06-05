@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/productitem"
 	"healthyshopper/ent/shoppingcart"
 	"healthyshopper/ent/shoppingcartitem"
 
@@ -41,6 +42,11 @@ func (scic *ShoppingCartItemCreate) SetQuantity(i int) *ShoppingCartItemCreate {
 // SetShoppingCart sets the "shopping_cart" edge to the ShoppingCart entity.
 func (scic *ShoppingCartItemCreate) SetShoppingCart(s *ShoppingCart) *ShoppingCartItemCreate {
 	return scic.SetShoppingCartID(s.ID)
+}
+
+// SetProductItem sets the "product_item" edge to the ProductItem entity.
+func (scic *ShoppingCartItemCreate) SetProductItem(p *ProductItem) *ShoppingCartItemCreate {
+	return scic.SetProductItemID(p.ID)
 }
 
 // Mutation returns the ShoppingCartItemMutation object of the builder.
@@ -94,6 +100,9 @@ func (scic *ShoppingCartItemCreate) check() error {
 	if _, ok := scic.mutation.ShoppingCartID(); !ok {
 		return &ValidationError{Name: "shopping_cart", err: errors.New(`ent: missing required edge "ShoppingCartItem.shopping_cart"`)}
 	}
+	if _, ok := scic.mutation.ProductItemID(); !ok {
+		return &ValidationError{Name: "product_item", err: errors.New(`ent: missing required edge "ShoppingCartItem.product_item"`)}
+	}
 	return nil
 }
 
@@ -120,10 +129,6 @@ func (scic *ShoppingCartItemCreate) createSpec() (*ShoppingCartItem, *sqlgraph.C
 		_node = &ShoppingCartItem{config: scic.config}
 		_spec = sqlgraph.NewCreateSpec(shoppingcartitem.Table, sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt))
 	)
-	if value, ok := scic.mutation.ProductItemID(); ok {
-		_spec.SetField(shoppingcartitem.FieldProductItemID, field.TypeInt, value)
-		_node.ProductItemID = value
-	}
 	if value, ok := scic.mutation.Quantity(); ok {
 		_spec.SetField(shoppingcartitem.FieldQuantity, field.TypeInt, value)
 		_node.Quantity = value
@@ -143,6 +148,23 @@ func (scic *ShoppingCartItemCreate) createSpec() (*ShoppingCartItem, *sqlgraph.C
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ShoppingCartID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := scic.mutation.ProductItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoppingcartitem.ProductItemTable,
+			Columns: []string{shoppingcartitem.ProductItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ProductItemID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

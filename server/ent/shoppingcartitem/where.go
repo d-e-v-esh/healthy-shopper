@@ -109,26 +109,6 @@ func ProductItemIDNotIn(vs ...int) predicate.ShoppingCartItem {
 	return predicate.ShoppingCartItem(sql.FieldNotIn(FieldProductItemID, vs...))
 }
 
-// ProductItemIDGT applies the GT predicate on the "product_item_id" field.
-func ProductItemIDGT(v int) predicate.ShoppingCartItem {
-	return predicate.ShoppingCartItem(sql.FieldGT(FieldProductItemID, v))
-}
-
-// ProductItemIDGTE applies the GTE predicate on the "product_item_id" field.
-func ProductItemIDGTE(v int) predicate.ShoppingCartItem {
-	return predicate.ShoppingCartItem(sql.FieldGTE(FieldProductItemID, v))
-}
-
-// ProductItemIDLT applies the LT predicate on the "product_item_id" field.
-func ProductItemIDLT(v int) predicate.ShoppingCartItem {
-	return predicate.ShoppingCartItem(sql.FieldLT(FieldProductItemID, v))
-}
-
-// ProductItemIDLTE applies the LTE predicate on the "product_item_id" field.
-func ProductItemIDLTE(v int) predicate.ShoppingCartItem {
-	return predicate.ShoppingCartItem(sql.FieldLTE(FieldProductItemID, v))
-}
-
 // QuantityEQ applies the EQ predicate on the "quantity" field.
 func QuantityEQ(v int) predicate.ShoppingCartItem {
 	return predicate.ShoppingCartItem(sql.FieldEQ(FieldQuantity, v))
@@ -184,6 +164,29 @@ func HasShoppingCart() predicate.ShoppingCartItem {
 func HasShoppingCartWith(preds ...predicate.ShoppingCart) predicate.ShoppingCartItem {
 	return predicate.ShoppingCartItem(func(s *sql.Selector) {
 		step := newShoppingCartStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProductItem applies the HasEdge predicate on the "product_item" edge.
+func HasProductItem() predicate.ShoppingCartItem {
+	return predicate.ShoppingCartItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ProductItemTable, ProductItemColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProductItemWith applies the HasEdge predicate on the "product_item" edge with a given conditions (other predicates).
+func HasProductItemWith(preds ...predicate.ProductItem) predicate.ShoppingCartItem {
+	return predicate.ShoppingCartItem(func(s *sql.Selector) {
+		step := newProductItemStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

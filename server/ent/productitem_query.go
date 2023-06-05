@@ -10,6 +10,7 @@ import (
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/shoppingcartitem"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -20,15 +21,17 @@ import (
 // ProductItemQuery is the builder for querying ProductItem entities.
 type ProductItemQuery struct {
 	config
-	ctx                *QueryContext
-	order              []productitem.OrderOption
-	inters             []Interceptor
-	predicates         []predicate.ProductItem
-	withProduct        *ProductQuery
-	withOrderLine      *OrderLineQuery
-	modifiers          []func(*sql.Selector)
-	loadTotal          []func(context.Context, []*ProductItem) error
-	withNamedOrderLine map[string]*OrderLineQuery
+	ctx                       *QueryContext
+	order                     []productitem.OrderOption
+	inters                    []Interceptor
+	predicates                []predicate.ProductItem
+	withProduct               *ProductQuery
+	withOrderLine             *OrderLineQuery
+	withShoppingCartItem      *ShoppingCartItemQuery
+	modifiers                 []func(*sql.Selector)
+	loadTotal                 []func(context.Context, []*ProductItem) error
+	withNamedOrderLine        map[string]*OrderLineQuery
+	withNamedShoppingCartItem map[string]*ShoppingCartItemQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -102,6 +105,28 @@ func (piq *ProductItemQuery) QueryOrderLine() *OrderLineQuery {
 			sqlgraph.From(productitem.Table, productitem.FieldID, selector),
 			sqlgraph.To(orderline.Table, orderline.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, productitem.OrderLineTable, productitem.OrderLineColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(piq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryShoppingCartItem chains the current query on the "shopping_cart_item" edge.
+func (piq *ProductItemQuery) QueryShoppingCartItem() *ShoppingCartItemQuery {
+	query := (&ShoppingCartItemClient{config: piq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := piq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := piq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(productitem.Table, productitem.FieldID, selector),
+			sqlgraph.To(shoppingcartitem.Table, shoppingcartitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, productitem.ShoppingCartItemTable, productitem.ShoppingCartItemColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(piq.driver.Dialect(), step)
 		return fromU, nil
@@ -296,13 +321,14 @@ func (piq *ProductItemQuery) Clone() *ProductItemQuery {
 		return nil
 	}
 	return &ProductItemQuery{
-		config:        piq.config,
-		ctx:           piq.ctx.Clone(),
-		order:         append([]productitem.OrderOption{}, piq.order...),
-		inters:        append([]Interceptor{}, piq.inters...),
-		predicates:    append([]predicate.ProductItem{}, piq.predicates...),
-		withProduct:   piq.withProduct.Clone(),
-		withOrderLine: piq.withOrderLine.Clone(),
+		config:               piq.config,
+		ctx:                  piq.ctx.Clone(),
+		order:                append([]productitem.OrderOption{}, piq.order...),
+		inters:               append([]Interceptor{}, piq.inters...),
+		predicates:           append([]predicate.ProductItem{}, piq.predicates...),
+		withProduct:          piq.withProduct.Clone(),
+		withOrderLine:        piq.withOrderLine.Clone(),
+		withShoppingCartItem: piq.withShoppingCartItem.Clone(),
 		// clone intermediate query.
 		sql:  piq.sql.Clone(),
 		path: piq.path,
@@ -328,6 +354,17 @@ func (piq *ProductItemQuery) WithOrderLine(opts ...func(*OrderLineQuery)) *Produ
 		opt(query)
 	}
 	piq.withOrderLine = query
+	return piq
+}
+
+// WithShoppingCartItem tells the query-builder to eager-load the nodes that are connected to
+// the "shopping_cart_item" edge. The optional arguments are used to configure the query builder of the edge.
+func (piq *ProductItemQuery) WithShoppingCartItem(opts ...func(*ShoppingCartItemQuery)) *ProductItemQuery {
+	query := (&ShoppingCartItemClient{config: piq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	piq.withShoppingCartItem = query
 	return piq
 }
 
@@ -409,9 +446,10 @@ func (piq *ProductItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*ProductItem{}
 		_spec       = piq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			piq.withProduct != nil,
 			piq.withOrderLine != nil,
+			piq.withShoppingCartItem != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -448,10 +486,26 @@ func (piq *ProductItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			return nil, err
 		}
 	}
+	if query := piq.withShoppingCartItem; query != nil {
+		if err := piq.loadShoppingCartItem(ctx, query, nodes,
+			func(n *ProductItem) { n.Edges.ShoppingCartItem = []*ShoppingCartItem{} },
+			func(n *ProductItem, e *ShoppingCartItem) {
+				n.Edges.ShoppingCartItem = append(n.Edges.ShoppingCartItem, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range piq.withNamedOrderLine {
 		if err := piq.loadOrderLine(ctx, query, nodes,
 			func(n *ProductItem) { n.appendNamedOrderLine(name) },
 			func(n *ProductItem, e *OrderLine) { n.appendNamedOrderLine(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range piq.withNamedShoppingCartItem {
+		if err := piq.loadShoppingCartItem(ctx, query, nodes,
+			func(n *ProductItem) { n.appendNamedShoppingCartItem(name) },
+			func(n *ProductItem, e *ShoppingCartItem) { n.appendNamedShoppingCartItem(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -518,6 +572,36 @@ func (piq *ProductItemQuery) loadOrderLine(ctx context.Context, query *OrderLine
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "product_item_order_line" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (piq *ProductItemQuery) loadShoppingCartItem(ctx context.Context, query *ShoppingCartItemQuery, nodes []*ProductItem, init func(*ProductItem), assign func(*ProductItem, *ShoppingCartItem)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ProductItem)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(shoppingcartitem.FieldProductItemID)
+	}
+	query.Where(predicate.ShoppingCartItem(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(productitem.ShoppingCartItemColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProductItemID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "product_item_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -622,6 +706,20 @@ func (piq *ProductItemQuery) WithNamedOrderLine(name string, opts ...func(*Order
 		piq.withNamedOrderLine = make(map[string]*OrderLineQuery)
 	}
 	piq.withNamedOrderLine[name] = query
+	return piq
+}
+
+// WithNamedShoppingCartItem tells the query-builder to eager-load the nodes that are connected to the "shopping_cart_item"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (piq *ProductItemQuery) WithNamedShoppingCartItem(name string, opts ...func(*ShoppingCartItemQuery)) *ProductItemQuery {
+	query := (&ShoppingCartItemClient{config: piq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if piq.withNamedShoppingCartItem == nil {
+		piq.withNamedShoppingCartItem = make(map[string]*ShoppingCartItemQuery)
+	}
+	piq.withNamedShoppingCartItem[name] = query
 	return piq
 }
 

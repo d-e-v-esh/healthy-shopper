@@ -56,14 +56,15 @@ func (c *ProductCreate) SetInput(i CreateProductInput) *ProductCreate {
 
 // CreateProductItemInput represents a mutation input for creating productitems.
 type CreateProductItemInput struct {
-	StockKeepingUnit string
-	QuantityInStock  int
-	ProductImage     string
-	Price            float32
-	CreatedAt        *time.Time
-	UpdatedAt        *time.Time
-	ProductID        int
-	OrderLineIDs     []int
+	StockKeepingUnit    string
+	QuantityInStock     int
+	ProductImage        string
+	Price               float32
+	CreatedAt           *time.Time
+	UpdatedAt           *time.Time
+	ProductID           int
+	OrderLineIDs        []int
+	ShoppingCartItemIDs []int
 }
 
 // Mutate applies the CreateProductItemInput on the ProductItemMutation builder.
@@ -81,6 +82,9 @@ func (i *CreateProductItemInput) Mutate(m *ProductItemMutation) {
 	m.SetProductID(i.ProductID)
 	if v := i.OrderLineIDs; len(v) > 0 {
 		m.AddOrderLineIDs(v...)
+	}
+	if v := i.ShoppingCartItemIDs; len(v) > 0 {
+		m.AddShoppingCartItemIDs(v...)
 	}
 }
 

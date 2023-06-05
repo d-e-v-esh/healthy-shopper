@@ -40,6 +40,7 @@ input CreateProductItemInput {
   updatedAt: Time
   productID: ID!
   orderLineIDs: [ID!]
+  shoppingCartItemIDs: [ID!]
 }
 """
 CreateUserAddressInput is used for create UserAddress object.
@@ -161,6 +162,7 @@ type ProductItem implements Node {
   updatedAt: Time
   product: Product!
   orderLine: [OrderLine!]
+  shoppingCartItem: [ShoppingCartItem!]
 }
 type Promotion implements Node {
   id: ID!
@@ -227,9 +229,10 @@ type ShoppingCart implements Node {
 type ShoppingCartItem implements Node {
   id: ID!
   shoppingCartID: ID!
-  productItemID: Int!
+  productItemID: ID!
   quantity: Int!
   shoppingCart: ShoppingCart!
+  productItem: ProductItem!
 }
 """The builtin Time type"""
 scalar Time

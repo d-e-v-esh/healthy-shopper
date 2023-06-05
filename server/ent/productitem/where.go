@@ -456,6 +456,29 @@ func HasOrderLineWith(preds ...predicate.OrderLine) predicate.ProductItem {
 	})
 }
 
+// HasShoppingCartItem applies the HasEdge predicate on the "shopping_cart_item" edge.
+func HasShoppingCartItem() predicate.ProductItem {
+	return predicate.ProductItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ShoppingCartItemTable, ShoppingCartItemColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShoppingCartItemWith applies the HasEdge predicate on the "shopping_cart_item" edge with a given conditions (other predicates).
+func HasShoppingCartItemWith(preds ...predicate.ShoppingCartItem) predicate.ProductItem {
+	return predicate.ProductItem(func(s *sql.Selector) {
+		step := newShoppingCartItemStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ProductItem) predicate.ProductItem {
 	return predicate.ProductItem(func(s *sql.Selector) {

@@ -10,6 +10,7 @@ import (
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
+	"healthyshopper/ent/shoppingcartitem"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -128,6 +129,21 @@ func (piu *ProductItemUpdate) AddOrderLine(o ...*OrderLine) *ProductItemUpdate {
 	return piu.AddOrderLineIDs(ids...)
 }
 
+// AddShoppingCartItemIDs adds the "shopping_cart_item" edge to the ShoppingCartItem entity by IDs.
+func (piu *ProductItemUpdate) AddShoppingCartItemIDs(ids ...int) *ProductItemUpdate {
+	piu.mutation.AddShoppingCartItemIDs(ids...)
+	return piu
+}
+
+// AddShoppingCartItem adds the "shopping_cart_item" edges to the ShoppingCartItem entity.
+func (piu *ProductItemUpdate) AddShoppingCartItem(s ...*ShoppingCartItem) *ProductItemUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return piu.AddShoppingCartItemIDs(ids...)
+}
+
 // Mutation returns the ProductItemMutation object of the builder.
 func (piu *ProductItemUpdate) Mutation() *ProductItemMutation {
 	return piu.mutation
@@ -158,6 +174,27 @@ func (piu *ProductItemUpdate) RemoveOrderLine(o ...*OrderLine) *ProductItemUpdat
 		ids[i] = o[i].ID
 	}
 	return piu.RemoveOrderLineIDs(ids...)
+}
+
+// ClearShoppingCartItem clears all "shopping_cart_item" edges to the ShoppingCartItem entity.
+func (piu *ProductItemUpdate) ClearShoppingCartItem() *ProductItemUpdate {
+	piu.mutation.ClearShoppingCartItem()
+	return piu
+}
+
+// RemoveShoppingCartItemIDs removes the "shopping_cart_item" edge to ShoppingCartItem entities by IDs.
+func (piu *ProductItemUpdate) RemoveShoppingCartItemIDs(ids ...int) *ProductItemUpdate {
+	piu.mutation.RemoveShoppingCartItemIDs(ids...)
+	return piu
+}
+
+// RemoveShoppingCartItem removes "shopping_cart_item" edges to ShoppingCartItem entities.
+func (piu *ProductItemUpdate) RemoveShoppingCartItem(s ...*ShoppingCartItem) *ProductItemUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return piu.RemoveShoppingCartItemIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -328,6 +365,51 @@ func (piu *ProductItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if piu.mutation.ShoppingCartItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.ShoppingCartItemTable,
+			Columns: []string{productitem.ShoppingCartItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piu.mutation.RemovedShoppingCartItemIDs(); len(nodes) > 0 && !piu.mutation.ShoppingCartItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.ShoppingCartItemTable,
+			Columns: []string{productitem.ShoppingCartItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piu.mutation.ShoppingCartItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.ShoppingCartItemTable,
+			Columns: []string{productitem.ShoppingCartItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, piu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{productitem.Label}
@@ -446,6 +528,21 @@ func (piuo *ProductItemUpdateOne) AddOrderLine(o ...*OrderLine) *ProductItemUpda
 	return piuo.AddOrderLineIDs(ids...)
 }
 
+// AddShoppingCartItemIDs adds the "shopping_cart_item" edge to the ShoppingCartItem entity by IDs.
+func (piuo *ProductItemUpdateOne) AddShoppingCartItemIDs(ids ...int) *ProductItemUpdateOne {
+	piuo.mutation.AddShoppingCartItemIDs(ids...)
+	return piuo
+}
+
+// AddShoppingCartItem adds the "shopping_cart_item" edges to the ShoppingCartItem entity.
+func (piuo *ProductItemUpdateOne) AddShoppingCartItem(s ...*ShoppingCartItem) *ProductItemUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return piuo.AddShoppingCartItemIDs(ids...)
+}
+
 // Mutation returns the ProductItemMutation object of the builder.
 func (piuo *ProductItemUpdateOne) Mutation() *ProductItemMutation {
 	return piuo.mutation
@@ -476,6 +573,27 @@ func (piuo *ProductItemUpdateOne) RemoveOrderLine(o ...*OrderLine) *ProductItemU
 		ids[i] = o[i].ID
 	}
 	return piuo.RemoveOrderLineIDs(ids...)
+}
+
+// ClearShoppingCartItem clears all "shopping_cart_item" edges to the ShoppingCartItem entity.
+func (piuo *ProductItemUpdateOne) ClearShoppingCartItem() *ProductItemUpdateOne {
+	piuo.mutation.ClearShoppingCartItem()
+	return piuo
+}
+
+// RemoveShoppingCartItemIDs removes the "shopping_cart_item" edge to ShoppingCartItem entities by IDs.
+func (piuo *ProductItemUpdateOne) RemoveShoppingCartItemIDs(ids ...int) *ProductItemUpdateOne {
+	piuo.mutation.RemoveShoppingCartItemIDs(ids...)
+	return piuo
+}
+
+// RemoveShoppingCartItem removes "shopping_cart_item" edges to ShoppingCartItem entities.
+func (piuo *ProductItemUpdateOne) RemoveShoppingCartItem(s ...*ShoppingCartItem) *ProductItemUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return piuo.RemoveShoppingCartItemIDs(ids...)
 }
 
 // Where appends a list predicates to the ProductItemUpdate builder.
@@ -669,6 +787,51 @@ func (piuo *ProductItemUpdateOne) sqlSave(ctx context.Context) (_node *ProductIt
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if piuo.mutation.ShoppingCartItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.ShoppingCartItemTable,
+			Columns: []string{productitem.ShoppingCartItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piuo.mutation.RemovedShoppingCartItemIDs(); len(nodes) > 0 && !piuo.mutation.ShoppingCartItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.ShoppingCartItemTable,
+			Columns: []string{productitem.ShoppingCartItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := piuo.mutation.ShoppingCartItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   productitem.ShoppingCartItemTable,
+			Columns: []string{productitem.ShoppingCartItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoppingcartitem.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
