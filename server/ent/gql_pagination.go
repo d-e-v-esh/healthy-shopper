@@ -5,8 +5,10 @@ package ent
 import (
 	"context"
 	"errors"
+	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
+	"healthyshopper/ent/useraddress"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
@@ -94,6 +96,254 @@ func paginateLimit(first, last *int) int {
 		limit = *last + 1
 	}
 	return limit
+}
+
+// AddressEdge is the edge representation of Address.
+type AddressEdge struct {
+	Node   *Address `json:"node"`
+	Cursor Cursor   `json:"cursor"`
+}
+
+// AddressConnection is the connection containing edges to Address.
+type AddressConnection struct {
+	Edges      []*AddressEdge `json:"edges"`
+	PageInfo   PageInfo       `json:"pageInfo"`
+	TotalCount int            `json:"totalCount"`
+}
+
+func (c *AddressConnection) build(nodes []*Address, pager *addressPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Address
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Address {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Address {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*AddressEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &AddressEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// AddressPaginateOption enables pagination customization.
+type AddressPaginateOption func(*addressPager) error
+
+// WithAddressOrder configures pagination ordering.
+func WithAddressOrder(order *AddressOrder) AddressPaginateOption {
+	if order == nil {
+		order = DefaultAddressOrder
+	}
+	o := *order
+	return func(pager *addressPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultAddressOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithAddressFilter configures pagination filter.
+func WithAddressFilter(filter func(*AddressQuery) (*AddressQuery, error)) AddressPaginateOption {
+	return func(pager *addressPager) error {
+		if filter == nil {
+			return errors.New("AddressQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type addressPager struct {
+	reverse bool
+	order   *AddressOrder
+	filter  func(*AddressQuery) (*AddressQuery, error)
+}
+
+func newAddressPager(opts []AddressPaginateOption, reverse bool) (*addressPager, error) {
+	pager := &addressPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultAddressOrder
+	}
+	return pager, nil
+}
+
+func (p *addressPager) applyFilter(query *AddressQuery) (*AddressQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *addressPager) toCursor(a *Address) Cursor {
+	return p.order.Field.toCursor(a)
+}
+
+func (p *addressPager) applyCursors(query *AddressQuery, after, before *Cursor) (*AddressQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultAddressOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *addressPager) applyOrder(query *AddressQuery) *AddressQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultAddressOrder.Field {
+		query = query.Order(DefaultAddressOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *addressPager) orderExpr(query *AddressQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultAddressOrder.Field {
+			b.Comma().Ident(DefaultAddressOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Address.
+func (a *AddressQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...AddressPaginateOption,
+) (*AddressConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newAddressPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if a, err = pager.applyFilter(a); err != nil {
+		return nil, err
+	}
+	conn := &AddressConnection{Edges: []*AddressEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := a.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if a, err = pager.applyCursors(a, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		a.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := a.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	a = pager.applyOrder(a)
+	nodes, err := a.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// AddressOrderField defines the ordering field of Address.
+type AddressOrderField struct {
+	// Value extracts the ordering value from the given Address.
+	Value    func(*Address) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) address.OrderOption
+	toCursor func(*Address) Cursor
+}
+
+// AddressOrder defines the ordering of Address.
+type AddressOrder struct {
+	Direction OrderDirection     `json:"direction"`
+	Field     *AddressOrderField `json:"field"`
+}
+
+// DefaultAddressOrder is the default ordering of Address.
+var DefaultAddressOrder = &AddressOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &AddressOrderField{
+		Value: func(a *Address) (ent.Value, error) {
+			return a.ID, nil
+		},
+		column: address.FieldID,
+		toTerm: address.ByID,
+		toCursor: func(a *Address) Cursor {
+			return Cursor{ID: a.ID}
+		},
+	},
+}
+
+// ToEdge converts Address into AddressEdge.
+func (a *Address) ToEdge(order *AddressOrder) *AddressEdge {
+	if order == nil {
+		order = DefaultAddressOrder
+	}
+	return &AddressEdge{
+		Node:   a,
+		Cursor: order.Field.toCursor(a),
+	}
 }
 
 // ProductEdge is the edge representation of Product.
@@ -589,5 +839,253 @@ func (u *User) ToEdge(order *UserOrder) *UserEdge {
 	return &UserEdge{
 		Node:   u,
 		Cursor: order.Field.toCursor(u),
+	}
+}
+
+// UserAddressEdge is the edge representation of UserAddress.
+type UserAddressEdge struct {
+	Node   *UserAddress `json:"node"`
+	Cursor Cursor       `json:"cursor"`
+}
+
+// UserAddressConnection is the connection containing edges to UserAddress.
+type UserAddressConnection struct {
+	Edges      []*UserAddressEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
+}
+
+func (c *UserAddressConnection) build(nodes []*UserAddress, pager *useraddressPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *UserAddress
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *UserAddress {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *UserAddress {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*UserAddressEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &UserAddressEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// UserAddressPaginateOption enables pagination customization.
+type UserAddressPaginateOption func(*useraddressPager) error
+
+// WithUserAddressOrder configures pagination ordering.
+func WithUserAddressOrder(order *UserAddressOrder) UserAddressPaginateOption {
+	if order == nil {
+		order = DefaultUserAddressOrder
+	}
+	o := *order
+	return func(pager *useraddressPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultUserAddressOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithUserAddressFilter configures pagination filter.
+func WithUserAddressFilter(filter func(*UserAddressQuery) (*UserAddressQuery, error)) UserAddressPaginateOption {
+	return func(pager *useraddressPager) error {
+		if filter == nil {
+			return errors.New("UserAddressQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type useraddressPager struct {
+	reverse bool
+	order   *UserAddressOrder
+	filter  func(*UserAddressQuery) (*UserAddressQuery, error)
+}
+
+func newUserAddressPager(opts []UserAddressPaginateOption, reverse bool) (*useraddressPager, error) {
+	pager := &useraddressPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultUserAddressOrder
+	}
+	return pager, nil
+}
+
+func (p *useraddressPager) applyFilter(query *UserAddressQuery) (*UserAddressQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *useraddressPager) toCursor(ua *UserAddress) Cursor {
+	return p.order.Field.toCursor(ua)
+}
+
+func (p *useraddressPager) applyCursors(query *UserAddressQuery, after, before *Cursor) (*UserAddressQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultUserAddressOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *useraddressPager) applyOrder(query *UserAddressQuery) *UserAddressQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultUserAddressOrder.Field {
+		query = query.Order(DefaultUserAddressOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *useraddressPager) orderExpr(query *UserAddressQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultUserAddressOrder.Field {
+			b.Comma().Ident(DefaultUserAddressOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to UserAddress.
+func (ua *UserAddressQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...UserAddressPaginateOption,
+) (*UserAddressConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newUserAddressPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if ua, err = pager.applyFilter(ua); err != nil {
+		return nil, err
+	}
+	conn := &UserAddressConnection{Edges: []*UserAddressEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := ua.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if ua, err = pager.applyCursors(ua, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		ua.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ua.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	ua = pager.applyOrder(ua)
+	nodes, err := ua.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// UserAddressOrderField defines the ordering field of UserAddress.
+type UserAddressOrderField struct {
+	// Value extracts the ordering value from the given UserAddress.
+	Value    func(*UserAddress) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) useraddress.OrderOption
+	toCursor func(*UserAddress) Cursor
+}
+
+// UserAddressOrder defines the ordering of UserAddress.
+type UserAddressOrder struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     *UserAddressOrderField `json:"field"`
+}
+
+// DefaultUserAddressOrder is the default ordering of UserAddress.
+var DefaultUserAddressOrder = &UserAddressOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &UserAddressOrderField{
+		Value: func(ua *UserAddress) (ent.Value, error) {
+			return ua.ID, nil
+		},
+		column: useraddress.FieldID,
+		toTerm: useraddress.ByID,
+		toCursor: func(ua *UserAddress) Cursor {
+			return Cursor{ID: ua.ID}
+		},
+	},
+}
+
+// ToEdge converts UserAddress into UserAddressEdge.
+func (ua *UserAddress) ToEdge(order *UserAddressOrder) *UserAddressEdge {
+	if order == nil {
+		order = DefaultUserAddressOrder
+	}
+	return &UserAddressEdge{
+		Node:   ua,
+		Cursor: order.Field.toCursor(ua),
 	}
 }

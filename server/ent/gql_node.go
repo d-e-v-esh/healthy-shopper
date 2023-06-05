@@ -5,8 +5,10 @@ package ent
 import (
 	"context"
 	"fmt"
+	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
+	"healthyshopper/ent/useraddress"
 	"sync"
 	"sync/atomic"
 
@@ -24,6 +26,11 @@ type Noder interface {
 	IsNode()
 }
 
+var addressImplementors = []string{"Address", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Address) IsNode() {}
+
 var productImplementors = []string{"Product", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
@@ -33,6 +40,11 @@ var userImplementors = []string{"User", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*User) IsNode() {}
+
+var useraddressImplementors = []string{"UserAddress", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*UserAddress) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -92,6 +104,18 @@ func (c *Client) Noder(ctx context.Context, id int, opts ...NodeOption) (_ Noder
 
 func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error) {
 	switch table {
+	case address.Table:
+		query := c.Address.Query().
+			Where(address.ID(id))
+		query, err := query.CollectFields(ctx, addressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case product.Table:
 		query := c.Product.Query().
 			Where(product.ID(id))
@@ -108,6 +132,18 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.User.Query().
 			Where(user.ID(id))
 		query, err := query.CollectFields(ctx, userImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case useraddress.Table:
+		query := c.UserAddress.Query().
+			Where(useraddress.ID(id))
+		query, err := query.CollectFields(ctx, useraddressImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -189,6 +225,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case address.Table:
+		query := c.Address.Query().
+			Where(address.IDIn(ids...))
+		query, err := query.CollectFields(ctx, addressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case product.Table:
 		query := c.Product.Query().
 			Where(product.IDIn(ids...))
@@ -209,6 +261,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.User.Query().
 			Where(user.IDIn(ids...))
 		query, err := query.CollectFields(ctx, userImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case useraddress.Table:
+		query := c.UserAddress.Query().
+			Where(useraddress.IDIn(ids...))
+		query, err := query.CollectFields(ctx, useraddressImplementors...)
 		if err != nil {
 			return nil, err
 		}

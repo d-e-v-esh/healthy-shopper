@@ -6,8 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
+	"healthyshopper/ent/useraddress"
 	"reflect"
 	"sync"
 
@@ -74,8 +76,10 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			product.Table: product.ValidColumn,
-			user.Table:    user.ValidColumn,
+			address.Table:     address.ValidColumn,
+			product.Table:     product.ValidColumn,
+			user.Table:        user.ValidColumn,
+			useraddress.Table: useraddress.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -8,6 +8,24 @@ import (
 )
 
 var (
+	// AddressesColumns holds the columns for the "addresses" table.
+	AddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "address_id", Type: field.TypeInt, Unique: true},
+		{Name: "phone_number", Type: field.TypeString, Size: 20},
+		{Name: "address_line1", Type: field.TypeString, Size: 100},
+		{Name: "address_line2", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "city", Type: field.TypeString, Size: 50},
+		{Name: "state", Type: field.TypeString, Size: 50},
+		{Name: "country", Type: field.TypeString, Size: 50},
+		{Name: "postal_code", Type: field.TypeString, Size: 20},
+	}
+	// AddressesTable holds the schema information for the "addresses" table.
+	AddressesTable = &schema.Table{
+		Name:       "addresses",
+		Columns:    AddressesColumns,
+		PrimaryKey: []*schema.Column{AddressesColumns[0]},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -38,7 +56,7 @@ var (
 		{Name: "first_name", Type: field.TypeString, Size: 50},
 		{Name: "last_name", Type: field.TypeString, Size: 50},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -46,12 +64,43 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// UserAddressesColumns holds the columns for the "user_addresses" table.
+	UserAddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "address_id", Type: field.TypeInt},
+	}
+	// UserAddressesTable holds the schema information for the "user_addresses" table.
+	UserAddressesTable = &schema.Table{
+		Name:       "user_addresses",
+		Columns:    UserAddressesColumns,
+		PrimaryKey: []*schema.Column{UserAddressesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_addresses_users_user_address",
+				Columns:    []*schema.Column{UserAddressesColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "user_addresses_addresses_address",
+				Columns:    []*schema.Column{UserAddressesColumns[3]},
+				RefColumns: []*schema.Column{AddressesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AddressesTable,
 		ProductsTable,
 		UsersTable,
+		UserAddressesTable,
 	}
 )
 
 func init() {
+	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable
+	UserAddressesTable.ForeignKeys[1].RefTable = AddressesTable
 }

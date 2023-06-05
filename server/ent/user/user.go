@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -29,8 +30,17 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeUserAddress holds the string denoting the user_address edge name in mutations.
+	EdgeUserAddress = "user_address"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// UserAddressTable is the table that holds the user_address relation/edge.
+	UserAddressTable = "user_addresses"
+	// UserAddressInverseTable is the table name for the UserAddress entity.
+	// It exists in this package in order to avoid circular dependency with the "useraddress" package.
+	UserAddressInverseTable = "user_addresses"
+	// UserAddressColumn is the table column denoting the user_address relation/edge.
+	UserAddressColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -69,6 +79,8 @@ var (
 	LastNameValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -117,4 +129,25 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByUserAddressCount orders the results by user_address count.
+func ByUserAddressCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserAddressStep(), opts...)
+	}
+}
+
+// ByUserAddress orders the results by user_address terms.
+func ByUserAddress(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserAddressStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newUserAddressStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserAddressInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UserAddressTable, UserAddressColumn),
+	)
 }

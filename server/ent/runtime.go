@@ -3,9 +3,11 @@
 package ent
 
 import (
+	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/schema"
 	"healthyshopper/ent/user"
+	"healthyshopper/ent/useraddress"
 	"time"
 )
 
@@ -13,6 +15,120 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	addressFields := schema.Address{}.Fields()
+	_ = addressFields
+	// addressDescPhoneNumber is the schema descriptor for phone_number field.
+	addressDescPhoneNumber := addressFields[1].Descriptor()
+	// address.PhoneNumberValidator is a validator for the "phone_number" field. It is called by the builders before save.
+	address.PhoneNumberValidator = func() func(string) error {
+		validators := addressDescPhoneNumber.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(phone_number string) error {
+			for _, fn := range fns {
+				if err := fn(phone_number); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// addressDescAddressLine1 is the schema descriptor for address_line1 field.
+	addressDescAddressLine1 := addressFields[2].Descriptor()
+	// address.AddressLine1Validator is a validator for the "address_line1" field. It is called by the builders before save.
+	address.AddressLine1Validator = func() func(string) error {
+		validators := addressDescAddressLine1.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(address_line1 string) error {
+			for _, fn := range fns {
+				if err := fn(address_line1); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// addressDescAddressLine2 is the schema descriptor for address_line2 field.
+	addressDescAddressLine2 := addressFields[3].Descriptor()
+	// address.AddressLine2Validator is a validator for the "address_line2" field. It is called by the builders before save.
+	address.AddressLine2Validator = addressDescAddressLine2.Validators[0].(func(string) error)
+	// addressDescCity is the schema descriptor for city field.
+	addressDescCity := addressFields[4].Descriptor()
+	// address.CityValidator is a validator for the "city" field. It is called by the builders before save.
+	address.CityValidator = func() func(string) error {
+		validators := addressDescCity.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(city string) error {
+			for _, fn := range fns {
+				if err := fn(city); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// addressDescState is the schema descriptor for state field.
+	addressDescState := addressFields[5].Descriptor()
+	// address.StateValidator is a validator for the "state" field. It is called by the builders before save.
+	address.StateValidator = func() func(string) error {
+		validators := addressDescState.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(state string) error {
+			for _, fn := range fns {
+				if err := fn(state); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// addressDescCountry is the schema descriptor for country field.
+	addressDescCountry := addressFields[6].Descriptor()
+	// address.CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	address.CountryValidator = func() func(string) error {
+		validators := addressDescCountry.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country string) error {
+			for _, fn := range fns {
+				if err := fn(country); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// addressDescPostalCode is the schema descriptor for postal_code field.
+	addressDescPostalCode := addressFields[7].Descriptor()
+	// address.PostalCodeValidator is a validator for the "postal_code" field. It is called by the builders before save.
+	address.PostalCodeValidator = func() func(string) error {
+		validators := addressDescPostalCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(postal_code string) error {
+			for _, fn := range fns {
+				if err := fn(postal_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	productFields := schema.Product{}.Fields()
 	_ = productFields
 	// productDescName is the schema descriptor for name field.
@@ -185,4 +301,14 @@ func init() {
 	userDescCreatedAt := userFields[6].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[7].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	useraddressFields := schema.UserAddress{}.Fields()
+	_ = useraddressFields
+	// useraddressDescIsDefault is the schema descriptor for is_default field.
+	useraddressDescIsDefault := useraddressFields[2].Descriptor()
+	// useraddress.DefaultIsDefault holds the default value on creation for the is_default field.
+	useraddress.DefaultIsDefault = useraddressDescIsDefault.Default.(bool)
 }

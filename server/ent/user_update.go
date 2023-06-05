@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/user"
+	"healthyshopper/ent/useraddress"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -99,15 +100,45 @@ func (uu *UserUpdate) SetNillableUpdatedAt(t *time.Time) *UserUpdate {
 	return uu
 }
 
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (uu *UserUpdate) ClearUpdatedAt() *UserUpdate {
-	uu.mutation.ClearUpdatedAt()
+// AddUserAddresIDs adds the "user_address" edge to the UserAddress entity by IDs.
+func (uu *UserUpdate) AddUserAddresIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddUserAddresIDs(ids...)
 	return uu
+}
+
+// AddUserAddress adds the "user_address" edges to the UserAddress entity.
+func (uu *UserUpdate) AddUserAddress(u ...*UserAddress) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.AddUserAddresIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
+}
+
+// ClearUserAddress clears all "user_address" edges to the UserAddress entity.
+func (uu *UserUpdate) ClearUserAddress() *UserUpdate {
+	uu.mutation.ClearUserAddress()
+	return uu
+}
+
+// RemoveUserAddresIDs removes the "user_address" edge to UserAddress entities by IDs.
+func (uu *UserUpdate) RemoveUserAddresIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveUserAddresIDs(ids...)
+	return uu
+}
+
+// RemoveUserAddress removes "user_address" edges to UserAddress entities.
+func (uu *UserUpdate) RemoveUserAddress(u ...*UserAddress) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.RemoveUserAddresIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -206,8 +237,50 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if uu.mutation.UpdatedAtCleared() {
-		_spec.ClearField(user.FieldUpdatedAt, field.TypeTime)
+	if uu.mutation.UserAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserAddressTable,
+			Columns: []string{user.UserAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedUserAddressIDs(); len(nodes) > 0 && !uu.mutation.UserAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserAddressTable,
+			Columns: []string{user.UserAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.UserAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserAddressTable,
+			Columns: []string{user.UserAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -300,15 +373,45 @@ func (uuo *UserUpdateOne) SetNillableUpdatedAt(t *time.Time) *UserUpdateOne {
 	return uuo
 }
 
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (uuo *UserUpdateOne) ClearUpdatedAt() *UserUpdateOne {
-	uuo.mutation.ClearUpdatedAt()
+// AddUserAddresIDs adds the "user_address" edge to the UserAddress entity by IDs.
+func (uuo *UserUpdateOne) AddUserAddresIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddUserAddresIDs(ids...)
 	return uuo
+}
+
+// AddUserAddress adds the "user_address" edges to the UserAddress entity.
+func (uuo *UserUpdateOne) AddUserAddress(u ...*UserAddress) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.AddUserAddresIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
+}
+
+// ClearUserAddress clears all "user_address" edges to the UserAddress entity.
+func (uuo *UserUpdateOne) ClearUserAddress() *UserUpdateOne {
+	uuo.mutation.ClearUserAddress()
+	return uuo
+}
+
+// RemoveUserAddresIDs removes the "user_address" edge to UserAddress entities by IDs.
+func (uuo *UserUpdateOne) RemoveUserAddresIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveUserAddresIDs(ids...)
+	return uuo
+}
+
+// RemoveUserAddress removes "user_address" edges to UserAddress entities.
+func (uuo *UserUpdateOne) RemoveUserAddress(u ...*UserAddress) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.RemoveUserAddresIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -437,8 +540,50 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if uuo.mutation.UpdatedAtCleared() {
-		_spec.ClearField(user.FieldUpdatedAt, field.TypeTime)
+	if uuo.mutation.UserAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserAddressTable,
+			Columns: []string{user.UserAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedUserAddressIDs(); len(nodes) > 0 && !uuo.mutation.UserAddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserAddressTable,
+			Columns: []string{user.UserAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.UserAddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.UserAddressTable,
+			Columns: []string{user.UserAddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(useraddress.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

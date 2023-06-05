@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/user"
+	"healthyshopper/ent/useraddress"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -17,12 +19,14 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx        *QueryContext
-	order      []user.OrderOption
-	inters     []Interceptor
-	predicates []predicate.User
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*User) error
+	ctx                  *QueryContext
+	order                []user.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.User
+	withUserAddress      *UserAddressQuery
+	modifiers            []func(*sql.Selector)
+	loadTotal            []func(context.Context, []*User) error
+	withNamedUserAddress map[string]*UserAddressQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +61,28 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
+}
+
+// QueryUserAddress chains the current query on the "user_address" edge.
+func (uq *UserQuery) QueryUserAddress() *UserAddressQuery {
+	query := (&UserAddressClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(useraddress.Table, useraddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.UserAddressTable, user.UserAddressColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first User entity from the query.
@@ -246,15 +272,27 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		ctx:        uq.ctx.Clone(),
-		order:      append([]user.OrderOption{}, uq.order...),
-		inters:     append([]Interceptor{}, uq.inters...),
-		predicates: append([]predicate.User{}, uq.predicates...),
+		config:          uq.config,
+		ctx:             uq.ctx.Clone(),
+		order:           append([]user.OrderOption{}, uq.order...),
+		inters:          append([]Interceptor{}, uq.inters...),
+		predicates:      append([]predicate.User{}, uq.predicates...),
+		withUserAddress: uq.withUserAddress.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
+}
+
+// WithUserAddress tells the query-builder to eager-load the nodes that are connected to
+// the "user_address" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithUserAddress(opts ...func(*UserAddressQuery)) *UserQuery {
+	query := (&UserAddressClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withUserAddress = query
+	return uq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,8 +371,11 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 
 func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
-		nodes = []*User{}
-		_spec = uq.querySpec()
+		nodes       = []*User{}
+		_spec       = uq.querySpec()
+		loadedTypes = [1]bool{
+			uq.withUserAddress != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
@@ -342,6 +383,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(uq.modifiers) > 0 {
@@ -356,12 +398,57 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := uq.withUserAddress; query != nil {
+		if err := uq.loadUserAddress(ctx, query, nodes,
+			func(n *User) { n.Edges.UserAddress = []*UserAddress{} },
+			func(n *User, e *UserAddress) { n.Edges.UserAddress = append(n.Edges.UserAddress, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range uq.withNamedUserAddress {
+		if err := uq.loadUserAddress(ctx, query, nodes,
+			func(n *User) { n.appendNamedUserAddress(name) },
+			func(n *User, e *UserAddress) { n.appendNamedUserAddress(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range uq.loadTotal {
 		if err := uq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (uq *UserQuery) loadUserAddress(ctx context.Context, query *UserAddressQuery, nodes []*User, init func(*User), assign func(*User, *UserAddress)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(useraddress.FieldUserID)
+	}
+	query.Where(predicate.UserAddress(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.UserAddressColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
@@ -446,6 +533,20 @@ func (uq *UserQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedUserAddress tells the query-builder to eager-load the nodes that are connected to the "user_address"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithNamedUserAddress(name string, opts ...func(*UserAddressQuery)) *UserQuery {
+	query := (&UserAddressClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if uq.withNamedUserAddress == nil {
+		uq.withNamedUserAddress = make(map[string]*UserAddressQuery)
+	}
+	uq.withNamedUserAddress[name] = query
+	return uq
 }
 
 // UserGroupBy is the group-by builder for User entities.

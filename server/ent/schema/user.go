@@ -6,6 +6,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -23,13 +24,15 @@ func (User) Fields() []ent.Field {
 		field.String("first_name").MaxLen(50).NotEmpty(),
 		field.String("last_name").MaxLen(50).NotEmpty(),
 		field.Time("created_at").Default(time.Now),
-		field.Time("updated_at").Optional(),
+		field.Time("updated_at").Default(time.Now),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("user_address", UserAddress.Type),
+	}
 }
 
 func (User) Annotations() []schema.Annotation {

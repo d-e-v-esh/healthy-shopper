@@ -30,6 +30,11 @@ func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
 	return r.client.User.Query().All(ctx)
 }
 
+// UserAddresses is the resolver for the userAddresses field.
+func (r *queryResolver) UserAddresses(ctx context.Context) ([]*ent.UserAddress, error) {
+	panic(fmt.Errorf("not implemented: UserAddresses - userAddresses"))
+}
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 

@@ -46,14 +46,15 @@ func (c *ProductCreate) SetInput(i CreateProductInput) *ProductCreate {
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
-	UserID       int
-	Username     string
-	EmailAddress string
-	Password     string
-	FirstName    string
-	LastName     string
-	CreatedAt    *time.Time
-	UpdatedAt    *time.Time
+	UserID        int
+	Username      string
+	EmailAddress  string
+	Password      string
+	FirstName     string
+	LastName      string
+	CreatedAt     *time.Time
+	UpdatedAt     *time.Time
+	UserAddresIDs []int
 }
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
@@ -70,10 +71,35 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
 	}
+	if v := i.UserAddresIDs; len(v) > 0 {
+		m.AddUserAddresIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateUserInput on the UserCreate builder.
 func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateUserAddressInput represents a mutation input for creating useraddresses.
+type CreateUserAddressInput struct {
+	IsDefault *bool
+	UserID    int
+	AddressID int
+}
+
+// Mutate applies the CreateUserAddressInput on the UserAddressMutation builder.
+func (i *CreateUserAddressInput) Mutate(m *UserAddressMutation) {
+	if v := i.IsDefault; v != nil {
+		m.SetIsDefault(*v)
+	}
+	m.SetUserID(i.UserID)
+	m.SetAddressID(i.AddressID)
+}
+
+// SetInput applies the change-set in the CreateUserAddressInput on the UserAddressCreate builder.
+func (c *UserAddressCreate) SetInput(i CreateUserAddressInput) *UserAddressCreate {
 	i.Mutate(c.Mutation())
 	return c
 }

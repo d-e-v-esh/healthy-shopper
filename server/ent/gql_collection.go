@@ -4,12 +4,125 @@ package ent
 
 import (
 	"context"
+	"healthyshopper/ent/address"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/user"
+	"healthyshopper/ent/useraddress"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 )
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (a *AddressQuery) CollectFields(ctx context.Context, satisfies ...string) (*AddressQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return a, nil
+	}
+	if err := a.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+
+func (a *AddressQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(address.Columns))
+		selectedFields = []string{address.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "userAddress":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserAddressClient{config: a.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, useraddressImplementors)...); err != nil {
+				return err
+			}
+			a.WithNamedUserAddress(alias, func(wq *UserAddressQuery) {
+				*wq = *query
+			})
+		case "addressID":
+			if _, ok := fieldSeen[address.FieldAddressID]; !ok {
+				selectedFields = append(selectedFields, address.FieldAddressID)
+				fieldSeen[address.FieldAddressID] = struct{}{}
+			}
+		case "phoneNumber":
+			if _, ok := fieldSeen[address.FieldPhoneNumber]; !ok {
+				selectedFields = append(selectedFields, address.FieldPhoneNumber)
+				fieldSeen[address.FieldPhoneNumber] = struct{}{}
+			}
+		case "addressLine1":
+			if _, ok := fieldSeen[address.FieldAddressLine1]; !ok {
+				selectedFields = append(selectedFields, address.FieldAddressLine1)
+				fieldSeen[address.FieldAddressLine1] = struct{}{}
+			}
+		case "addressLine2":
+			if _, ok := fieldSeen[address.FieldAddressLine2]; !ok {
+				selectedFields = append(selectedFields, address.FieldAddressLine2)
+				fieldSeen[address.FieldAddressLine2] = struct{}{}
+			}
+		case "city":
+			if _, ok := fieldSeen[address.FieldCity]; !ok {
+				selectedFields = append(selectedFields, address.FieldCity)
+				fieldSeen[address.FieldCity] = struct{}{}
+			}
+		case "state":
+			if _, ok := fieldSeen[address.FieldState]; !ok {
+				selectedFields = append(selectedFields, address.FieldState)
+				fieldSeen[address.FieldState] = struct{}{}
+			}
+		case "country":
+			if _, ok := fieldSeen[address.FieldCountry]; !ok {
+				selectedFields = append(selectedFields, address.FieldCountry)
+				fieldSeen[address.FieldCountry] = struct{}{}
+			}
+		case "postalCode":
+			if _, ok := fieldSeen[address.FieldPostalCode]; !ok {
+				selectedFields = append(selectedFields, address.FieldPostalCode)
+				fieldSeen[address.FieldPostalCode] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		a.Select(selectedFields...)
+	}
+	return nil
+}
+
+type addressPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []AddressPaginateOption
+}
+
+func newAddressPaginateArgs(rv map[string]any) *addressPaginateArgs {
+	args := &addressPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (pr *ProductQuery) CollectFields(ctx context.Context, satisfies ...string) (*ProductQuery, error) {
@@ -141,6 +254,18 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "userAddress":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserAddressClient{config: u.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, useraddressImplementors)...); err != nil {
+				return err
+			}
+			u.WithNamedUserAddress(alias, func(wq *UserAddressQuery) {
+				*wq = *query
+			})
 		case "userID":
 			if _, ok := fieldSeen[user.FieldUserID]; !ok {
 				selectedFields = append(selectedFields, user.FieldUserID)
@@ -201,6 +326,108 @@ type userPaginateArgs struct {
 
 func newUserPaginateArgs(rv map[string]any) *userPaginateArgs {
 	args := &userPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ua *UserAddressQuery) CollectFields(ctx context.Context, satisfies ...string) (*UserAddressQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ua, nil
+	}
+	if err := ua.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ua, nil
+}
+
+func (ua *UserAddressQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(useraddress.Columns))
+		selectedFields = []string{useraddress.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "user":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&UserClient{config: ua.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, userImplementors)...); err != nil {
+				return err
+			}
+			ua.withUser = query
+			if _, ok := fieldSeen[useraddress.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, useraddress.FieldUserID)
+				fieldSeen[useraddress.FieldUserID] = struct{}{}
+			}
+		case "address":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&AddressClient{config: ua.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, addressImplementors)...); err != nil {
+				return err
+			}
+			ua.withAddress = query
+			if _, ok := fieldSeen[useraddress.FieldAddressID]; !ok {
+				selectedFields = append(selectedFields, useraddress.FieldAddressID)
+				fieldSeen[useraddress.FieldAddressID] = struct{}{}
+			}
+		case "userID":
+			if _, ok := fieldSeen[useraddress.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, useraddress.FieldUserID)
+				fieldSeen[useraddress.FieldUserID] = struct{}{}
+			}
+		case "addressID":
+			if _, ok := fieldSeen[useraddress.FieldAddressID]; !ok {
+				selectedFields = append(selectedFields, useraddress.FieldAddressID)
+				fieldSeen[useraddress.FieldAddressID] = struct{}{}
+			}
+		case "isDefault":
+			if _, ok := fieldSeen[useraddress.FieldIsDefault]; !ok {
+				selectedFields = append(selectedFields, useraddress.FieldIsDefault)
+				fieldSeen[useraddress.FieldIsDefault] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ua.Select(selectedFields...)
+	}
+	return nil
+}
+
+type useraddressPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []UserAddressPaginateOption
+}
+
+func newUserAddressPaginateArgs(rv map[string]any) *useraddressPaginateArgs {
+	args := &useraddressPaginateArgs{}
 	if rv == nil {
 		return args
 	}
