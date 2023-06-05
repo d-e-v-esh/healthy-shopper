@@ -192,6 +192,7 @@ type ShippingMethod implements Node {
   id: ID!
   shippingMethod: String!
   shippingCost: Float!
+  shopOrder: [ShopOrder!]
 }
 type ShopOrder implements Node {
   id: ID!
@@ -200,9 +201,10 @@ type ShopOrder implements Node {
   totalPrice: Float!
   userID: ID!
   shippingAddressID: ID!
-  shippingMethodID: Int!
+  shippingMethodID: ID!
   orderStatusID: Int!
   user: User!
+  shippingMethod: ShippingMethod!
   shippingAddress: ShippingAddress!
 }
 type ShoppingCart implements Node {

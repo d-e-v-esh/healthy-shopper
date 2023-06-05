@@ -1640,6 +1640,22 @@ func (c *ShippingMethodClient) GetX(ctx context.Context, id int) *ShippingMethod
 	return obj
 }
 
+// QueryShopOrder queries the shop_order edge of a ShippingMethod.
+func (c *ShippingMethodClient) QueryShopOrder(sm *ShippingMethod) *ShopOrderQuery {
+	query := (&ShopOrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingmethod.Table, shippingmethod.FieldID, id),
+			sqlgraph.To(shoporder.Table, shoporder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingmethod.ShopOrderTable, shippingmethod.ShopOrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(sm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ShippingMethodClient) Hooks() []Hook {
 	return c.hooks.ShippingMethod
@@ -1767,6 +1783,22 @@ func (c *ShopOrderClient) QueryUser(so *ShopOrder) *UserQuery {
 			sqlgraph.From(shoporder.Table, shoporder.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, shoporder.UserTable, shoporder.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(so.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryShippingMethod queries the shipping_method edge of a ShopOrder.
+func (c *ShopOrderClient) QueryShippingMethod(so *ShopOrder) *ShippingMethodQuery {
+	query := (&ShippingMethodClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := so.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shoporder.Table, shoporder.FieldID, id),
+			sqlgraph.To(shippingmethod.Table, shippingmethod.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, shoporder.ShippingMethodTable, shoporder.ShippingMethodColumn),
 		)
 		fromV = sqlgraph.Neighbors(so.driver.Dialect(), step)
 		return fromV, nil

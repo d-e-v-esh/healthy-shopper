@@ -295,26 +295,6 @@ func ShippingMethodIDNotIn(vs ...int) predicate.ShopOrder {
 	return predicate.ShopOrder(sql.FieldNotIn(FieldShippingMethodID, vs...))
 }
 
-// ShippingMethodIDGT applies the GT predicate on the "shipping_method_id" field.
-func ShippingMethodIDGT(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldGT(FieldShippingMethodID, v))
-}
-
-// ShippingMethodIDGTE applies the GTE predicate on the "shipping_method_id" field.
-func ShippingMethodIDGTE(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldGTE(FieldShippingMethodID, v))
-}
-
-// ShippingMethodIDLT applies the LT predicate on the "shipping_method_id" field.
-func ShippingMethodIDLT(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldLT(FieldShippingMethodID, v))
-}
-
-// ShippingMethodIDLTE applies the LTE predicate on the "shipping_method_id" field.
-func ShippingMethodIDLTE(v int) predicate.ShopOrder {
-	return predicate.ShopOrder(sql.FieldLTE(FieldShippingMethodID, v))
-}
-
 // OrderStatusIDEQ applies the EQ predicate on the "order_status_id" field.
 func OrderStatusIDEQ(v int) predicate.ShopOrder {
 	return predicate.ShopOrder(sql.FieldEQ(FieldOrderStatusID, v))
@@ -370,6 +350,29 @@ func HasUser() predicate.ShopOrder {
 func HasUserWith(preds ...predicate.User) predicate.ShopOrder {
 	return predicate.ShopOrder(func(s *sql.Selector) {
 		step := newUserStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasShippingMethod applies the HasEdge predicate on the "shipping_method" edge.
+func HasShippingMethod() predicate.ShopOrder {
+	return predicate.ShopOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, ShippingMethodTable, ShippingMethodColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShippingMethodWith applies the HasEdge predicate on the "shipping_method" edge with a given conditions (other predicates).
+func HasShippingMethodWith(preds ...predicate.ShippingMethod) predicate.ShopOrder {
+	return predicate.ShopOrder(func(s *sql.Selector) {
+		step := newShippingMethodStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

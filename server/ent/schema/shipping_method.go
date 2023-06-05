@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -20,5 +21,7 @@ func (ShippingMethod) Fields() []ent.Field {
 
 // Edges of the ShippingMethod.
 func (ShippingMethod) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("shop_order", ShopOrder.Type),
+	}
 }

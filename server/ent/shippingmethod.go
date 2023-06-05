@@ -20,7 +20,32 @@ type ShippingMethod struct {
 	ShippingMethod string `json:"shipping_method,omitempty"`
 	// ShippingCost holds the value of the "shipping_cost" field.
 	ShippingCost float64 `json:"shipping_cost,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ShippingMethodQuery when eager-loading is set.
+	Edges        ShippingMethodEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// ShippingMethodEdges holds the relations/edges for other nodes in the graph.
+type ShippingMethodEdges struct {
+	// ShopOrder holds the value of the shop_order edge.
+	ShopOrder []*ShopOrder `json:"shop_order,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedShopOrder map[string][]*ShopOrder
+}
+
+// ShopOrderOrErr returns the ShopOrder value or an error if the edge
+// was not loaded in eager-loading.
+func (e ShippingMethodEdges) ShopOrderOrErr() ([]*ShopOrder, error) {
+	if e.loadedTypes[0] {
+		return e.ShopOrder, nil
+	}
+	return nil, &NotLoadedError{edge: "shop_order"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -80,6 +105,11 @@ func (sm *ShippingMethod) Value(name string) (ent.Value, error) {
 	return sm.selectValues.Get(name)
 }
 
+// QueryShopOrder queries the "shop_order" edge of the ShippingMethod entity.
+func (sm *ShippingMethod) QueryShopOrder() *ShopOrderQuery {
+	return NewShippingMethodClient(sm.config).QueryShopOrder(sm)
+}
+
 // Update returns a builder for updating this ShippingMethod.
 // Note that you need to call ShippingMethod.Unwrap() before calling this method if this ShippingMethod
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -110,6 +140,30 @@ func (sm *ShippingMethod) String() string {
 	builder.WriteString(fmt.Sprintf("%v", sm.ShippingCost))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedShopOrder returns the ShopOrder named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (sm *ShippingMethod) NamedShopOrder(name string) ([]*ShopOrder, error) {
+	if sm.Edges.namedShopOrder == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := sm.Edges.namedShopOrder[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (sm *ShippingMethod) appendNamedShopOrder(name string, edges ...*ShopOrder) {
+	if sm.Edges.namedShopOrder == nil {
+		sm.Edges.namedShopOrder = make(map[string][]*ShopOrder)
+	}
+	if len(edges) == 0 {
+		sm.Edges.namedShopOrder[name] = []*ShopOrder{}
+	} else {
+		sm.Edges.namedShopOrder[name] = append(sm.Edges.namedShopOrder[name], edges...)
+	}
 }
 
 // ShippingMethods is a parsable slice of ShippingMethod.

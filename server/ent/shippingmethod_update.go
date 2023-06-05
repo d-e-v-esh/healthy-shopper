@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -46,9 +47,45 @@ func (smu *ShippingMethodUpdate) AddShippingCost(f float64) *ShippingMethodUpdat
 	return smu
 }
 
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (smu *ShippingMethodUpdate) AddShopOrderIDs(ids ...int) *ShippingMethodUpdate {
+	smu.mutation.AddShopOrderIDs(ids...)
+	return smu
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (smu *ShippingMethodUpdate) AddShopOrder(s ...*ShopOrder) *ShippingMethodUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return smu.AddShopOrderIDs(ids...)
+}
+
 // Mutation returns the ShippingMethodMutation object of the builder.
 func (smu *ShippingMethodUpdate) Mutation() *ShippingMethodMutation {
 	return smu.mutation
+}
+
+// ClearShopOrder clears all "shop_order" edges to the ShopOrder entity.
+func (smu *ShippingMethodUpdate) ClearShopOrder() *ShippingMethodUpdate {
+	smu.mutation.ClearShopOrder()
+	return smu
+}
+
+// RemoveShopOrderIDs removes the "shop_order" edge to ShopOrder entities by IDs.
+func (smu *ShippingMethodUpdate) RemoveShopOrderIDs(ids ...int) *ShippingMethodUpdate {
+	smu.mutation.RemoveShopOrderIDs(ids...)
+	return smu
+}
+
+// RemoveShopOrder removes "shop_order" edges to ShopOrder entities.
+func (smu *ShippingMethodUpdate) RemoveShopOrder(s ...*ShopOrder) *ShippingMethodUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return smu.RemoveShopOrderIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -114,6 +151,51 @@ func (smu *ShippingMethodUpdate) sqlSave(ctx context.Context) (n int, err error)
 	if value, ok := smu.mutation.AddedShippingCost(); ok {
 		_spec.AddField(shippingmethod.FieldShippingCost, field.TypeFloat64, value)
 	}
+	if smu.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingmethod.ShopOrderTable,
+			Columns: []string{shippingmethod.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := smu.mutation.RemovedShopOrderIDs(); len(nodes) > 0 && !smu.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingmethod.ShopOrderTable,
+			Columns: []string{shippingmethod.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := smu.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingmethod.ShopOrderTable,
+			Columns: []string{shippingmethod.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, smu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{shippingmethod.Label}
@@ -153,9 +235,45 @@ func (smuo *ShippingMethodUpdateOne) AddShippingCost(f float64) *ShippingMethodU
 	return smuo
 }
 
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (smuo *ShippingMethodUpdateOne) AddShopOrderIDs(ids ...int) *ShippingMethodUpdateOne {
+	smuo.mutation.AddShopOrderIDs(ids...)
+	return smuo
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (smuo *ShippingMethodUpdateOne) AddShopOrder(s ...*ShopOrder) *ShippingMethodUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return smuo.AddShopOrderIDs(ids...)
+}
+
 // Mutation returns the ShippingMethodMutation object of the builder.
 func (smuo *ShippingMethodUpdateOne) Mutation() *ShippingMethodMutation {
 	return smuo.mutation
+}
+
+// ClearShopOrder clears all "shop_order" edges to the ShopOrder entity.
+func (smuo *ShippingMethodUpdateOne) ClearShopOrder() *ShippingMethodUpdateOne {
+	smuo.mutation.ClearShopOrder()
+	return smuo
+}
+
+// RemoveShopOrderIDs removes the "shop_order" edge to ShopOrder entities by IDs.
+func (smuo *ShippingMethodUpdateOne) RemoveShopOrderIDs(ids ...int) *ShippingMethodUpdateOne {
+	smuo.mutation.RemoveShopOrderIDs(ids...)
+	return smuo
+}
+
+// RemoveShopOrder removes "shop_order" edges to ShopOrder entities.
+func (smuo *ShippingMethodUpdateOne) RemoveShopOrder(s ...*ShopOrder) *ShippingMethodUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return smuo.RemoveShopOrderIDs(ids...)
 }
 
 // Where appends a list predicates to the ShippingMethodUpdate builder.
@@ -250,6 +368,51 @@ func (smuo *ShippingMethodUpdateOne) sqlSave(ctx context.Context) (_node *Shippi
 	}
 	if value, ok := smuo.mutation.AddedShippingCost(); ok {
 		_spec.AddField(shippingmethod.FieldShippingCost, field.TypeFloat64, value)
+	}
+	if smuo.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingmethod.ShopOrderTable,
+			Columns: []string{shippingmethod.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := smuo.mutation.RemovedShopOrderIDs(); len(nodes) > 0 && !smuo.mutation.ShopOrderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingmethod.ShopOrderTable,
+			Columns: []string{shippingmethod.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := smuo.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingmethod.ShopOrderTable,
+			Columns: []string{shippingmethod.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &ShippingMethod{config: smuo.config}
 	_spec.Assign = _node.assignValues

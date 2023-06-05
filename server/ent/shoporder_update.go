@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
 	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/user"
 	"time"
@@ -77,14 +78,7 @@ func (sou *ShopOrderUpdate) SetShippingAddressID(i int) *ShopOrderUpdate {
 
 // SetShippingMethodID sets the "shipping_method_id" field.
 func (sou *ShopOrderUpdate) SetShippingMethodID(i int) *ShopOrderUpdate {
-	sou.mutation.ResetShippingMethodID()
 	sou.mutation.SetShippingMethodID(i)
-	return sou
-}
-
-// AddShippingMethodID adds i to the "shipping_method_id" field.
-func (sou *ShopOrderUpdate) AddShippingMethodID(i int) *ShopOrderUpdate {
-	sou.mutation.AddShippingMethodID(i)
 	return sou
 }
 
@@ -106,6 +100,11 @@ func (sou *ShopOrderUpdate) SetUser(u *User) *ShopOrderUpdate {
 	return sou.SetUserID(u.ID)
 }
 
+// SetShippingMethod sets the "shipping_method" edge to the ShippingMethod entity.
+func (sou *ShopOrderUpdate) SetShippingMethod(s *ShippingMethod) *ShopOrderUpdate {
+	return sou.SetShippingMethodID(s.ID)
+}
+
 // SetShippingAddress sets the "shipping_address" edge to the ShippingAddress entity.
 func (sou *ShopOrderUpdate) SetShippingAddress(s *ShippingAddress) *ShopOrderUpdate {
 	return sou.SetShippingAddressID(s.ID)
@@ -119,6 +118,12 @@ func (sou *ShopOrderUpdate) Mutation() *ShopOrderMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (sou *ShopOrderUpdate) ClearUser() *ShopOrderUpdate {
 	sou.mutation.ClearUser()
+	return sou
+}
+
+// ClearShippingMethod clears the "shipping_method" edge to the ShippingMethod entity.
+func (sou *ShopOrderUpdate) ClearShippingMethod() *ShopOrderUpdate {
+	sou.mutation.ClearShippingMethod()
 	return sou
 }
 
@@ -170,6 +175,9 @@ func (sou *ShopOrderUpdate) check() error {
 	if _, ok := sou.mutation.UserID(); sou.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShopOrder.user"`)
 	}
+	if _, ok := sou.mutation.ShippingMethodID(); sou.mutation.ShippingMethodCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ShopOrder.shipping_method"`)
+	}
 	if _, ok := sou.mutation.ShippingAddressID(); sou.mutation.ShippingAddressCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShopOrder.shipping_address"`)
 	}
@@ -200,12 +208,6 @@ func (sou *ShopOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := sou.mutation.AddedTotalPrice(); ok {
 		_spec.AddField(shoporder.FieldTotalPrice, field.TypeFloat64, value)
 	}
-	if value, ok := sou.mutation.ShippingMethodID(); ok {
-		_spec.SetField(shoporder.FieldShippingMethodID, field.TypeInt, value)
-	}
-	if value, ok := sou.mutation.AddedShippingMethodID(); ok {
-		_spec.AddField(shoporder.FieldShippingMethodID, field.TypeInt, value)
-	}
 	if value, ok := sou.mutation.OrderStatusID(); ok {
 		_spec.SetField(shoporder.FieldOrderStatusID, field.TypeInt, value)
 	}
@@ -234,6 +236,35 @@ func (sou *ShopOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if sou.mutation.ShippingMethodCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.ShippingMethodTable,
+			Columns: []string{shoporder.ShippingMethodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingmethod.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := sou.mutation.ShippingMethodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.ShippingMethodTable,
+			Columns: []string{shoporder.ShippingMethodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingmethod.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -337,14 +368,7 @@ func (souo *ShopOrderUpdateOne) SetShippingAddressID(i int) *ShopOrderUpdateOne 
 
 // SetShippingMethodID sets the "shipping_method_id" field.
 func (souo *ShopOrderUpdateOne) SetShippingMethodID(i int) *ShopOrderUpdateOne {
-	souo.mutation.ResetShippingMethodID()
 	souo.mutation.SetShippingMethodID(i)
-	return souo
-}
-
-// AddShippingMethodID adds i to the "shipping_method_id" field.
-func (souo *ShopOrderUpdateOne) AddShippingMethodID(i int) *ShopOrderUpdateOne {
-	souo.mutation.AddShippingMethodID(i)
 	return souo
 }
 
@@ -366,6 +390,11 @@ func (souo *ShopOrderUpdateOne) SetUser(u *User) *ShopOrderUpdateOne {
 	return souo.SetUserID(u.ID)
 }
 
+// SetShippingMethod sets the "shipping_method" edge to the ShippingMethod entity.
+func (souo *ShopOrderUpdateOne) SetShippingMethod(s *ShippingMethod) *ShopOrderUpdateOne {
+	return souo.SetShippingMethodID(s.ID)
+}
+
 // SetShippingAddress sets the "shipping_address" edge to the ShippingAddress entity.
 func (souo *ShopOrderUpdateOne) SetShippingAddress(s *ShippingAddress) *ShopOrderUpdateOne {
 	return souo.SetShippingAddressID(s.ID)
@@ -379,6 +408,12 @@ func (souo *ShopOrderUpdateOne) Mutation() *ShopOrderMutation {
 // ClearUser clears the "user" edge to the User entity.
 func (souo *ShopOrderUpdateOne) ClearUser() *ShopOrderUpdateOne {
 	souo.mutation.ClearUser()
+	return souo
+}
+
+// ClearShippingMethod clears the "shipping_method" edge to the ShippingMethod entity.
+func (souo *ShopOrderUpdateOne) ClearShippingMethod() *ShopOrderUpdateOne {
+	souo.mutation.ClearShippingMethod()
 	return souo
 }
 
@@ -443,6 +478,9 @@ func (souo *ShopOrderUpdateOne) check() error {
 	if _, ok := souo.mutation.UserID(); souo.mutation.UserCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShopOrder.user"`)
 	}
+	if _, ok := souo.mutation.ShippingMethodID(); souo.mutation.ShippingMethodCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "ShopOrder.shipping_method"`)
+	}
 	if _, ok := souo.mutation.ShippingAddressID(); souo.mutation.ShippingAddressCleared() && !ok {
 		return errors.New(`ent: clearing a required unique edge "ShopOrder.shipping_address"`)
 	}
@@ -490,12 +528,6 @@ func (souo *ShopOrderUpdateOne) sqlSave(ctx context.Context) (_node *ShopOrder, 
 	if value, ok := souo.mutation.AddedTotalPrice(); ok {
 		_spec.AddField(shoporder.FieldTotalPrice, field.TypeFloat64, value)
 	}
-	if value, ok := souo.mutation.ShippingMethodID(); ok {
-		_spec.SetField(shoporder.FieldShippingMethodID, field.TypeInt, value)
-	}
-	if value, ok := souo.mutation.AddedShippingMethodID(); ok {
-		_spec.AddField(shoporder.FieldShippingMethodID, field.TypeInt, value)
-	}
 	if value, ok := souo.mutation.OrderStatusID(); ok {
 		_spec.SetField(shoporder.FieldOrderStatusID, field.TypeInt, value)
 	}
@@ -524,6 +556,35 @@ func (souo *ShopOrderUpdateOne) sqlSave(ctx context.Context) (_node *ShopOrder, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if souo.mutation.ShippingMethodCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.ShippingMethodTable,
+			Columns: []string{shoporder.ShippingMethodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingmethod.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := souo.mutation.ShippingMethodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.ShippingMethodTable,
+			Columns: []string{shoporder.ShippingMethodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingmethod.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

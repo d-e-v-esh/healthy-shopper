@@ -6,6 +6,7 @@ import (
 	"healthyshopper/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -166,6 +167,29 @@ func ShippingCostLT(v float64) predicate.ShippingMethod {
 // ShippingCostLTE applies the LTE predicate on the "shipping_cost" field.
 func ShippingCostLTE(v float64) predicate.ShippingMethod {
 	return predicate.ShippingMethod(sql.FieldLTE(FieldShippingCost, v))
+}
+
+// HasShopOrder applies the HasEdge predicate on the "shop_order" edge.
+func HasShopOrder() predicate.ShippingMethod {
+	return predicate.ShippingMethod(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ShopOrderTable, ShopOrderColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasShopOrderWith applies the HasEdge predicate on the "shop_order" edge with a given conditions (other predicates).
+func HasShopOrderWith(preds ...predicate.ShopOrder) predicate.ShippingMethod {
+	return predicate.ShippingMethod(func(s *sql.Selector) {
+		step := newShopOrderStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

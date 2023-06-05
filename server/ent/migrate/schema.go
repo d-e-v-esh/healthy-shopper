@@ -192,8 +192,8 @@ var (
 		{Name: "order_date_and_time", Type: field.TypeTime},
 		{Name: "payment_method", Type: field.TypeString, Size: 20},
 		{Name: "total_price", Type: field.TypeFloat64},
-		{Name: "shipping_method_id", Type: field.TypeInt, Unique: true},
 		{Name: "order_status_id", Type: field.TypeInt, Unique: true},
+		{Name: "shipping_method_id", Type: field.TypeInt},
 		{Name: "shipping_address_id", Type: field.TypeInt},
 		{Name: "user_id", Type: field.TypeInt},
 	}
@@ -203,6 +203,12 @@ var (
 		Columns:    ShopOrdersColumns,
 		PrimaryKey: []*schema.Column{ShopOrdersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "shop_orders_shipping_methods_shop_order",
+				Columns:    []*schema.Column{ShopOrdersColumns[5]},
+				RefColumns: []*schema.Column{ShippingMethodsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
 			{
 				Symbol:     "shop_orders_shipping_addresses_shipping_address",
 				Columns:    []*schema.Column{ShopOrdersColumns[6]},
@@ -351,8 +357,9 @@ func init() {
 	ProductsTable.ForeignKeys[0].RefTable = PromotionsTable
 	ProductsTable.ForeignKeys[1].RefTable = NutritionalInformationsTable
 	ProductItemsTable.ForeignKeys[0].RefTable = ProductsTable
-	ShopOrdersTable.ForeignKeys[0].RefTable = ShippingAddressesTable
-	ShopOrdersTable.ForeignKeys[1].RefTable = UsersTable
+	ShopOrdersTable.ForeignKeys[0].RefTable = ShippingMethodsTable
+	ShopOrdersTable.ForeignKeys[1].RefTable = ShippingAddressesTable
+	ShopOrdersTable.ForeignKeys[2].RefTable = UsersTable
 	ShoppingCartsTable.ForeignKeys[0].RefTable = UsersTable
 	ShoppingCartItemsTable.ForeignKeys[0].RefTable = ShoppingCartsTable
 	UserAddressesTable.ForeignKeys[0].RefTable = UsersTable

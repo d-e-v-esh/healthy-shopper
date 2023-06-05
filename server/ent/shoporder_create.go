@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
 	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/user"
 	"time"
@@ -75,6 +76,11 @@ func (soc *ShopOrderCreate) SetOrderStatusID(i int) *ShopOrderCreate {
 // SetUser sets the "user" edge to the User entity.
 func (soc *ShopOrderCreate) SetUser(u *User) *ShopOrderCreate {
 	return soc.SetUserID(u.ID)
+}
+
+// SetShippingMethod sets the "shipping_method" edge to the ShippingMethod entity.
+func (soc *ShopOrderCreate) SetShippingMethod(s *ShippingMethod) *ShopOrderCreate {
+	return soc.SetShippingMethodID(s.ID)
 }
 
 // SetShippingAddress sets the "shipping_address" edge to the ShippingAddress entity.
@@ -159,6 +165,9 @@ func (soc *ShopOrderCreate) check() error {
 	if _, ok := soc.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "ShopOrder.user"`)}
 	}
+	if _, ok := soc.mutation.ShippingMethodID(); !ok {
+		return &ValidationError{Name: "shipping_method", err: errors.New(`ent: missing required edge "ShopOrder.shipping_method"`)}
+	}
 	if _, ok := soc.mutation.ShippingAddressID(); !ok {
 		return &ValidationError{Name: "shipping_address", err: errors.New(`ent: missing required edge "ShopOrder.shipping_address"`)}
 	}
@@ -200,10 +209,6 @@ func (soc *ShopOrderCreate) createSpec() (*ShopOrder, *sqlgraph.CreateSpec) {
 		_spec.SetField(shoporder.FieldTotalPrice, field.TypeFloat64, value)
 		_node.TotalPrice = value
 	}
-	if value, ok := soc.mutation.ShippingMethodID(); ok {
-		_spec.SetField(shoporder.FieldShippingMethodID, field.TypeInt, value)
-		_node.ShippingMethodID = value
-	}
 	if value, ok := soc.mutation.OrderStatusID(); ok {
 		_spec.SetField(shoporder.FieldOrderStatusID, field.TypeInt, value)
 		_node.OrderStatusID = value
@@ -223,6 +228,23 @@ func (soc *ShopOrderCreate) createSpec() (*ShopOrder, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := soc.mutation.ShippingMethodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   shoporder.ShippingMethodTable,
+			Columns: []string{shoporder.ShippingMethodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shippingmethod.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.ShippingMethodID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := soc.mutation.ShippingAddressIDs(); len(nodes) > 0 {

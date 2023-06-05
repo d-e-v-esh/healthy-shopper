@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -17,12 +19,14 @@ import (
 // ShippingMethodQuery is the builder for querying ShippingMethod entities.
 type ShippingMethodQuery struct {
 	config
-	ctx        *QueryContext
-	order      []shippingmethod.OrderOption
-	inters     []Interceptor
-	predicates []predicate.ShippingMethod
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*ShippingMethod) error
+	ctx                *QueryContext
+	order              []shippingmethod.OrderOption
+	inters             []Interceptor
+	predicates         []predicate.ShippingMethod
+	withShopOrder      *ShopOrderQuery
+	modifiers          []func(*sql.Selector)
+	loadTotal          []func(context.Context, []*ShippingMethod) error
+	withNamedShopOrder map[string]*ShopOrderQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +61,28 @@ func (smq *ShippingMethodQuery) Unique(unique bool) *ShippingMethodQuery {
 func (smq *ShippingMethodQuery) Order(o ...shippingmethod.OrderOption) *ShippingMethodQuery {
 	smq.order = append(smq.order, o...)
 	return smq
+}
+
+// QueryShopOrder chains the current query on the "shop_order" edge.
+func (smq *ShippingMethodQuery) QueryShopOrder() *ShopOrderQuery {
+	query := (&ShopOrderClient{config: smq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := smq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := smq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(shippingmethod.Table, shippingmethod.FieldID, selector),
+			sqlgraph.To(shoporder.Table, shoporder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, shippingmethod.ShopOrderTable, shippingmethod.ShopOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(smq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first ShippingMethod entity from the query.
@@ -246,15 +272,27 @@ func (smq *ShippingMethodQuery) Clone() *ShippingMethodQuery {
 		return nil
 	}
 	return &ShippingMethodQuery{
-		config:     smq.config,
-		ctx:        smq.ctx.Clone(),
-		order:      append([]shippingmethod.OrderOption{}, smq.order...),
-		inters:     append([]Interceptor{}, smq.inters...),
-		predicates: append([]predicate.ShippingMethod{}, smq.predicates...),
+		config:        smq.config,
+		ctx:           smq.ctx.Clone(),
+		order:         append([]shippingmethod.OrderOption{}, smq.order...),
+		inters:        append([]Interceptor{}, smq.inters...),
+		predicates:    append([]predicate.ShippingMethod{}, smq.predicates...),
+		withShopOrder: smq.withShopOrder.Clone(),
 		// clone intermediate query.
 		sql:  smq.sql.Clone(),
 		path: smq.path,
 	}
+}
+
+// WithShopOrder tells the query-builder to eager-load the nodes that are connected to
+// the "shop_order" edge. The optional arguments are used to configure the query builder of the edge.
+func (smq *ShippingMethodQuery) WithShopOrder(opts ...func(*ShopOrderQuery)) *ShippingMethodQuery {
+	query := (&ShopOrderClient{config: smq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	smq.withShopOrder = query
+	return smq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,8 +371,11 @@ func (smq *ShippingMethodQuery) prepareQuery(ctx context.Context) error {
 
 func (smq *ShippingMethodQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ShippingMethod, error) {
 	var (
-		nodes = []*ShippingMethod{}
-		_spec = smq.querySpec()
+		nodes       = []*ShippingMethod{}
+		_spec       = smq.querySpec()
+		loadedTypes = [1]bool{
+			smq.withShopOrder != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ShippingMethod).scanValues(nil, columns)
@@ -342,6 +383,7 @@ func (smq *ShippingMethodQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &ShippingMethod{config: smq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(smq.modifiers) > 0 {
@@ -356,12 +398,57 @@ func (smq *ShippingMethodQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := smq.withShopOrder; query != nil {
+		if err := smq.loadShopOrder(ctx, query, nodes,
+			func(n *ShippingMethod) { n.Edges.ShopOrder = []*ShopOrder{} },
+			func(n *ShippingMethod, e *ShopOrder) { n.Edges.ShopOrder = append(n.Edges.ShopOrder, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range smq.withNamedShopOrder {
+		if err := smq.loadShopOrder(ctx, query, nodes,
+			func(n *ShippingMethod) { n.appendNamedShopOrder(name) },
+			func(n *ShippingMethod, e *ShopOrder) { n.appendNamedShopOrder(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range smq.loadTotal {
 		if err := smq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (smq *ShippingMethodQuery) loadShopOrder(ctx context.Context, query *ShopOrderQuery, nodes []*ShippingMethod, init func(*ShippingMethod), assign func(*ShippingMethod, *ShopOrder)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ShippingMethod)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(shoporder.FieldShippingMethodID)
+	}
+	query.Where(predicate.ShopOrder(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(shippingmethod.ShopOrderColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ShippingMethodID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "shipping_method_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (smq *ShippingMethodQuery) sqlCount(ctx context.Context) (int, error) {
@@ -446,6 +533,20 @@ func (smq *ShippingMethodQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedShopOrder tells the query-builder to eager-load the nodes that are connected to the "shop_order"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (smq *ShippingMethodQuery) WithNamedShopOrder(name string, opts ...func(*ShopOrderQuery)) *ShippingMethodQuery {
+	query := (&ShopOrderClient{config: smq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if smq.withNamedShopOrder == nil {
+		smq.withNamedShopOrder = make(map[string]*ShopOrderQuery)
+	}
+	smq.withNamedShopOrder[name] = query
+	return smq
 }
 
 // ShippingMethodGroupBy is the group-by builder for ShippingMethod entities.

@@ -30,6 +30,8 @@ const (
 	FieldOrderStatusID = "order_status_id"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeShippingMethod holds the string denoting the shipping_method edge name in mutations.
+	EdgeShippingMethod = "shipping_method"
 	// EdgeShippingAddress holds the string denoting the shipping_address edge name in mutations.
 	EdgeShippingAddress = "shipping_address"
 	// Table holds the table name of the shoporder in the database.
@@ -41,6 +43,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// ShippingMethodTable is the table that holds the shipping_method relation/edge.
+	ShippingMethodTable = "shop_orders"
+	// ShippingMethodInverseTable is the table name for the ShippingMethod entity.
+	// It exists in this package in order to avoid circular dependency with the "shippingmethod" package.
+	ShippingMethodInverseTable = "shipping_methods"
+	// ShippingMethodColumn is the table column denoting the shipping_method relation/edge.
+	ShippingMethodColumn = "shipping_method_id"
 	// ShippingAddressTable is the table that holds the shipping_address relation/edge.
 	ShippingAddressTable = "shop_orders"
 	// ShippingAddressInverseTable is the table name for the ShippingAddress entity.
@@ -131,6 +140,13 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByShippingMethodField orders the results by shipping_method field.
+func ByShippingMethodField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newShippingMethodStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByShippingAddressField orders the results by shipping_address field.
 func ByShippingAddressField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -142,6 +158,13 @@ func newUserStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newShippingMethodStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ShippingMethodInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ShippingMethodTable, ShippingMethodColumn),
 	)
 }
 func newShippingAddressStep() *sqlgraph.Step {

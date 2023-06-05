@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"healthyshopper/ent/shippingaddress"
+	"healthyshopper/ent/shippingmethod"
 	"healthyshopper/ent/shoporder"
 	"healthyshopper/ent/user"
 	"strings"
@@ -43,13 +44,15 @@ type ShopOrder struct {
 type ShopOrderEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// ShippingMethod holds the value of the shipping_method edge.
+	ShippingMethod *ShippingMethod `json:"shipping_method,omitempty"`
 	// ShippingAddress holds the value of the shipping_address edge.
 	ShippingAddress *ShippingAddress `json:"shipping_address,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 	// totalCount holds the count of the edges above.
-	totalCount [2]map[string]int
+	totalCount [3]map[string]int
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -65,10 +68,23 @@ func (e ShopOrderEdges) UserOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "user"}
 }
 
+// ShippingMethodOrErr returns the ShippingMethod value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ShopOrderEdges) ShippingMethodOrErr() (*ShippingMethod, error) {
+	if e.loadedTypes[1] {
+		if e.ShippingMethod == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: shippingmethod.Label}
+		}
+		return e.ShippingMethod, nil
+	}
+	return nil, &NotLoadedError{edge: "shipping_method"}
+}
+
 // ShippingAddressOrErr returns the ShippingAddress value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ShopOrderEdges) ShippingAddressOrErr() (*ShippingAddress, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.ShippingAddress == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: shippingaddress.Label}
@@ -170,6 +186,11 @@ func (so *ShopOrder) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the ShopOrder entity.
 func (so *ShopOrder) QueryUser() *UserQuery {
 	return NewShopOrderClient(so.config).QueryUser(so)
+}
+
+// QueryShippingMethod queries the "shipping_method" edge of the ShopOrder entity.
+func (so *ShopOrder) QueryShippingMethod() *ShippingMethodQuery {
+	return NewShopOrderClient(so.config).QueryShippingMethod(so)
 }
 
 // QueryShippingAddress queries the "shipping_address" edge of the ShopOrder entity.

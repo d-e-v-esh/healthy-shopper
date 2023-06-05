@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/shippingmethod"
+	"healthyshopper/ent/shoporder"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -29,6 +30,21 @@ func (smc *ShippingMethodCreate) SetShippingMethod(s string) *ShippingMethodCrea
 func (smc *ShippingMethodCreate) SetShippingCost(f float64) *ShippingMethodCreate {
 	smc.mutation.SetShippingCost(f)
 	return smc
+}
+
+// AddShopOrderIDs adds the "shop_order" edge to the ShopOrder entity by IDs.
+func (smc *ShippingMethodCreate) AddShopOrderIDs(ids ...int) *ShippingMethodCreate {
+	smc.mutation.AddShopOrderIDs(ids...)
+	return smc
+}
+
+// AddShopOrder adds the "shop_order" edges to the ShopOrder entity.
+func (smc *ShippingMethodCreate) AddShopOrder(s ...*ShopOrder) *ShippingMethodCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return smc.AddShopOrderIDs(ids...)
 }
 
 // Mutation returns the ShippingMethodMutation object of the builder.
@@ -114,6 +130,22 @@ func (smc *ShippingMethodCreate) createSpec() (*ShippingMethod, *sqlgraph.Create
 	if value, ok := smc.mutation.ShippingCost(); ok {
 		_spec.SetField(shippingmethod.FieldShippingCost, field.TypeFloat64, value)
 		_node.ShippingCost = value
+	}
+	if nodes := smc.mutation.ShopOrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   shippingmethod.ShopOrderTable,
+			Columns: []string{shippingmethod.ShopOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(shoporder.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
