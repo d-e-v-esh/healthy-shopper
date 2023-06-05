@@ -21,7 +21,7 @@ func (Product) Fields() []ent.Field {
 		field.String("name").MaxLen(50).NotEmpty(),
 		field.String("description").MaxLen(500).NotEmpty(),
 		field.String("product_image").MaxLen(500).NotEmpty(),
-		field.Int("ingredients_list_id").Unique().Optional(),
+		field.Int("ingredients_table_id").Unique().Optional(),
 		field.Int("product_category_id").Unique().Optional(),
 		field.Int("nutritional_information_id").Unique().Optional(),
 		field.Int("promotion_id").Unique().Optional(),
@@ -35,6 +35,7 @@ func (Product) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("product_item", ProductItem.Type).Unique(),
 		edge.To("promotion", Promotion.Type).Field("promotion_id").Unique(),
+		edge.To("ingredients_table", IngredientsTable.Type).Field("ingredients_table_id").Unique(),
 		edge.To("nutritional_information", NutritionalInformation.Type).Field("nutritional_information_id").Unique(),
 	}
 }

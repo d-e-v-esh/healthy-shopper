@@ -70,9 +70,9 @@ func ProductImage(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldProductImage, v))
 }
 
-// IngredientsListID applies equality check predicate on the "ingredients_list_id" field. It's identical to IngredientsListIDEQ.
-func IngredientsListID(v int) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldIngredientsListID, v))
+// IngredientsTableID applies equality check predicate on the "ingredients_table_id" field. It's identical to IngredientsTableIDEQ.
+func IngredientsTableID(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldIngredientsTableID, v))
 }
 
 // ProductCategoryID applies equality check predicate on the "product_category_id" field. It's identical to ProductCategoryIDEQ.
@@ -295,54 +295,34 @@ func ProductImageContainsFold(v string) predicate.Product {
 	return predicate.Product(sql.FieldContainsFold(FieldProductImage, v))
 }
 
-// IngredientsListIDEQ applies the EQ predicate on the "ingredients_list_id" field.
-func IngredientsListIDEQ(v int) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldIngredientsListID, v))
+// IngredientsTableIDEQ applies the EQ predicate on the "ingredients_table_id" field.
+func IngredientsTableIDEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldIngredientsTableID, v))
 }
 
-// IngredientsListIDNEQ applies the NEQ predicate on the "ingredients_list_id" field.
-func IngredientsListIDNEQ(v int) predicate.Product {
-	return predicate.Product(sql.FieldNEQ(FieldIngredientsListID, v))
+// IngredientsTableIDNEQ applies the NEQ predicate on the "ingredients_table_id" field.
+func IngredientsTableIDNEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldIngredientsTableID, v))
 }
 
-// IngredientsListIDIn applies the In predicate on the "ingredients_list_id" field.
-func IngredientsListIDIn(vs ...int) predicate.Product {
-	return predicate.Product(sql.FieldIn(FieldIngredientsListID, vs...))
+// IngredientsTableIDIn applies the In predicate on the "ingredients_table_id" field.
+func IngredientsTableIDIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldIngredientsTableID, vs...))
 }
 
-// IngredientsListIDNotIn applies the NotIn predicate on the "ingredients_list_id" field.
-func IngredientsListIDNotIn(vs ...int) predicate.Product {
-	return predicate.Product(sql.FieldNotIn(FieldIngredientsListID, vs...))
+// IngredientsTableIDNotIn applies the NotIn predicate on the "ingredients_table_id" field.
+func IngredientsTableIDNotIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldIngredientsTableID, vs...))
 }
 
-// IngredientsListIDGT applies the GT predicate on the "ingredients_list_id" field.
-func IngredientsListIDGT(v int) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldIngredientsListID, v))
+// IngredientsTableIDIsNil applies the IsNil predicate on the "ingredients_table_id" field.
+func IngredientsTableIDIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldIngredientsTableID))
 }
 
-// IngredientsListIDGTE applies the GTE predicate on the "ingredients_list_id" field.
-func IngredientsListIDGTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldIngredientsListID, v))
-}
-
-// IngredientsListIDLT applies the LT predicate on the "ingredients_list_id" field.
-func IngredientsListIDLT(v int) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldIngredientsListID, v))
-}
-
-// IngredientsListIDLTE applies the LTE predicate on the "ingredients_list_id" field.
-func IngredientsListIDLTE(v int) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldIngredientsListID, v))
-}
-
-// IngredientsListIDIsNil applies the IsNil predicate on the "ingredients_list_id" field.
-func IngredientsListIDIsNil() predicate.Product {
-	return predicate.Product(sql.FieldIsNull(FieldIngredientsListID))
-}
-
-// IngredientsListIDNotNil applies the NotNil predicate on the "ingredients_list_id" field.
-func IngredientsListIDNotNil() predicate.Product {
-	return predicate.Product(sql.FieldNotNull(FieldIngredientsListID))
+// IngredientsTableIDNotNil applies the NotNil predicate on the "ingredients_table_id" field.
+func IngredientsTableIDNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldIngredientsTableID))
 }
 
 // ProductCategoryIDEQ applies the EQ predicate on the "product_category_id" field.
@@ -583,6 +563,29 @@ func HasPromotion() predicate.Product {
 func HasPromotionWith(preds ...predicate.Promotion) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := newPromotionStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasIngredientsTable applies the HasEdge predicate on the "ingredients_table" edge.
+func HasIngredientsTable() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, IngredientsTableTable, IngredientsTableColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIngredientsTableWith applies the HasEdge predicate on the "ingredients_table" edge with a given conditions (other predicates).
+func HasIngredientsTableWith(preds ...predicate.IngredientsTable) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newIngredientsTableStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

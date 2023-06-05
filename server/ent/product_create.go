@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
@@ -41,16 +42,16 @@ func (pc *ProductCreate) SetProductImage(s string) *ProductCreate {
 	return pc
 }
 
-// SetIngredientsListID sets the "ingredients_list_id" field.
-func (pc *ProductCreate) SetIngredientsListID(i int) *ProductCreate {
-	pc.mutation.SetIngredientsListID(i)
+// SetIngredientsTableID sets the "ingredients_table_id" field.
+func (pc *ProductCreate) SetIngredientsTableID(i int) *ProductCreate {
+	pc.mutation.SetIngredientsTableID(i)
 	return pc
 }
 
-// SetNillableIngredientsListID sets the "ingredients_list_id" field if the given value is not nil.
-func (pc *ProductCreate) SetNillableIngredientsListID(i *int) *ProductCreate {
+// SetNillableIngredientsTableID sets the "ingredients_table_id" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableIngredientsTableID(i *int) *ProductCreate {
 	if i != nil {
-		pc.SetIngredientsListID(*i)
+		pc.SetIngredientsTableID(*i)
 	}
 	return pc
 }
@@ -147,6 +148,11 @@ func (pc *ProductCreate) SetProductItem(p *ProductItem) *ProductCreate {
 // SetPromotion sets the "promotion" edge to the Promotion entity.
 func (pc *ProductCreate) SetPromotion(p *Promotion) *ProductCreate {
 	return pc.SetPromotionID(p.ID)
+}
+
+// SetIngredientsTable sets the "ingredients_table" edge to the IngredientsTable entity.
+func (pc *ProductCreate) SetIngredientsTable(i *IngredientsTable) *ProductCreate {
+	return pc.SetIngredientsTableID(i.ID)
 }
 
 // SetNutritionalInformation sets the "nutritional_information" edge to the NutritionalInformation entity.
@@ -262,10 +268,6 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_spec.SetField(product.FieldProductImage, field.TypeString, value)
 		_node.ProductImage = value
 	}
-	if value, ok := pc.mutation.IngredientsListID(); ok {
-		_spec.SetField(product.FieldIngredientsListID, field.TypeInt, value)
-		_node.IngredientsListID = value
-	}
 	if value, ok := pc.mutation.ProductCategoryID(); ok {
 		_spec.SetField(product.FieldProductCategoryID, field.TypeInt, value)
 		_node.ProductCategoryID = value
@@ -309,6 +311,23 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.PromotionID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.IngredientsTableIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.IngredientsTableTable,
+			Columns: []string{product.IngredientsTableColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(ingredientstable.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.IngredientsTableID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.mutation.NutritionalInformationIDs(); len(nodes) > 0 {

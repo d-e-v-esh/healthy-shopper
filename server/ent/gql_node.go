@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/orderline"
@@ -42,6 +43,11 @@ var addressImplementors = []string{"Address", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Address) IsNode() {}
+
+var ingredientstableImplementors = []string{"IngredientsTable", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*IngredientsTable) IsNode() {}
 
 var nutritionalinformationImplementors = []string{"NutritionalInformation", "Node"}
 
@@ -180,6 +186,18 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.Address.Query().
 			Where(address.ID(id))
 		query, err := query.CollectFields(ctx, addressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case ingredientstable.Table:
+		query := c.IngredientsTable.Query().
+			Where(ingredientstable.ID(id))
+		query, err := query.CollectFields(ctx, ingredientstableImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -445,6 +463,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Address.Query().
 			Where(address.IDIn(ids...))
 		query, err := query.CollectFields(ctx, addressImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case ingredientstable.Table:
+		query := c.IngredientsTable.Query().
+			Where(ingredientstable.IDIn(ids...))
+		query, err := query.CollectFields(ctx, ingredientstableImplementors...)
 		if err != nil {
 			return nil, err
 		}

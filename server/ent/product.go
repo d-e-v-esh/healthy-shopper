@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/product"
 	"healthyshopper/ent/productitem"
@@ -26,8 +27,8 @@ type Product struct {
 	Description string `json:"description,omitempty"`
 	// ProductImage holds the value of the "product_image" field.
 	ProductImage string `json:"product_image,omitempty"`
-	// IngredientsListID holds the value of the "ingredients_list_id" field.
-	IngredientsListID int `json:"ingredients_list_id,omitempty"`
+	// IngredientsTableID holds the value of the "ingredients_table_id" field.
+	IngredientsTableID int `json:"ingredients_table_id,omitempty"`
 	// ProductCategoryID holds the value of the "product_category_id" field.
 	ProductCategoryID int `json:"product_category_id,omitempty"`
 	// NutritionalInformationID holds the value of the "nutritional_information_id" field.
@@ -50,13 +51,15 @@ type ProductEdges struct {
 	ProductItem *ProductItem `json:"product_item,omitempty"`
 	// Promotion holds the value of the promotion edge.
 	Promotion *Promotion `json:"promotion,omitempty"`
+	// IngredientsTable holds the value of the ingredients_table edge.
+	IngredientsTable *IngredientsTable `json:"ingredients_table,omitempty"`
 	// NutritionalInformation holds the value of the nutritional_information edge.
 	NutritionalInformation *NutritionalInformation `json:"nutritional_information,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 	// totalCount holds the count of the edges above.
-	totalCount [3]map[string]int
+	totalCount [4]map[string]int
 }
 
 // ProductItemOrErr returns the ProductItem value or an error if the edge
@@ -85,10 +88,23 @@ func (e ProductEdges) PromotionOrErr() (*Promotion, error) {
 	return nil, &NotLoadedError{edge: "promotion"}
 }
 
+// IngredientsTableOrErr returns the IngredientsTable value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) IngredientsTableOrErr() (*IngredientsTable, error) {
+	if e.loadedTypes[2] {
+		if e.IngredientsTable == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: ingredientstable.Label}
+		}
+		return e.IngredientsTable, nil
+	}
+	return nil, &NotLoadedError{edge: "ingredients_table"}
+}
+
 // NutritionalInformationOrErr returns the NutritionalInformation value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ProductEdges) NutritionalInformationOrErr() (*NutritionalInformation, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.NutritionalInformation == nil {
 			// Edge was loaded but was not found.
 			return nil, &NotFoundError{label: nutritionalinformation.Label}
@@ -103,7 +119,7 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case product.FieldID, product.FieldIngredientsListID, product.FieldProductCategoryID, product.FieldNutritionalInformationID, product.FieldPromotionID:
+		case product.FieldID, product.FieldIngredientsTableID, product.FieldProductCategoryID, product.FieldNutritionalInformationID, product.FieldPromotionID:
 			values[i] = new(sql.NullInt64)
 		case product.FieldName, product.FieldDescription, product.FieldProductImage:
 			values[i] = new(sql.NullString)
@@ -148,11 +164,11 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.ProductImage = value.String
 			}
-		case product.FieldIngredientsListID:
+		case product.FieldIngredientsTableID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field ingredients_list_id", values[i])
+				return fmt.Errorf("unexpected type %T for field ingredients_table_id", values[i])
 			} else if value.Valid {
-				pr.IngredientsListID = int(value.Int64)
+				pr.IngredientsTableID = int(value.Int64)
 			}
 		case product.FieldProductCategoryID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -207,6 +223,11 @@ func (pr *Product) QueryPromotion() *PromotionQuery {
 	return NewProductClient(pr.config).QueryPromotion(pr)
 }
 
+// QueryIngredientsTable queries the "ingredients_table" edge of the Product entity.
+func (pr *Product) QueryIngredientsTable() *IngredientsTableQuery {
+	return NewProductClient(pr.config).QueryIngredientsTable(pr)
+}
+
 // QueryNutritionalInformation queries the "nutritional_information" edge of the Product entity.
 func (pr *Product) QueryNutritionalInformation() *NutritionalInformationQuery {
 	return NewProductClient(pr.config).QueryNutritionalInformation(pr)
@@ -244,8 +265,8 @@ func (pr *Product) String() string {
 	builder.WriteString("product_image=")
 	builder.WriteString(pr.ProductImage)
 	builder.WriteString(", ")
-	builder.WriteString("ingredients_list_id=")
-	builder.WriteString(fmt.Sprintf("%v", pr.IngredientsListID))
+	builder.WriteString("ingredients_table_id=")
+	builder.WriteString(fmt.Sprintf("%v", pr.IngredientsTableID))
 	builder.WriteString(", ")
 	builder.WriteString("product_category_id=")
 	builder.WriteString(fmt.Sprintf("%v", pr.ProductCategoryID))

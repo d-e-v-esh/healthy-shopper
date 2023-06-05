@@ -61,6 +61,13 @@ type ComplexityRoot struct {
 		UserAddress  func(childComplexity int) int
 	}
 
+	IngredientsTable struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Product     func(childComplexity int) int
+	}
+
 	Mutation struct {
 		CreateProduct func(childComplexity int, input ent.CreateProductInput) int
 		CreateUser    func(childComplexity int, input ent.CreateUserInput) int
@@ -108,7 +115,8 @@ type ComplexityRoot struct {
 		CreatedAt                func(childComplexity int) int
 		Description              func(childComplexity int) int
 		ID                       func(childComplexity int) int
-		IngredientsListID        func(childComplexity int) int
+		IngredientsTable         func(childComplexity int) int
+		IngredientsTableID       func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		NutritionalInformation   func(childComplexity int) int
 		NutritionalInformationID func(childComplexity int) int
@@ -334,6 +342,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Address.UserAddress(childComplexity), true
 
+	case "IngredientsTable.description":
+		if e.complexity.IngredientsTable.Description == nil {
+			break
+		}
+
+		return e.complexity.IngredientsTable.Description(childComplexity), true
+
+	case "IngredientsTable.id":
+		if e.complexity.IngredientsTable.ID == nil {
+			break
+		}
+
+		return e.complexity.IngredientsTable.ID(childComplexity), true
+
+	case "IngredientsTable.name":
+		if e.complexity.IngredientsTable.Name == nil {
+			break
+		}
+
+		return e.complexity.IngredientsTable.Name(childComplexity), true
+
+	case "IngredientsTable.product":
+		if e.complexity.IngredientsTable.Product == nil {
+			break
+		}
+
+		return e.complexity.IngredientsTable.Product(childComplexity), true
+
 	case "Mutation.createProduct":
 		if e.complexity.Mutation.CreateProduct == nil {
 			break
@@ -540,12 +576,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Product.ID(childComplexity), true
 
-	case "Product.ingredientsListID":
-		if e.complexity.Product.IngredientsListID == nil {
+	case "Product.ingredientsTable":
+		if e.complexity.Product.IngredientsTable == nil {
 			break
 		}
 
-		return e.complexity.Product.IngredientsListID(childComplexity), true
+		return e.complexity.Product.IngredientsTable(childComplexity), true
+
+	case "Product.ingredientsTableID":
+		if e.complexity.Product.IngredientsTableID == nil {
+			break
+		}
+
+		return e.complexity.Product.IngredientsTableID(childComplexity), true
 
 	case "Product.name":
 		if e.complexity.Product.Name == nil {
@@ -1804,6 +1847,212 @@ func (ec *executionContext) fieldContext_Address_userAddress(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _IngredientsTable_id(ctx context.Context, field graphql.CollectedField, obj *ent.IngredientsTable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngredientsTable_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngredientsTable_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngredientsTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngredientsTable_name(ctx context.Context, field graphql.CollectedField, obj *ent.IngredientsTable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngredientsTable_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngredientsTable_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngredientsTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngredientsTable_description(ctx context.Context, field graphql.CollectedField, obj *ent.IngredientsTable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngredientsTable_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngredientsTable_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngredientsTable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IngredientsTable_product(ctx context.Context, field graphql.CollectedField, obj *ent.IngredientsTable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_IngredientsTable_product(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Product(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Product)
+	fc.Result = res
+	return ec.marshalNProduct2ᚕᚖhealthyshopperᚋentᚐProductᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_IngredientsTable_product(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IngredientsTable",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Product_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Product_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Product_description(ctx, field)
+			case "productImage":
+				return ec.fieldContext_Product_productImage(ctx, field)
+			case "ingredientsTableID":
+				return ec.fieldContext_Product_ingredientsTableID(ctx, field)
+			case "productCategoryID":
+				return ec.fieldContext_Product_productCategoryID(ctx, field)
+			case "nutritionalInformationID":
+				return ec.fieldContext_Product_nutritionalInformationID(ctx, field)
+			case "promotionID":
+				return ec.fieldContext_Product_promotionID(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Product_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Product_updatedAt(ctx, field)
+			case "productItem":
+				return ec.fieldContext_Product_productItem(ctx, field)
+			case "promotion":
+				return ec.fieldContext_Product_promotion(ctx, field)
+			case "ingredientsTable":
+				return ec.fieldContext_Product_ingredientsTable(ctx, field)
+			case "nutritionalInformation":
+				return ec.fieldContext_Product_nutritionalInformation(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
 	if err != nil {
@@ -1932,8 +2181,8 @@ func (ec *executionContext) fieldContext_Mutation_createProduct(ctx context.Cont
 				return ec.fieldContext_Product_description(ctx, field)
 			case "productImage":
 				return ec.fieldContext_Product_productImage(ctx, field)
-			case "ingredientsListID":
-				return ec.fieldContext_Product_ingredientsListID(ctx, field)
+			case "ingredientsTableID":
+				return ec.fieldContext_Product_ingredientsTableID(ctx, field)
 			case "productCategoryID":
 				return ec.fieldContext_Product_productCategoryID(ctx, field)
 			case "nutritionalInformationID":
@@ -1948,6 +2197,8 @@ func (ec *executionContext) fieldContext_Mutation_createProduct(ctx context.Cont
 				return ec.fieldContext_Product_productItem(ctx, field)
 			case "promotion":
 				return ec.fieldContext_Product_promotion(ctx, field)
+			case "ingredientsTable":
+				return ec.fieldContext_Product_ingredientsTable(ctx, field)
 			case "nutritionalInformation":
 				return ec.fieldContext_Product_nutritionalInformation(ctx, field)
 			}
@@ -2191,8 +2442,8 @@ func (ec *executionContext) fieldContext_NutritionalInformation_product(ctx cont
 				return ec.fieldContext_Product_description(ctx, field)
 			case "productImage":
 				return ec.fieldContext_Product_productImage(ctx, field)
-			case "ingredientsListID":
-				return ec.fieldContext_Product_ingredientsListID(ctx, field)
+			case "ingredientsTableID":
+				return ec.fieldContext_Product_ingredientsTableID(ctx, field)
 			case "productCategoryID":
 				return ec.fieldContext_Product_productCategoryID(ctx, field)
 			case "nutritionalInformationID":
@@ -2207,6 +2458,8 @@ func (ec *executionContext) fieldContext_NutritionalInformation_product(ctx cont
 				return ec.fieldContext_Product_productItem(ctx, field)
 			case "promotion":
 				return ec.fieldContext_Product_promotion(ctx, field)
+			case "ingredientsTable":
+				return ec.fieldContext_Product_ingredientsTable(ctx, field)
 			case "nutritionalInformation":
 				return ec.fieldContext_Product_nutritionalInformation(ctx, field)
 			}
@@ -3224,8 +3477,8 @@ func (ec *executionContext) fieldContext_Product_productImage(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Product_ingredientsListID(ctx context.Context, field graphql.CollectedField, obj *ent.Product) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Product_ingredientsListID(ctx, field)
+func (ec *executionContext) _Product_ingredientsTableID(ctx context.Context, field graphql.CollectedField, obj *ent.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_ingredientsTableID(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3238,7 +3491,7 @@ func (ec *executionContext) _Product_ingredientsListID(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.IngredientsListID, nil
+		return obj.IngredientsTableID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3249,17 +3502,17 @@ func (ec *executionContext) _Product_ingredientsListID(ctx context.Context, fiel
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Product_ingredientsListID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Product_ingredientsTableID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Product",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3586,6 +3839,57 @@ func (ec *executionContext) fieldContext_Product_promotion(ctx context.Context, 
 				return ec.fieldContext_Promotion_product(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Promotion", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Product_ingredientsTable(ctx context.Context, field graphql.CollectedField, obj *ent.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_ingredientsTable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IngredientsTable(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.IngredientsTable)
+	fc.Result = res
+	return ec.marshalOIngredientsTable2ᚖhealthyshopperᚋentᚐIngredientsTable(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Product_ingredientsTable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_IngredientsTable_id(ctx, field)
+			case "name":
+				return ec.fieldContext_IngredientsTable_name(ctx, field)
+			case "description":
+				return ec.fieldContext_IngredientsTable_description(ctx, field)
+			case "product":
+				return ec.fieldContext_IngredientsTable_product(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IngredientsTable", field.Name)
 		},
 	}
 	return fc, nil
@@ -4042,8 +4346,8 @@ func (ec *executionContext) fieldContext_ProductItem_product(ctx context.Context
 				return ec.fieldContext_Product_description(ctx, field)
 			case "productImage":
 				return ec.fieldContext_Product_productImage(ctx, field)
-			case "ingredientsListID":
-				return ec.fieldContext_Product_ingredientsListID(ctx, field)
+			case "ingredientsTableID":
+				return ec.fieldContext_Product_ingredientsTableID(ctx, field)
 			case "productCategoryID":
 				return ec.fieldContext_Product_productCategoryID(ctx, field)
 			case "nutritionalInformationID":
@@ -4058,6 +4362,8 @@ func (ec *executionContext) fieldContext_ProductItem_product(ctx context.Context
 				return ec.fieldContext_Product_productItem(ctx, field)
 			case "promotion":
 				return ec.fieldContext_Product_promotion(ctx, field)
+			case "ingredientsTable":
+				return ec.fieldContext_Product_ingredientsTable(ctx, field)
 			case "nutritionalInformation":
 				return ec.fieldContext_Product_nutritionalInformation(ctx, field)
 			}
@@ -4378,8 +4684,8 @@ func (ec *executionContext) fieldContext_Promotion_product(ctx context.Context, 
 				return ec.fieldContext_Product_description(ctx, field)
 			case "productImage":
 				return ec.fieldContext_Product_productImage(ctx, field)
-			case "ingredientsListID":
-				return ec.fieldContext_Product_ingredientsListID(ctx, field)
+			case "ingredientsTableID":
+				return ec.fieldContext_Product_ingredientsTableID(ctx, field)
 			case "productCategoryID":
 				return ec.fieldContext_Product_productCategoryID(ctx, field)
 			case "nutritionalInformationID":
@@ -4394,6 +4700,8 @@ func (ec *executionContext) fieldContext_Promotion_product(ctx context.Context, 
 				return ec.fieldContext_Product_productItem(ctx, field)
 			case "promotion":
 				return ec.fieldContext_Product_promotion(ctx, field)
+			case "ingredientsTable":
+				return ec.fieldContext_Product_ingredientsTable(ctx, field)
 			case "nutritionalInformation":
 				return ec.fieldContext_Product_nutritionalInformation(ctx, field)
 			}
@@ -4557,8 +4865,8 @@ func (ec *executionContext) fieldContext_Query_products(ctx context.Context, fie
 				return ec.fieldContext_Product_description(ctx, field)
 			case "productImage":
 				return ec.fieldContext_Product_productImage(ctx, field)
-			case "ingredientsListID":
-				return ec.fieldContext_Product_ingredientsListID(ctx, field)
+			case "ingredientsTableID":
+				return ec.fieldContext_Product_ingredientsTableID(ctx, field)
 			case "productCategoryID":
 				return ec.fieldContext_Product_productCategoryID(ctx, field)
 			case "nutritionalInformationID":
@@ -4573,6 +4881,8 @@ func (ec *executionContext) fieldContext_Query_products(ctx context.Context, fie
 				return ec.fieldContext_Product_productItem(ctx, field)
 			case "promotion":
 				return ec.fieldContext_Product_promotion(ctx, field)
+			case "ingredientsTable":
+				return ec.fieldContext_Product_ingredientsTable(ctx, field)
 			case "nutritionalInformation":
 				return ec.fieldContext_Product_nutritionalInformation(ctx, field)
 			}
@@ -9603,7 +9913,7 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "productImage", "ingredientsListID", "productCategoryID", "createdAt", "updatedAt", "productItemID", "promotionID", "nutritionalInformationID"}
+	fieldsInOrder := [...]string{"name", "description", "productImage", "productCategoryID", "createdAt", "updatedAt", "productItemID", "promotionID", "ingredientsTableID", "nutritionalInformationID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9637,15 +9947,6 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 				return it, err
 			}
 			it.ProductImage = data
-		case "ingredientsListID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ingredientsListID"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.IngredientsListID = data
 		case "productCategoryID":
 			var err error
 
@@ -9691,6 +9992,15 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 				return it, err
 			}
 			it.PromotionID = data
+		case "ingredientsTableID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ingredientsTableID"))
+			data, err := ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IngredientsTableID = data
 		case "nutritionalInformationID":
 			var err error
 
@@ -9970,6 +10280,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._Address(ctx, sel, obj)
+	case *ent.IngredientsTable:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._IngredientsTable(ctx, sel, obj)
 	case *ent.NutritionalInformation:
 		if obj == nil {
 			return graphql.Null
@@ -10127,6 +10442,68 @@ func (ec *executionContext) _Address(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Address_userAddress(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var ingredientsTableImplementors = []string{"IngredientsTable", "Node"}
+
+func (ec *executionContext) _IngredientsTable(ctx context.Context, sel ast.SelectionSet, obj *ent.IngredientsTable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ingredientsTableImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IngredientsTable")
+		case "id":
+
+			out.Values[i] = ec._IngredientsTable_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+
+			out.Values[i] = ec._IngredientsTable_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+
+			out.Values[i] = ec._IngredientsTable_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "product":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IngredientsTable_product(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -10537,9 +10914,9 @@ func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "ingredientsListID":
+		case "ingredientsTableID":
 
-			out.Values[i] = ec._Product_ingredientsListID(ctx, field, obj)
+			out.Values[i] = ec._Product_ingredientsTableID(ctx, field, obj)
 
 		case "productCategoryID":
 
@@ -10591,6 +10968,23 @@ func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Product_promotion(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "ingredientsTable":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Product_ingredientsTable(ctx, field, obj)
 				return res
 			}
 
@@ -12924,6 +13318,13 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 	}
 	res := graphql.MarshalIntID(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOIngredientsTable2ᚖhealthyshopperᚋentᚐIngredientsTable(ctx context.Context, sel ast.SelectionSet, v *ent.IngredientsTable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._IngredientsTable(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {

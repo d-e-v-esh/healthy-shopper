@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/orderline"
@@ -355,6 +356,254 @@ func (a *Address) ToEdge(order *AddressOrder) *AddressEdge {
 	return &AddressEdge{
 		Node:   a,
 		Cursor: order.Field.toCursor(a),
+	}
+}
+
+// IngredientsTableEdge is the edge representation of IngredientsTable.
+type IngredientsTableEdge struct {
+	Node   *IngredientsTable `json:"node"`
+	Cursor Cursor            `json:"cursor"`
+}
+
+// IngredientsTableConnection is the connection containing edges to IngredientsTable.
+type IngredientsTableConnection struct {
+	Edges      []*IngredientsTableEdge `json:"edges"`
+	PageInfo   PageInfo                `json:"pageInfo"`
+	TotalCount int                     `json:"totalCount"`
+}
+
+func (c *IngredientsTableConnection) build(nodes []*IngredientsTable, pager *ingredientstablePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *IngredientsTable
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *IngredientsTable {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *IngredientsTable {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*IngredientsTableEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &IngredientsTableEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// IngredientsTablePaginateOption enables pagination customization.
+type IngredientsTablePaginateOption func(*ingredientstablePager) error
+
+// WithIngredientsTableOrder configures pagination ordering.
+func WithIngredientsTableOrder(order *IngredientsTableOrder) IngredientsTablePaginateOption {
+	if order == nil {
+		order = DefaultIngredientsTableOrder
+	}
+	o := *order
+	return func(pager *ingredientstablePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultIngredientsTableOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithIngredientsTableFilter configures pagination filter.
+func WithIngredientsTableFilter(filter func(*IngredientsTableQuery) (*IngredientsTableQuery, error)) IngredientsTablePaginateOption {
+	return func(pager *ingredientstablePager) error {
+		if filter == nil {
+			return errors.New("IngredientsTableQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type ingredientstablePager struct {
+	reverse bool
+	order   *IngredientsTableOrder
+	filter  func(*IngredientsTableQuery) (*IngredientsTableQuery, error)
+}
+
+func newIngredientsTablePager(opts []IngredientsTablePaginateOption, reverse bool) (*ingredientstablePager, error) {
+	pager := &ingredientstablePager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultIngredientsTableOrder
+	}
+	return pager, nil
+}
+
+func (p *ingredientstablePager) applyFilter(query *IngredientsTableQuery) (*IngredientsTableQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *ingredientstablePager) toCursor(it *IngredientsTable) Cursor {
+	return p.order.Field.toCursor(it)
+}
+
+func (p *ingredientstablePager) applyCursors(query *IngredientsTableQuery, after, before *Cursor) (*IngredientsTableQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultIngredientsTableOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *ingredientstablePager) applyOrder(query *IngredientsTableQuery) *IngredientsTableQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultIngredientsTableOrder.Field {
+		query = query.Order(DefaultIngredientsTableOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *ingredientstablePager) orderExpr(query *IngredientsTableQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultIngredientsTableOrder.Field {
+			b.Comma().Ident(DefaultIngredientsTableOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to IngredientsTable.
+func (it *IngredientsTableQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...IngredientsTablePaginateOption,
+) (*IngredientsTableConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newIngredientsTablePager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if it, err = pager.applyFilter(it); err != nil {
+		return nil, err
+	}
+	conn := &IngredientsTableConnection{Edges: []*IngredientsTableEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := it.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if it, err = pager.applyCursors(it, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		it.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := it.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	it = pager.applyOrder(it)
+	nodes, err := it.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// IngredientsTableOrderField defines the ordering field of IngredientsTable.
+type IngredientsTableOrderField struct {
+	// Value extracts the ordering value from the given IngredientsTable.
+	Value    func(*IngredientsTable) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) ingredientstable.OrderOption
+	toCursor func(*IngredientsTable) Cursor
+}
+
+// IngredientsTableOrder defines the ordering of IngredientsTable.
+type IngredientsTableOrder struct {
+	Direction OrderDirection              `json:"direction"`
+	Field     *IngredientsTableOrderField `json:"field"`
+}
+
+// DefaultIngredientsTableOrder is the default ordering of IngredientsTable.
+var DefaultIngredientsTableOrder = &IngredientsTableOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &IngredientsTableOrderField{
+		Value: func(it *IngredientsTable) (ent.Value, error) {
+			return it.ID, nil
+		},
+		column: ingredientstable.FieldID,
+		toTerm: ingredientstable.ByID,
+		toCursor: func(it *IngredientsTable) Cursor {
+			return Cursor{ID: it.ID}
+		},
+	},
+}
+
+// ToEdge converts IngredientsTable into IngredientsTableEdge.
+func (it *IngredientsTable) ToEdge(order *IngredientsTableOrder) *IngredientsTableEdge {
+	if order == nil {
+		order = DefaultIngredientsTableOrder
+	}
+	return &IngredientsTableEdge{
+		Node:   it,
+		Cursor: order.Field.toCursor(it),
 	}
 }
 

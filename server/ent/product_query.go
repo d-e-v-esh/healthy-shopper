@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/predicate"
 	"healthyshopper/ent/product"
@@ -27,6 +28,7 @@ type ProductQuery struct {
 	predicates                 []predicate.Product
 	withProductItem            *ProductItemQuery
 	withPromotion              *PromotionQuery
+	withIngredientsTable       *IngredientsTableQuery
 	withNutritionalInformation *NutritionalInformationQuery
 	modifiers                  []func(*sql.Selector)
 	loadTotal                  []func(context.Context, []*Product) error
@@ -103,6 +105,28 @@ func (pq *ProductQuery) QueryPromotion() *PromotionQuery {
 			sqlgraph.From(product.Table, product.FieldID, selector),
 			sqlgraph.To(promotion.Table, promotion.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, product.PromotionTable, product.PromotionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIngredientsTable chains the current query on the "ingredients_table" edge.
+func (pq *ProductQuery) QueryIngredientsTable() *IngredientsTableQuery {
+	query := (&IngredientsTableClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(ingredientstable.Table, ingredientstable.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, product.IngredientsTableTable, product.IngredientsTableColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -326,6 +350,7 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		predicates:                 append([]predicate.Product{}, pq.predicates...),
 		withProductItem:            pq.withProductItem.Clone(),
 		withPromotion:              pq.withPromotion.Clone(),
+		withIngredientsTable:       pq.withIngredientsTable.Clone(),
 		withNutritionalInformation: pq.withNutritionalInformation.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
@@ -352,6 +377,17 @@ func (pq *ProductQuery) WithPromotion(opts ...func(*PromotionQuery)) *ProductQue
 		opt(query)
 	}
 	pq.withPromotion = query
+	return pq
+}
+
+// WithIngredientsTable tells the query-builder to eager-load the nodes that are connected to
+// the "ingredients_table" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithIngredientsTable(opts ...func(*IngredientsTableQuery)) *ProductQuery {
+	query := (&IngredientsTableClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withIngredientsTable = query
 	return pq
 }
 
@@ -444,9 +480,10 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	var (
 		nodes       = []*Product{}
 		_spec       = pq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			pq.withProductItem != nil,
 			pq.withPromotion != nil,
+			pq.withIngredientsTable != nil,
 			pq.withNutritionalInformation != nil,
 		}
 	)
@@ -480,6 +517,12 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	if query := pq.withPromotion; query != nil {
 		if err := pq.loadPromotion(ctx, query, nodes, nil,
 			func(n *Product, e *Promotion) { n.Edges.Promotion = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withIngredientsTable; query != nil {
+		if err := pq.loadIngredientsTable(ctx, query, nodes, nil,
+			func(n *Product, e *IngredientsTable) { n.Edges.IngredientsTable = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -553,6 +596,35 @@ func (pq *ProductQuery) loadPromotion(ctx context.Context, query *PromotionQuery
 	}
 	return nil
 }
+func (pq *ProductQuery) loadIngredientsTable(ctx context.Context, query *IngredientsTableQuery, nodes []*Product, init func(*Product), assign func(*Product, *IngredientsTable)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Product)
+	for i := range nodes {
+		fk := nodes[i].IngredientsTableID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(ingredientstable.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "ingredients_table_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (pq *ProductQuery) loadNutritionalInformation(ctx context.Context, query *NutritionalInformationQuery, nodes []*Product, init func(*Product), assign func(*Product, *NutritionalInformation)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Product)
@@ -613,6 +685,9 @@ func (pq *ProductQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if pq.withPromotion != nil {
 			_spec.Node.AddColumnOnce(product.FieldPromotionID)
+		}
+		if pq.withIngredientsTable != nil {
+			_spec.Node.AddColumnOnce(product.FieldIngredientsTableID)
 		}
 		if pq.withNutritionalInformation != nil {
 			_spec.Node.AddColumnOnce(product.FieldNutritionalInformationID)

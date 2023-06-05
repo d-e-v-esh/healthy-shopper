@@ -20,6 +20,18 @@ func (f AddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AddressMutation", m)
 }
 
+// The IngredientsTableFunc type is an adapter to allow the use of ordinary
+// function as IngredientsTable mutator.
+type IngredientsTableFunc func(context.Context, *ent.IngredientsTableMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IngredientsTableFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IngredientsTableMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IngredientsTableMutation", m)
+}
+
 // The NutritionalInformationFunc type is an adapter to allow the use of ordinary
 // function as NutritionalInformation mutator.
 type NutritionalInformationFunc func(context.Context, *ent.NutritionalInformationMutation) (ent.Value, error)

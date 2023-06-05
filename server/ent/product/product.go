@@ -20,8 +20,8 @@ const (
 	FieldDescription = "description"
 	// FieldProductImage holds the string denoting the product_image field in the database.
 	FieldProductImage = "product_image"
-	// FieldIngredientsListID holds the string denoting the ingredients_list_id field in the database.
-	FieldIngredientsListID = "ingredients_list_id"
+	// FieldIngredientsTableID holds the string denoting the ingredients_table_id field in the database.
+	FieldIngredientsTableID = "ingredients_table_id"
 	// FieldProductCategoryID holds the string denoting the product_category_id field in the database.
 	FieldProductCategoryID = "product_category_id"
 	// FieldNutritionalInformationID holds the string denoting the nutritional_information_id field in the database.
@@ -36,6 +36,8 @@ const (
 	EdgeProductItem = "product_item"
 	// EdgePromotion holds the string denoting the promotion edge name in mutations.
 	EdgePromotion = "promotion"
+	// EdgeIngredientsTable holds the string denoting the ingredients_table edge name in mutations.
+	EdgeIngredientsTable = "ingredients_table"
 	// EdgeNutritionalInformation holds the string denoting the nutritional_information edge name in mutations.
 	EdgeNutritionalInformation = "nutritional_information"
 	// Table holds the table name of the product in the database.
@@ -54,6 +56,13 @@ const (
 	PromotionInverseTable = "promotions"
 	// PromotionColumn is the table column denoting the promotion relation/edge.
 	PromotionColumn = "promotion_id"
+	// IngredientsTableTable is the table that holds the ingredients_table relation/edge.
+	IngredientsTableTable = "products"
+	// IngredientsTableInverseTable is the table name for the IngredientsTable entity.
+	// It exists in this package in order to avoid circular dependency with the "ingredientstable" package.
+	IngredientsTableInverseTable = "ingredients_tables"
+	// IngredientsTableColumn is the table column denoting the ingredients_table relation/edge.
+	IngredientsTableColumn = "ingredients_table_id"
 	// NutritionalInformationTable is the table that holds the nutritional_information relation/edge.
 	NutritionalInformationTable = "products"
 	// NutritionalInformationInverseTable is the table name for the NutritionalInformation entity.
@@ -69,7 +78,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldProductImage,
-	FieldIngredientsListID,
+	FieldIngredientsTableID,
 	FieldProductCategoryID,
 	FieldNutritionalInformationID,
 	FieldPromotionID,
@@ -121,9 +130,9 @@ func ByProductImage(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProductImage, opts...).ToFunc()
 }
 
-// ByIngredientsListID orders the results by the ingredients_list_id field.
-func ByIngredientsListID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIngredientsListID, opts...).ToFunc()
+// ByIngredientsTableID orders the results by the ingredients_table_id field.
+func ByIngredientsTableID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIngredientsTableID, opts...).ToFunc()
 }
 
 // ByProductCategoryID orders the results by the product_category_id field.
@@ -165,6 +174,13 @@ func ByPromotionField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByIngredientsTableField orders the results by ingredients_table field.
+func ByIngredientsTableField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIngredientsTableStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByNutritionalInformationField orders the results by nutritional_information field.
 func ByNutritionalInformationField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -183,6 +199,13 @@ func newPromotionStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PromotionInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, PromotionTable, PromotionColumn),
+	)
+}
+func newIngredientsTableStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IngredientsTableInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, IngredientsTableTable, IngredientsTableColumn),
 	)
 }
 func newNutritionalInformationStep() *sqlgraph.Step {

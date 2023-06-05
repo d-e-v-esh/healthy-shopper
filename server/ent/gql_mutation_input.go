@@ -11,12 +11,12 @@ type CreateProductInput struct {
 	Name                     string
 	Description              string
 	ProductImage             string
-	IngredientsListID        *int
 	ProductCategoryID        *int
 	CreatedAt                *time.Time
 	UpdatedAt                *time.Time
 	ProductItemID            *int
 	PromotionID              *int
+	IngredientsTableID       *int
 	NutritionalInformationID *int
 }
 
@@ -25,9 +25,6 @@ func (i *CreateProductInput) Mutate(m *ProductMutation) {
 	m.SetName(i.Name)
 	m.SetDescription(i.Description)
 	m.SetProductImage(i.ProductImage)
-	if v := i.IngredientsListID; v != nil {
-		m.SetIngredientsListID(*v)
-	}
 	if v := i.ProductCategoryID; v != nil {
 		m.SetProductCategoryID(*v)
 	}
@@ -42,6 +39,9 @@ func (i *CreateProductInput) Mutate(m *ProductMutation) {
 	}
 	if v := i.PromotionID; v != nil {
 		m.SetPromotionID(*v)
+	}
+	if v := i.IngredientsTableID; v != nil {
+		m.SetIngredientsTableID(*v)
 	}
 	if v := i.NutritionalInformationID; v != nil {
 		m.SetNutritionalInformationID(*v)

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/orderline"
@@ -89,6 +90,7 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			address.Table:                     address.ValidColumn,
+			ingredientstable.Table:            ingredientstable.ValidColumn,
 			nutritionalinformation.Table:      nutritionalinformation.ValidColumn,
 			nutritionalinformationtable.Table: nutritionalinformationtable.ValidColumn,
 			orderline.Table:                   orderline.ValidColumn,

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/orderline"
@@ -113,6 +114,87 @@ type addressPaginateArgs struct {
 
 func newAddressPaginateArgs(rv map[string]any) *addressPaginateArgs {
 	args := &addressPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (it *IngredientsTableQuery) CollectFields(ctx context.Context, satisfies ...string) (*IngredientsTableQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return it, nil
+	}
+	if err := it.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return it, nil
+}
+
+func (it *IngredientsTableQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(ingredientstable.Columns))
+		selectedFields = []string{ingredientstable.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "product":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProductClient{config: it.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, productImplementors)...); err != nil {
+				return err
+			}
+			it.WithNamedProduct(alias, func(wq *ProductQuery) {
+				*wq = *query
+			})
+		case "name":
+			if _, ok := fieldSeen[ingredientstable.FieldName]; !ok {
+				selectedFields = append(selectedFields, ingredientstable.FieldName)
+				fieldSeen[ingredientstable.FieldName] = struct{}{}
+			}
+		case "description":
+			if _, ok := fieldSeen[ingredientstable.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, ingredientstable.FieldDescription)
+				fieldSeen[ingredientstable.FieldDescription] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		it.Select(selectedFields...)
+	}
+	return nil
+}
+
+type ingredientstablePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []IngredientsTablePaginateOption
+}
+
+func newIngredientsTablePaginateArgs(rv map[string]any) *ingredientstablePaginateArgs {
+	args := &ingredientstablePaginateArgs{}
 	if rv == nil {
 		return args
 	}
@@ -517,6 +599,20 @@ func (pr *ProductQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				selectedFields = append(selectedFields, product.FieldPromotionID)
 				fieldSeen[product.FieldPromotionID] = struct{}{}
 			}
+		case "ingredientsTable":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&IngredientsTableClient{config: pr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, ingredientstableImplementors)...); err != nil {
+				return err
+			}
+			pr.withIngredientsTable = query
+			if _, ok := fieldSeen[product.FieldIngredientsTableID]; !ok {
+				selectedFields = append(selectedFields, product.FieldIngredientsTableID)
+				fieldSeen[product.FieldIngredientsTableID] = struct{}{}
+			}
 		case "nutritionalInformation":
 			var (
 				alias = field.Alias
@@ -546,10 +642,10 @@ func (pr *ProductQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				selectedFields = append(selectedFields, product.FieldProductImage)
 				fieldSeen[product.FieldProductImage] = struct{}{}
 			}
-		case "ingredientsListID":
-			if _, ok := fieldSeen[product.FieldIngredientsListID]; !ok {
-				selectedFields = append(selectedFields, product.FieldIngredientsListID)
-				fieldSeen[product.FieldIngredientsListID] = struct{}{}
+		case "ingredientsTableID":
+			if _, ok := fieldSeen[product.FieldIngredientsTableID]; !ok {
+				selectedFields = append(selectedFields, product.FieldIngredientsTableID)
+				fieldSeen[product.FieldIngredientsTableID] = struct{}{}
 			}
 		case "productCategoryID":
 			if _, ok := fieldSeen[product.FieldProductCategoryID]; !ok {

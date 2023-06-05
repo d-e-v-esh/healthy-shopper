@@ -20,6 +20,18 @@ func (a *Address) UserAddress(ctx context.Context) (result []*UserAddress, err e
 	return result, err
 }
 
+func (it *IngredientsTable) Product(ctx context.Context) (result []*Product, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = it.NamedProduct(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = it.Edges.ProductOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = it.QueryProduct().All(ctx)
+	}
+	return result, err
+}
+
 func (ni *NutritionalInformation) Product(ctx context.Context) (result []*Product, err error) {
 	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
 		result, err = ni.NamedProduct(graphql.GetFieldContext(ctx).Field.Alias)
@@ -76,6 +88,14 @@ func (pr *Product) Promotion(ctx context.Context) (*Promotion, error) {
 	result, err := pr.Edges.PromotionOrErr()
 	if IsNotLoaded(err) {
 		result, err = pr.QueryPromotion().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
+func (pr *Product) IngredientsTable(ctx context.Context) (*IngredientsTable, error) {
+	result, err := pr.Edges.IngredientsTableOrErr()
+	if IsNotLoaded(err) {
+		result, err = pr.QueryIngredientsTable().Only(ctx)
 	}
 	return result, MaskNotFound(err)
 }

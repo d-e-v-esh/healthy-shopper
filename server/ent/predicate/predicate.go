@@ -9,6 +9,9 @@ import (
 // Address is the predicate function for address builders.
 type Address func(*sql.Selector)
 
+// IngredientsTable is the predicate function for ingredientstable builders.
+type IngredientsTable func(*sql.Selector)
+
 // NutritionalInformation is the predicate function for nutritionalinformation builders.
 type NutritionalInformation func(*sql.Selector)
 

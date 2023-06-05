@@ -19,12 +19,12 @@ input CreateProductInput {
   name: String!
   description: String!
   productImage: String!
-  ingredientsListID: Int
   productCategoryID: Int
   createdAt: Time
   updatedAt: Time
   productItemID: ID
   promotionID: ID
+  ingredientsTableID: ID
   nutritionalInformationID: ID
 }
 """
@@ -71,6 +71,12 @@ Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+type IngredientsTable implements Node {
+  id: ID!
+  name: String!
+  description: String!
+  product: [Product!]!
+}
 """
 An object with an ID.
 Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
@@ -132,7 +138,7 @@ type Product implements Node {
   name: String!
   description: String!
   productImage: String!
-  ingredientsListID: Int
+  ingredientsTableID: ID
   productCategoryID: Int
   nutritionalInformationID: ID
   promotionID: ID
@@ -140,6 +146,7 @@ type Product implements Node {
   updatedAt: Time
   productItem: ProductItem
   promotion: Promotion
+  ingredientsTable: IngredientsTable
   nutritionalInformation: NutritionalInformation
 }
 type ProductItem implements Node {

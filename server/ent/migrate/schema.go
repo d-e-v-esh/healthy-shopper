@@ -25,6 +25,18 @@ var (
 		Columns:    AddressesColumns,
 		PrimaryKey: []*schema.Column{AddressesColumns[0]},
 	}
+	// IngredientsTablesColumns holds the columns for the "ingredients_tables" table.
+	IngredientsTablesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "description", Type: field.TypeString, Size: 500},
+	}
+	// IngredientsTablesTable holds the schema information for the "ingredients_tables" table.
+	IngredientsTablesTable = &schema.Table{
+		Name:       "ingredients_tables",
+		Columns:    IngredientsTablesColumns,
+		PrimaryKey: []*schema.Column{IngredientsTablesColumns[0]},
+	}
 	// NutritionalInformationsColumns holds the columns for the "nutritional_informations" table.
 	NutritionalInformationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -90,11 +102,11 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 50},
 		{Name: "description", Type: field.TypeString, Size: 500},
 		{Name: "product_image", Type: field.TypeString, Size: 500},
-		{Name: "ingredients_list_id", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "product_category_id", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "promotion_id", Type: field.TypeInt, Nullable: true},
+		{Name: "ingredients_table_id", Type: field.TypeInt, Nullable: true},
 		{Name: "nutritional_information_id", Type: field.TypeInt, Nullable: true},
 	}
 	// ProductsTable holds the schema information for the "products" table.
@@ -105,8 +117,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "products_promotions_promotion",
-				Columns:    []*schema.Column{ProductsColumns[8]},
+				Columns:    []*schema.Column{ProductsColumns[7]},
 				RefColumns: []*schema.Column{PromotionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "products_ingredients_tables_ingredients_table",
+				Columns:    []*schema.Column{ProductsColumns[8]},
+				RefColumns: []*schema.Column{IngredientsTablesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
@@ -340,6 +358,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AddressesTable,
+		IngredientsTablesTable,
 		NutritionalInformationsTable,
 		NutritionalInformationTablesTable,
 		OrderLinesTable,
@@ -361,7 +380,8 @@ var (
 func init() {
 	NutritionalInformationsTable.ForeignKeys[0].RefTable = NutritionalInformationTablesTable
 	ProductsTable.ForeignKeys[0].RefTable = PromotionsTable
-	ProductsTable.ForeignKeys[1].RefTable = NutritionalInformationsTable
+	ProductsTable.ForeignKeys[1].RefTable = IngredientsTablesTable
+	ProductsTable.ForeignKeys[2].RefTable = NutritionalInformationsTable
 	ProductItemsTable.ForeignKeys[0].RefTable = ProductsTable
 	ShopOrdersTable.ForeignKeys[0].RefTable = OrderStatusTable
 	ShopOrdersTable.ForeignKeys[1].RefTable = ShippingMethodsTable

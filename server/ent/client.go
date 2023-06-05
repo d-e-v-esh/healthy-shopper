@@ -11,6 +11,7 @@ import (
 	"healthyshopper/ent/migrate"
 
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/orderline"
@@ -40,6 +41,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// IngredientsTable is the client for interacting with the IngredientsTable builders.
+	IngredientsTable *IngredientsTableClient
 	// NutritionalInformation is the client for interacting with the NutritionalInformation builders.
 	NutritionalInformation *NutritionalInformationClient
 	// NutritionalInformationTable is the client for interacting with the NutritionalInformationTable builders.
@@ -86,6 +89,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Address = NewAddressClient(c.config)
+	c.IngredientsTable = NewIngredientsTableClient(c.config)
 	c.NutritionalInformation = NewNutritionalInformationClient(c.config)
 	c.NutritionalInformationTable = NewNutritionalInformationTableClient(c.config)
 	c.OrderLine = NewOrderLineClient(c.config)
@@ -184,6 +188,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                         ctx,
 		config:                      cfg,
 		Address:                     NewAddressClient(cfg),
+		IngredientsTable:            NewIngredientsTableClient(cfg),
 		NutritionalInformation:      NewNutritionalInformationClient(cfg),
 		NutritionalInformationTable: NewNutritionalInformationTableClient(cfg),
 		OrderLine:                   NewOrderLineClient(cfg),
@@ -219,6 +224,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                         ctx,
 		config:                      cfg,
 		Address:                     NewAddressClient(cfg),
+		IngredientsTable:            NewIngredientsTableClient(cfg),
 		NutritionalInformation:      NewNutritionalInformationClient(cfg),
 		NutritionalInformationTable: NewNutritionalInformationTableClient(cfg),
 		OrderLine:                   NewOrderLineClient(cfg),
@@ -263,10 +269,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.OrderLine,
-		c.OrderStatus, c.Product, c.ProductItem, c.Promotion, c.ShippingAddress,
-		c.ShippingMethod, c.ShopOrder, c.ShoppingCart, c.ShoppingCartItem, c.User,
-		c.UserAddress, c.UserReview,
+		c.Address, c.IngredientsTable, c.NutritionalInformation,
+		c.NutritionalInformationTable, c.OrderLine, c.OrderStatus, c.Product,
+		c.ProductItem, c.Promotion, c.ShippingAddress, c.ShippingMethod, c.ShopOrder,
+		c.ShoppingCart, c.ShoppingCartItem, c.User, c.UserAddress, c.UserReview,
 	} {
 		n.Use(hooks...)
 	}
@@ -276,10 +282,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Address, c.NutritionalInformation, c.NutritionalInformationTable, c.OrderLine,
-		c.OrderStatus, c.Product, c.ProductItem, c.Promotion, c.ShippingAddress,
-		c.ShippingMethod, c.ShopOrder, c.ShoppingCart, c.ShoppingCartItem, c.User,
-		c.UserAddress, c.UserReview,
+		c.Address, c.IngredientsTable, c.NutritionalInformation,
+		c.NutritionalInformationTable, c.OrderLine, c.OrderStatus, c.Product,
+		c.ProductItem, c.Promotion, c.ShippingAddress, c.ShippingMethod, c.ShopOrder,
+		c.ShoppingCart, c.ShoppingCartItem, c.User, c.UserAddress, c.UserReview,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -290,6 +296,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AddressMutation:
 		return c.Address.mutate(ctx, m)
+	case *IngredientsTableMutation:
+		return c.IngredientsTable.mutate(ctx, m)
 	case *NutritionalInformationMutation:
 		return c.NutritionalInformation.mutate(ctx, m)
 	case *NutritionalInformationTableMutation:
@@ -456,6 +464,140 @@ func (c *AddressClient) mutate(ctx context.Context, m *AddressMutation) (Value, 
 		return (&AddressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Address mutation op: %q", m.Op())
+	}
+}
+
+// IngredientsTableClient is a client for the IngredientsTable schema.
+type IngredientsTableClient struct {
+	config
+}
+
+// NewIngredientsTableClient returns a client for the IngredientsTable from the given config.
+func NewIngredientsTableClient(c config) *IngredientsTableClient {
+	return &IngredientsTableClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `ingredientstable.Hooks(f(g(h())))`.
+func (c *IngredientsTableClient) Use(hooks ...Hook) {
+	c.hooks.IngredientsTable = append(c.hooks.IngredientsTable, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `ingredientstable.Intercept(f(g(h())))`.
+func (c *IngredientsTableClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IngredientsTable = append(c.inters.IngredientsTable, interceptors...)
+}
+
+// Create returns a builder for creating a IngredientsTable entity.
+func (c *IngredientsTableClient) Create() *IngredientsTableCreate {
+	mutation := newIngredientsTableMutation(c.config, OpCreate)
+	return &IngredientsTableCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IngredientsTable entities.
+func (c *IngredientsTableClient) CreateBulk(builders ...*IngredientsTableCreate) *IngredientsTableCreateBulk {
+	return &IngredientsTableCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IngredientsTable.
+func (c *IngredientsTableClient) Update() *IngredientsTableUpdate {
+	mutation := newIngredientsTableMutation(c.config, OpUpdate)
+	return &IngredientsTableUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IngredientsTableClient) UpdateOne(it *IngredientsTable) *IngredientsTableUpdateOne {
+	mutation := newIngredientsTableMutation(c.config, OpUpdateOne, withIngredientsTable(it))
+	return &IngredientsTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IngredientsTableClient) UpdateOneID(id int) *IngredientsTableUpdateOne {
+	mutation := newIngredientsTableMutation(c.config, OpUpdateOne, withIngredientsTableID(id))
+	return &IngredientsTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IngredientsTable.
+func (c *IngredientsTableClient) Delete() *IngredientsTableDelete {
+	mutation := newIngredientsTableMutation(c.config, OpDelete)
+	return &IngredientsTableDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IngredientsTableClient) DeleteOne(it *IngredientsTable) *IngredientsTableDeleteOne {
+	return c.DeleteOneID(it.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IngredientsTableClient) DeleteOneID(id int) *IngredientsTableDeleteOne {
+	builder := c.Delete().Where(ingredientstable.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IngredientsTableDeleteOne{builder}
+}
+
+// Query returns a query builder for IngredientsTable.
+func (c *IngredientsTableClient) Query() *IngredientsTableQuery {
+	return &IngredientsTableQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIngredientsTable},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IngredientsTable entity by its id.
+func (c *IngredientsTableClient) Get(ctx context.Context, id int) (*IngredientsTable, error) {
+	return c.Query().Where(ingredientstable.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IngredientsTableClient) GetX(ctx context.Context, id int) *IngredientsTable {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProduct queries the product edge of a IngredientsTable.
+func (c *IngredientsTableClient) QueryProduct(it *IngredientsTable) *ProductQuery {
+	query := (&ProductClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := it.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(ingredientstable.Table, ingredientstable.FieldID, id),
+			sqlgraph.To(product.Table, product.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, ingredientstable.ProductTable, ingredientstable.ProductColumn),
+		)
+		fromV = sqlgraph.Neighbors(it.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *IngredientsTableClient) Hooks() []Hook {
+	return c.hooks.IngredientsTable
+}
+
+// Interceptors returns the client interceptors.
+func (c *IngredientsTableClient) Interceptors() []Interceptor {
+	return c.inters.IngredientsTable
+}
+
+func (c *IngredientsTableClient) mutate(ctx context.Context, m *IngredientsTableMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IngredientsTableCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IngredientsTableUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IngredientsTableUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IngredientsTableDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown IngredientsTable mutation op: %q", m.Op())
 	}
 }
 
@@ -1113,6 +1255,22 @@ func (c *ProductClient) QueryPromotion(pr *Product) *PromotionQuery {
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(promotion.Table, promotion.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, product.PromotionTable, product.PromotionColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIngredientsTable queries the ingredients_table edge of a Product.
+func (c *ProductClient) QueryIngredientsTable(pr *Product) *IngredientsTableQuery {
+	query := (&IngredientsTableClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, id),
+			sqlgraph.To(ingredientstable.Table, ingredientstable.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, product.IngredientsTableTable, product.IngredientsTableColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -2632,15 +2790,15 @@ func (c *UserReviewClient) mutate(ctx context.Context, m *UserReviewMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, NutritionalInformation, NutritionalInformationTable, OrderLine,
-		OrderStatus, Product, ProductItem, Promotion, ShippingAddress, ShippingMethod,
-		ShopOrder, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		Address, IngredientsTable, NutritionalInformation, NutritionalInformationTable,
+		OrderLine, OrderStatus, Product, ProductItem, Promotion, ShippingAddress,
+		ShippingMethod, ShopOrder, ShoppingCart, ShoppingCartItem, User, UserAddress,
 		UserReview []ent.Hook
 	}
 	inters struct {
-		Address, NutritionalInformation, NutritionalInformationTable, OrderLine,
-		OrderStatus, Product, ProductItem, Promotion, ShippingAddress, ShippingMethod,
-		ShopOrder, ShoppingCart, ShoppingCartItem, User, UserAddress,
+		Address, IngredientsTable, NutritionalInformation, NutritionalInformationTable,
+		OrderLine, OrderStatus, Product, ProductItem, Promotion, ShippingAddress,
+		ShippingMethod, ShopOrder, ShoppingCart, ShoppingCartItem, User, UserAddress,
 		UserReview []ent.Interceptor
 	}
 )

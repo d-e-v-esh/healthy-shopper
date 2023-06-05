@@ -4,6 +4,7 @@ package ent
 
 import (
 	"healthyshopper/ent/address"
+	"healthyshopper/ent/ingredientstable"
 	"healthyshopper/ent/nutritionalinformation"
 	"healthyshopper/ent/nutritionalinformationtable"
 	"healthyshopper/ent/orderline"
@@ -134,6 +135,44 @@ func init() {
 		return func(postal_code string) error {
 			for _, fn := range fns {
 				if err := fn(postal_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	ingredientstableFields := schema.IngredientsTable{}.Fields()
+	_ = ingredientstableFields
+	// ingredientstableDescName is the schema descriptor for name field.
+	ingredientstableDescName := ingredientstableFields[0].Descriptor()
+	// ingredientstable.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	ingredientstable.NameValidator = func() func(string) error {
+		validators := ingredientstableDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// ingredientstableDescDescription is the schema descriptor for description field.
+	ingredientstableDescDescription := ingredientstableFields[1].Descriptor()
+	// ingredientstable.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	ingredientstable.DescriptionValidator = func() func(string) error {
+		validators := ingredientstableDescDescription.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(description string) error {
+			for _, fn := range fns {
+				if err := fn(description); err != nil {
 					return err
 				}
 			}
