@@ -54,6 +54,11 @@ func IDLTE(id int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldID, id))
 }
 
+// ProductID applies equality check predicate on the "product_id" field. It's identical to ProductIDEQ.
+func ProductID(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldProductID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldName, v))
@@ -74,7 +79,7 @@ func ProductCategoryID(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldProductCategoryID, v))
 }
 
-// IngredientsListID applies equality check predicate on the "ingredients_List_id" field. It's identical to IngredientsListIDEQ.
+// IngredientsListID applies equality check predicate on the "ingredients_list_id" field. It's identical to IngredientsListIDEQ.
 func IngredientsListID(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldIngredientsListID, v))
 }
@@ -97,6 +102,46 @@ func CreatedAt(v time.Time) predicate.Product {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// ProductIDEQ applies the EQ predicate on the "product_id" field.
+func ProductIDEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldEQ(FieldProductID, v))
+}
+
+// ProductIDNEQ applies the NEQ predicate on the "product_id" field.
+func ProductIDNEQ(v int) predicate.Product {
+	return predicate.Product(sql.FieldNEQ(FieldProductID, v))
+}
+
+// ProductIDIn applies the In predicate on the "product_id" field.
+func ProductIDIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldIn(FieldProductID, vs...))
+}
+
+// ProductIDNotIn applies the NotIn predicate on the "product_id" field.
+func ProductIDNotIn(vs ...int) predicate.Product {
+	return predicate.Product(sql.FieldNotIn(FieldProductID, vs...))
+}
+
+// ProductIDGT applies the GT predicate on the "product_id" field.
+func ProductIDGT(v int) predicate.Product {
+	return predicate.Product(sql.FieldGT(FieldProductID, v))
+}
+
+// ProductIDGTE applies the GTE predicate on the "product_id" field.
+func ProductIDGTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldGTE(FieldProductID, v))
+}
+
+// ProductIDLT applies the LT predicate on the "product_id" field.
+func ProductIDLT(v int) predicate.Product {
+	return predicate.Product(sql.FieldLT(FieldProductID, v))
+}
+
+// ProductIDLTE applies the LTE predicate on the "product_id" field.
+func ProductIDLTE(v int) predicate.Product {
+	return predicate.Product(sql.FieldLTE(FieldProductID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -334,42 +379,42 @@ func ProductCategoryIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldProductCategoryID, v))
 }
 
-// IngredientsListIDEQ applies the EQ predicate on the "ingredients_List_id" field.
+// IngredientsListIDEQ applies the EQ predicate on the "ingredients_list_id" field.
 func IngredientsListIDEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDNEQ applies the NEQ predicate on the "ingredients_List_id" field.
+// IngredientsListIDNEQ applies the NEQ predicate on the "ingredients_list_id" field.
 func IngredientsListIDNEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDIn applies the In predicate on the "ingredients_List_id" field.
+// IngredientsListIDIn applies the In predicate on the "ingredients_list_id" field.
 func IngredientsListIDIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldIngredientsListID, vs...))
 }
 
-// IngredientsListIDNotIn applies the NotIn predicate on the "ingredients_List_id" field.
+// IngredientsListIDNotIn applies the NotIn predicate on the "ingredients_list_id" field.
 func IngredientsListIDNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldIngredientsListID, vs...))
 }
 
-// IngredientsListIDGT applies the GT predicate on the "ingredients_List_id" field.
+// IngredientsListIDGT applies the GT predicate on the "ingredients_list_id" field.
 func IngredientsListIDGT(v int) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDGTE applies the GTE predicate on the "ingredients_List_id" field.
+// IngredientsListIDGTE applies the GTE predicate on the "ingredients_list_id" field.
 func IngredientsListIDGTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDLT applies the LT predicate on the "ingredients_List_id" field.
+// IngredientsListIDLT applies the LT predicate on the "ingredients_list_id" field.
 func IngredientsListIDLT(v int) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldIngredientsListID, v))
 }
 
-// IngredientsListIDLTE applies the LTE predicate on the "ingredients_List_id" field.
+// IngredientsListIDLTE applies the LTE predicate on the "ingredients_list_id" field.
 func IngredientsListIDLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldIngredientsListID, v))
 }
@@ -532,6 +577,16 @@ func UpdatedAtLT(v time.Time) predicate.Product {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIsNil applies the IsNil predicate on the "updated_at" field.
+func UpdatedAtIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldUpdatedAt))
+}
+
+// UpdatedAtNotNil applies the NotNil predicate on the "updated_at" field.
+func UpdatedAtNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldUpdatedAt))
 }
 
 // And groups predicates with the AND operator between them.

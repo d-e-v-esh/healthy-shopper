@@ -11,15 +11,16 @@ var (
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString},
-		{Name: "product_image", Type: field.TypeString},
+		{Name: "product_id", Type: field.TypeInt, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "description", Type: field.TypeString, Size: 500},
+		{Name: "product_image", Type: field.TypeString, Size: 500},
 		{Name: "product_category_id", Type: field.TypeInt},
 		{Name: "ingredients_list_id", Type: field.TypeInt},
 		{Name: "nutritional_information_id", Type: field.TypeInt},
 		{Name: "promotion_id", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
@@ -30,13 +31,14 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "username", Type: field.TypeString},
-		{Name: "email_address", Type: field.TypeString, Unique: true},
-		{Name: "password", Type: field.TypeString},
-		{Name: "first_name", Type: field.TypeString},
-		{Name: "last_name", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
+		{Name: "username", Type: field.TypeString, Unique: true, Size: 20},
+		{Name: "email_address", Type: field.TypeString, Unique: true, Size: 60},
+		{Name: "password", Type: field.TypeString, Size: 100},
+		{Name: "first_name", Type: field.TypeString, Size: 50},
+		{Name: "last_name", Type: field.TypeString, Size: 50},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

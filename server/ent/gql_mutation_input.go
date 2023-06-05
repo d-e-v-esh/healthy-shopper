@@ -8,6 +8,7 @@ import (
 
 // CreateProductInput represents a mutation input for creating products.
 type CreateProductInput struct {
+	ProductID                int
 	Name                     string
 	Description              string
 	ProductImage             string
@@ -21,6 +22,7 @@ type CreateProductInput struct {
 
 // Mutate applies the CreateProductInput on the ProductMutation builder.
 func (i *CreateProductInput) Mutate(m *ProductMutation) {
+	m.SetProductID(i.ProductID)
 	m.SetName(i.Name)
 	m.SetDescription(i.Description)
 	m.SetProductImage(i.ProductImage)
@@ -44,6 +46,7 @@ func (c *ProductCreate) SetInput(i CreateProductInput) *ProductCreate {
 
 // CreateUserInput represents a mutation input for creating users.
 type CreateUserInput struct {
+	UserID       int
 	Username     string
 	EmailAddress string
 	Password     string
@@ -55,6 +58,7 @@ type CreateUserInput struct {
 
 // Mutate applies the CreateUserInput on the UserMutation builder.
 func (i *CreateUserInput) Mutate(m *UserMutation) {
+	m.SetUserID(i.UserID)
 	m.SetUsername(i.Username)
 	m.SetEmailAddress(i.EmailAddress)
 	m.SetPassword(i.Password)

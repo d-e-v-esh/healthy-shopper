@@ -16,73 +16,173 @@ func init() {
 	productFields := schema.Product{}.Fields()
 	_ = productFields
 	// productDescName is the schema descriptor for name field.
-	productDescName := productFields[0].Descriptor()
+	productDescName := productFields[1].Descriptor()
 	// product.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	product.NameValidator = productDescName.Validators[0].(func(string) error)
+	product.NameValidator = func() func(string) error {
+		validators := productDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// productDescDescription is the schema descriptor for description field.
-	productDescDescription := productFields[1].Descriptor()
+	productDescDescription := productFields[2].Descriptor()
 	// product.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
-	product.DescriptionValidator = productDescDescription.Validators[0].(func(string) error)
+	product.DescriptionValidator = func() func(string) error {
+		validators := productDescDescription.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(description string) error {
+			for _, fn := range fns {
+				if err := fn(description); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// productDescProductImage is the schema descriptor for product_image field.
-	productDescProductImage := productFields[2].Descriptor()
+	productDescProductImage := productFields[3].Descriptor()
 	// product.ProductImageValidator is a validator for the "product_image" field. It is called by the builders before save.
-	product.ProductImageValidator = productDescProductImage.Validators[0].(func(string) error)
+	product.ProductImageValidator = func() func(string) error {
+		validators := productDescProductImage.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(product_image string) error {
+			for _, fn := range fns {
+				if err := fn(product_image); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// productDescProductCategoryID is the schema descriptor for product_category_id field.
-	productDescProductCategoryID := productFields[3].Descriptor()
+	productDescProductCategoryID := productFields[4].Descriptor()
 	// product.ProductCategoryIDValidator is a validator for the "product_category_id" field. It is called by the builders before save.
 	product.ProductCategoryIDValidator = productDescProductCategoryID.Validators[0].(func(int) error)
-	// productDescIngredientsListID is the schema descriptor for ingredients_List_id field.
-	productDescIngredientsListID := productFields[4].Descriptor()
-	// product.IngredientsListIDValidator is a validator for the "ingredients_List_id" field. It is called by the builders before save.
+	// productDescIngredientsListID is the schema descriptor for ingredients_list_id field.
+	productDescIngredientsListID := productFields[5].Descriptor()
+	// product.IngredientsListIDValidator is a validator for the "ingredients_list_id" field. It is called by the builders before save.
 	product.IngredientsListIDValidator = productDescIngredientsListID.Validators[0].(func(int) error)
 	// productDescNutritionalInformationID is the schema descriptor for nutritional_information_id field.
-	productDescNutritionalInformationID := productFields[5].Descriptor()
+	productDescNutritionalInformationID := productFields[6].Descriptor()
 	// product.NutritionalInformationIDValidator is a validator for the "nutritional_information_id" field. It is called by the builders before save.
 	product.NutritionalInformationIDValidator = productDescNutritionalInformationID.Validators[0].(func(int) error)
 	// productDescPromotionID is the schema descriptor for promotion_id field.
-	productDescPromotionID := productFields[6].Descriptor()
+	productDescPromotionID := productFields[7].Descriptor()
 	// product.PromotionIDValidator is a validator for the "promotion_id" field. It is called by the builders before save.
 	product.PromotionIDValidator = productDescPromotionID.Validators[0].(func(int) error)
 	// productDescCreatedAt is the schema descriptor for created_at field.
-	productDescCreatedAt := productFields[7].Descriptor()
+	productDescCreatedAt := productFields[8].Descriptor()
 	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
 	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
-	// productDescUpdatedAt is the schema descriptor for updated_at field.
-	productDescUpdatedAt := productFields[8].Descriptor()
-	// product.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
-	// product.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[0].Descriptor()
+	userDescUsername := userFields[1].Descriptor()
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
-	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
+	user.UsernameValidator = func() func(string) error {
+		validators := userDescUsername.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(username string) error {
+			for _, fn := range fns {
+				if err := fn(username); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescEmailAddress is the schema descriptor for email_address field.
-	userDescEmailAddress := userFields[1].Descriptor()
+	userDescEmailAddress := userFields[2].Descriptor()
 	// user.EmailAddressValidator is a validator for the "email_address" field. It is called by the builders before save.
-	user.EmailAddressValidator = userDescEmailAddress.Validators[0].(func(string) error)
+	user.EmailAddressValidator = func() func(string) error {
+		validators := userDescEmailAddress.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(email_address string) error {
+			for _, fn := range fns {
+				if err := fn(email_address); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescPassword is the schema descriptor for password field.
-	userDescPassword := userFields[2].Descriptor()
+	userDescPassword := userFields[3].Descriptor()
 	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
+	user.PasswordValidator = func() func(string) error {
+		validators := userDescPassword.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(password string) error {
+			for _, fn := range fns {
+				if err := fn(password); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescFirstName is the schema descriptor for first_name field.
-	userDescFirstName := userFields[3].Descriptor()
+	userDescFirstName := userFields[4].Descriptor()
 	// user.FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
-	user.FirstNameValidator = userDescFirstName.Validators[0].(func(string) error)
+	user.FirstNameValidator = func() func(string) error {
+		validators := userDescFirstName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(first_name string) error {
+			for _, fn := range fns {
+				if err := fn(first_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescLastName is the schema descriptor for last_name field.
-	userDescLastName := userFields[4].Descriptor()
+	userDescLastName := userFields[5].Descriptor()
 	// user.LastNameValidator is a validator for the "last_name" field. It is called by the builders before save.
-	user.LastNameValidator = userDescLastName.Validators[0].(func(string) error)
+	user.LastNameValidator = func() func(string) error {
+		validators := userDescLastName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(last_name string) error {
+			for _, fn := range fns {
+				if err := fn(last_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[5].Descriptor()
+	userDescCreatedAt := userFields[6].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
-	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[6].Descriptor()
-	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
-	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 }

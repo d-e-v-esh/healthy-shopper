@@ -32,6 +32,11 @@ func (pr *ProductQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "productID":
+			if _, ok := fieldSeen[product.FieldProductID]; !ok {
+				selectedFields = append(selectedFields, product.FieldProductID)
+				fieldSeen[product.FieldProductID] = struct{}{}
+			}
 		case "name":
 			if _, ok := fieldSeen[product.FieldName]; !ok {
 				selectedFields = append(selectedFields, product.FieldName)
@@ -136,6 +141,11 @@ func (u *UserQuery) collectField(ctx context.Context, opCtx *graphql.OperationCo
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "userID":
+			if _, ok := fieldSeen[user.FieldUserID]; !ok {
+				selectedFields = append(selectedFields, user.FieldUserID)
+				fieldSeen[user.FieldUserID] = struct{}{}
+			}
 		case "username":
 			if _, ok := fieldSeen[user.FieldUsername]; !ok {
 				selectedFields = append(selectedFields, user.FieldUsername)

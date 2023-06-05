@@ -13,6 +13,8 @@ const (
 	Label = "product"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldProductID holds the string denoting the product_id field in the database.
+	FieldProductID = "product_id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -38,6 +40,7 @@ const (
 // Columns holds all SQL columns for product fields.
 var Columns = []string{
 	FieldID,
+	FieldProductID,
 	FieldName,
 	FieldDescription,
 	FieldProductImage,
@@ -68,7 +71,7 @@ var (
 	ProductImageValidator func(string) error
 	// ProductCategoryIDValidator is a validator for the "product_category_id" field. It is called by the builders before save.
 	ProductCategoryIDValidator func(int) error
-	// IngredientsListIDValidator is a validator for the "ingredients_List_id" field. It is called by the builders before save.
+	// IngredientsListIDValidator is a validator for the "ingredients_list_id" field. It is called by the builders before save.
 	IngredientsListIDValidator func(int) error
 	// NutritionalInformationIDValidator is a validator for the "nutritional_information_id" field. It is called by the builders before save.
 	NutritionalInformationIDValidator func(int) error
@@ -76,10 +79,6 @@ var (
 	PromotionIDValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the Product queries.
@@ -88,6 +87,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByProductID orders the results by the product_id field.
+func ByProductID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProductID, opts...).ToFunc()
 }
 
 // ByName orders the results by the name field.
@@ -110,7 +114,7 @@ func ByProductCategoryID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProductCategoryID, opts...).ToFunc()
 }
 
-// ByIngredientsListID orders the results by the ingredients_List_id field.
+// ByIngredientsListID orders the results by the ingredients_list_id field.
 func ByIngredientsListID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIngredientsListID, opts...).ToFunc()
 }

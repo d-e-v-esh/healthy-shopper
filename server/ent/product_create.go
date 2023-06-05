@@ -20,6 +20,12 @@ type ProductCreate struct {
 	hooks    []Hook
 }
 
+// SetProductID sets the "product_id" field.
+func (pc *ProductCreate) SetProductID(i int) *ProductCreate {
+	pc.mutation.SetProductID(i)
+	return pc
+}
+
 // SetName sets the "name" field.
 func (pc *ProductCreate) SetName(s string) *ProductCreate {
 	pc.mutation.SetName(s)
@@ -44,7 +50,7 @@ func (pc *ProductCreate) SetProductCategoryID(i int) *ProductCreate {
 	return pc
 }
 
-// SetIngredientsListID sets the "ingredients_List_id" field.
+// SetIngredientsListID sets the "ingredients_list_id" field.
 func (pc *ProductCreate) SetIngredientsListID(i int) *ProductCreate {
 	pc.mutation.SetIngredientsListID(i)
 	return pc
@@ -129,14 +135,13 @@ func (pc *ProductCreate) defaults() {
 		v := product.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := pc.mutation.UpdatedAt(); !ok {
-		v := product.DefaultUpdatedAt()
-		pc.mutation.SetUpdatedAt(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProductCreate) check() error {
+	if _, ok := pc.mutation.ProductID(); !ok {
+		return &ValidationError{Name: "product_id", err: errors.New(`ent: missing required field "Product.product_id"`)}
+	}
 	if _, ok := pc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Product.name"`)}
 	}
@@ -170,11 +175,11 @@ func (pc *ProductCreate) check() error {
 		}
 	}
 	if _, ok := pc.mutation.IngredientsListID(); !ok {
-		return &ValidationError{Name: "ingredients_List_id", err: errors.New(`ent: missing required field "Product.ingredients_List_id"`)}
+		return &ValidationError{Name: "ingredients_list_id", err: errors.New(`ent: missing required field "Product.ingredients_list_id"`)}
 	}
 	if v, ok := pc.mutation.IngredientsListID(); ok {
 		if err := product.IngredientsListIDValidator(v); err != nil {
-			return &ValidationError{Name: "ingredients_List_id", err: fmt.Errorf(`ent: validator failed for field "Product.ingredients_List_id": %w`, err)}
+			return &ValidationError{Name: "ingredients_list_id", err: fmt.Errorf(`ent: validator failed for field "Product.ingredients_list_id": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.NutritionalInformationID(); !ok {
@@ -195,9 +200,6 @@ func (pc *ProductCreate) check() error {
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Product.created_at"`)}
-	}
-	if _, ok := pc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Product.updated_at"`)}
 	}
 	return nil
 }
@@ -225,6 +227,10 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_node = &Product{config: pc.config}
 		_spec = sqlgraph.NewCreateSpec(product.Table, sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt))
 	)
+	if value, ok := pc.mutation.ProductID(); ok {
+		_spec.SetField(product.FieldProductID, field.TypeInt, value)
+		_node.ProductID = value
+	}
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 		_node.Name = value

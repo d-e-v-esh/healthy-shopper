@@ -14,24 +14,22 @@ type User struct {
 	ent.Schema
 }
 
-// Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-
-		// Add annotations to the fields.
-		field.String("username").NotEmpty(),
-		field.String("email_address").NotEmpty().Unique(),
-		field.String("password").NotEmpty(),
-		field.String("first_name").NotEmpty(),
-		field.String("last_name").NotEmpty(),
-		field.Time("created_at").Default(time.Now).Immutable(),
-		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
+		field.Int("user_id").Unique(),
+		field.String("username").MaxLen(20).NotEmpty().Unique(),
+		field.String("email_address").MaxLen(60).NotEmpty().Unique(),
+		field.String("password").MaxLen(100).NotEmpty(),
+		field.String("first_name").MaxLen(50).NotEmpty(),
+		field.String("last_name").MaxLen(50).NotEmpty(),
+		field.Time("created_at").Default(time.Now),
+		field.Time("updated_at").Optional(),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{}
 }
 
 func (User) Annotations() []schema.Annotation {
