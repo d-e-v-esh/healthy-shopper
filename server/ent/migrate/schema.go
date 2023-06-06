@@ -112,7 +112,7 @@ var (
 		{Name: "product_image", Type: field.TypeString, Size: 500},
 		{Name: "product_category_id", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "promotion_id", Type: field.TypeInt, Nullable: true},
 		{Name: "ingredients_table_id", Type: field.TypeInt, Nullable: true},
 		{Name: "nutritional_information_id", Type: field.TypeInt, Nullable: true},
@@ -151,7 +151,7 @@ var (
 		{Name: "product_image", Type: field.TypeString, Size: 500},
 		{Name: "price", Type: field.TypeFloat32},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "product_id", Type: field.TypeInt, Unique: true},
 	}
 	// ProductItemsTable holds the schema information for the "product_items" table.

@@ -400,16 +400,6 @@ func UpdatedAtLTE(v time.Time) predicate.ProductItem {
 	return predicate.ProductItem(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// UpdatedAtIsNil applies the IsNil predicate on the "updated_at" field.
-func UpdatedAtIsNil() predicate.ProductItem {
-	return predicate.ProductItem(sql.FieldIsNull(FieldUpdatedAt))
-}
-
-// UpdatedAtNotNil applies the NotNil predicate on the "updated_at" field.
-func UpdatedAtNotNil() predicate.ProductItem {
-	return predicate.ProductItem(sql.FieldNotNull(FieldUpdatedAt))
-}
-
 // HasProduct applies the HasEdge predicate on the "product" edge.
 func HasProduct() predicate.ProductItem {
 	return predicate.ProductItem(func(s *sql.Selector) {

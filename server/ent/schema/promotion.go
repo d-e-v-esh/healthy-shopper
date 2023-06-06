@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -27,5 +29,12 @@ func (Promotion) Edges() []ent.Edge {
 	return []ent.Edge{
 
 		edge.From("product", Product.Type).Ref("promotion").Required(), // This can't be unique because there no field associated with this edge
+	}
+}
+
+func (Promotion) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }

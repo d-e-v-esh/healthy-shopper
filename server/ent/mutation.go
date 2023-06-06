@@ -4132,22 +4132,9 @@ func (m *ProductMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err er
 	return oldValue.UpdatedAt, nil
 }
 
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (m *ProductMutation) ClearUpdatedAt() {
-	m.updated_at = nil
-	m.clearedFields[product.FieldUpdatedAt] = struct{}{}
-}
-
-// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
-func (m *ProductMutation) UpdatedAtCleared() bool {
-	_, ok := m.clearedFields[product.FieldUpdatedAt]
-	return ok
-}
-
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *ProductMutation) ResetUpdatedAt() {
 	m.updated_at = nil
-	delete(m.clearedFields, product.FieldUpdatedAt)
 }
 
 // SetProductItemID sets the "product_item" edge to the ProductItem entity by id.
@@ -4511,9 +4498,6 @@ func (m *ProductMutation) ClearedFields() []string {
 	if m.FieldCleared(product.FieldPromotionID) {
 		fields = append(fields, product.FieldPromotionID)
 	}
-	if m.FieldCleared(product.FieldUpdatedAt) {
-		fields = append(fields, product.FieldUpdatedAt)
-	}
 	return fields
 }
 
@@ -4539,9 +4523,6 @@ func (m *ProductMutation) ClearField(name string) error {
 		return nil
 	case product.FieldPromotionID:
 		m.ClearPromotionID()
-		return nil
-	case product.FieldUpdatedAt:
-		m.ClearUpdatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Product nullable field %s", name)
@@ -5123,22 +5104,9 @@ func (m *ProductItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, er
 	return oldValue.UpdatedAt, nil
 }
 
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (m *ProductItemMutation) ClearUpdatedAt() {
-	m.updated_at = nil
-	m.clearedFields[productitem.FieldUpdatedAt] = struct{}{}
-}
-
-// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
-func (m *ProductItemMutation) UpdatedAtCleared() bool {
-	_, ok := m.clearedFields[productitem.FieldUpdatedAt]
-	return ok
-}
-
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *ProductItemMutation) ResetUpdatedAt() {
 	m.updated_at = nil
-	delete(m.clearedFields, productitem.FieldUpdatedAt)
 }
 
 // ClearProduct clears the "product" edge to the Product entity.
@@ -5490,11 +5458,7 @@ func (m *ProductItemMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ProductItemMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(productitem.FieldUpdatedAt) {
-		fields = append(fields, productitem.FieldUpdatedAt)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -5507,11 +5471,6 @@ func (m *ProductItemMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ProductItemMutation) ClearField(name string) error {
-	switch name {
-	case productitem.FieldUpdatedAt:
-		m.ClearUpdatedAt()
-		return nil
-	}
 	return fmt.Errorf("unknown ProductItem nullable field %s", name)
 }
 

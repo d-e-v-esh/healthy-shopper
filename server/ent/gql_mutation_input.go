@@ -6,6 +6,424 @@ import (
 	"time"
 )
 
+// CreateAddressInput represents a mutation input for creating addresses.
+type CreateAddressInput struct {
+	PhoneNumber   string
+	AddressLine1  string
+	AddressLine2  *string
+	City          string
+	State         string
+	Country       string
+	PostalCode    string
+	UserAddresIDs []int
+}
+
+// Mutate applies the CreateAddressInput on the AddressMutation builder.
+func (i *CreateAddressInput) Mutate(m *AddressMutation) {
+	m.SetPhoneNumber(i.PhoneNumber)
+	m.SetAddressLine1(i.AddressLine1)
+	if v := i.AddressLine2; v != nil {
+		m.SetAddressLine2(*v)
+	}
+	m.SetCity(i.City)
+	m.SetState(i.State)
+	m.SetCountry(i.Country)
+	m.SetPostalCode(i.PostalCode)
+	if v := i.UserAddresIDs; len(v) > 0 {
+		m.AddUserAddresIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateAddressInput on the AddressCreate builder.
+func (c *AddressCreate) SetInput(i CreateAddressInput) *AddressCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateAddressInput represents a mutation input for updating addresses.
+type UpdateAddressInput struct {
+	PhoneNumber         *string
+	AddressLine1        *string
+	ClearAddressLine2   bool
+	AddressLine2        *string
+	City                *string
+	State               *string
+	Country             *string
+	PostalCode          *string
+	ClearUserAddress    bool
+	AddUserAddresIDs    []int
+	RemoveUserAddresIDs []int
+}
+
+// Mutate applies the UpdateAddressInput on the AddressMutation builder.
+func (i *UpdateAddressInput) Mutate(m *AddressMutation) {
+	if v := i.PhoneNumber; v != nil {
+		m.SetPhoneNumber(*v)
+	}
+	if v := i.AddressLine1; v != nil {
+		m.SetAddressLine1(*v)
+	}
+	if i.ClearAddressLine2 {
+		m.ClearAddressLine2()
+	}
+	if v := i.AddressLine2; v != nil {
+		m.SetAddressLine2(*v)
+	}
+	if v := i.City; v != nil {
+		m.SetCity(*v)
+	}
+	if v := i.State; v != nil {
+		m.SetState(*v)
+	}
+	if v := i.Country; v != nil {
+		m.SetCountry(*v)
+	}
+	if v := i.PostalCode; v != nil {
+		m.SetPostalCode(*v)
+	}
+	if i.ClearUserAddress {
+		m.ClearUserAddress()
+	}
+	if v := i.AddUserAddresIDs; len(v) > 0 {
+		m.AddUserAddresIDs(v...)
+	}
+	if v := i.RemoveUserAddresIDs; len(v) > 0 {
+		m.RemoveUserAddresIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateAddressInput on the AddressUpdate builder.
+func (c *AddressUpdate) SetInput(i UpdateAddressInput) *AddressUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateAddressInput on the AddressUpdateOne builder.
+func (c *AddressUpdateOne) SetInput(i UpdateAddressInput) *AddressUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateIngredientsTableInput represents a mutation input for creating ingredientstables.
+type CreateIngredientsTableInput struct {
+	Name        string
+	Description string
+	ProductIDs  []int
+}
+
+// Mutate applies the CreateIngredientsTableInput on the IngredientsTableMutation builder.
+func (i *CreateIngredientsTableInput) Mutate(m *IngredientsTableMutation) {
+	m.SetName(i.Name)
+	m.SetDescription(i.Description)
+	if v := i.ProductIDs; len(v) > 0 {
+		m.AddProductIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateIngredientsTableInput on the IngredientsTableCreate builder.
+func (c *IngredientsTableCreate) SetInput(i CreateIngredientsTableInput) *IngredientsTableCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateIngredientsTableInput represents a mutation input for updating ingredientstables.
+type UpdateIngredientsTableInput struct {
+	Name             *string
+	Description      *string
+	AddProductIDs    []int
+	RemoveProductIDs []int
+}
+
+// Mutate applies the UpdateIngredientsTableInput on the IngredientsTableMutation builder.
+func (i *UpdateIngredientsTableInput) Mutate(m *IngredientsTableMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if v := i.AddProductIDs; len(v) > 0 {
+		m.AddProductIDs(v...)
+	}
+	if v := i.RemoveProductIDs; len(v) > 0 {
+		m.RemoveProductIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateIngredientsTableInput on the IngredientsTableUpdate builder.
+func (c *IngredientsTableUpdate) SetInput(i UpdateIngredientsTableInput) *IngredientsTableUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateIngredientsTableInput on the IngredientsTableUpdateOne builder.
+func (c *IngredientsTableUpdateOne) SetInput(i UpdateIngredientsTableInput) *IngredientsTableUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateNutritionalInformationInput represents a mutation input for creating nutritionalinformations.
+type CreateNutritionalInformationInput struct {
+	NValue                        float64
+	NMeasurementUnit              string
+	ProductIDs                    []int
+	NutritionalInformationTableID int
+}
+
+// Mutate applies the CreateNutritionalInformationInput on the NutritionalInformationMutation builder.
+func (i *CreateNutritionalInformationInput) Mutate(m *NutritionalInformationMutation) {
+	m.SetNValue(i.NValue)
+	m.SetNMeasurementUnit(i.NMeasurementUnit)
+	if v := i.ProductIDs; len(v) > 0 {
+		m.AddProductIDs(v...)
+	}
+	m.SetNutritionalInformationTableID(i.NutritionalInformationTableID)
+}
+
+// SetInput applies the change-set in the CreateNutritionalInformationInput on the NutritionalInformationCreate builder.
+func (c *NutritionalInformationCreate) SetInput(i CreateNutritionalInformationInput) *NutritionalInformationCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateNutritionalInformationInput represents a mutation input for updating nutritionalinformations.
+type UpdateNutritionalInformationInput struct {
+	NValue                        *float64
+	NMeasurementUnit              *string
+	AddProductIDs                 []int
+	RemoveProductIDs              []int
+	NutritionalInformationTableID *int
+}
+
+// Mutate applies the UpdateNutritionalInformationInput on the NutritionalInformationMutation builder.
+func (i *UpdateNutritionalInformationInput) Mutate(m *NutritionalInformationMutation) {
+	if v := i.NValue; v != nil {
+		m.SetNValue(*v)
+	}
+	if v := i.NMeasurementUnit; v != nil {
+		m.SetNMeasurementUnit(*v)
+	}
+	if v := i.AddProductIDs; len(v) > 0 {
+		m.AddProductIDs(v...)
+	}
+	if v := i.RemoveProductIDs; len(v) > 0 {
+		m.RemoveProductIDs(v...)
+	}
+	if v := i.NutritionalInformationTableID; v != nil {
+		m.SetNutritionalInformationTableID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateNutritionalInformationInput on the NutritionalInformationUpdate builder.
+func (c *NutritionalInformationUpdate) SetInput(i UpdateNutritionalInformationInput) *NutritionalInformationUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateNutritionalInformationInput on the NutritionalInformationUpdateOne builder.
+func (c *NutritionalInformationUpdateOne) SetInput(i UpdateNutritionalInformationInput) *NutritionalInformationUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateNutritionalInformationTableInput represents a mutation input for creating nutritionalinformationtables.
+type CreateNutritionalInformationTableInput struct {
+	Parameter                 string
+	Value                     float64
+	MeasurementUnit           string
+	NutritionalInformationIDs []int
+}
+
+// Mutate applies the CreateNutritionalInformationTableInput on the NutritionalInformationTableMutation builder.
+func (i *CreateNutritionalInformationTableInput) Mutate(m *NutritionalInformationTableMutation) {
+	m.SetParameter(i.Parameter)
+	m.SetValue(i.Value)
+	m.SetMeasurementUnit(i.MeasurementUnit)
+	if v := i.NutritionalInformationIDs; len(v) > 0 {
+		m.AddNutritionalInformationIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateNutritionalInformationTableInput on the NutritionalInformationTableCreate builder.
+func (c *NutritionalInformationTableCreate) SetInput(i CreateNutritionalInformationTableInput) *NutritionalInformationTableCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateNutritionalInformationTableInput represents a mutation input for updating nutritionalinformationtables.
+type UpdateNutritionalInformationTableInput struct {
+	Parameter                       *string
+	Value                           *float64
+	MeasurementUnit                 *string
+	ClearNutritionalInformation     bool
+	AddNutritionalInformationIDs    []int
+	RemoveNutritionalInformationIDs []int
+}
+
+// Mutate applies the UpdateNutritionalInformationTableInput on the NutritionalInformationTableMutation builder.
+func (i *UpdateNutritionalInformationTableInput) Mutate(m *NutritionalInformationTableMutation) {
+	if v := i.Parameter; v != nil {
+		m.SetParameter(*v)
+	}
+	if v := i.Value; v != nil {
+		m.SetValue(*v)
+	}
+	if v := i.MeasurementUnit; v != nil {
+		m.SetMeasurementUnit(*v)
+	}
+	if i.ClearNutritionalInformation {
+		m.ClearNutritionalInformation()
+	}
+	if v := i.AddNutritionalInformationIDs; len(v) > 0 {
+		m.AddNutritionalInformationIDs(v...)
+	}
+	if v := i.RemoveNutritionalInformationIDs; len(v) > 0 {
+		m.RemoveNutritionalInformationIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateNutritionalInformationTableInput on the NutritionalInformationTableUpdate builder.
+func (c *NutritionalInformationTableUpdate) SetInput(i UpdateNutritionalInformationTableInput) *NutritionalInformationTableUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateNutritionalInformationTableInput on the NutritionalInformationTableUpdateOne builder.
+func (c *NutritionalInformationTableUpdateOne) SetInput(i UpdateNutritionalInformationTableInput) *NutritionalInformationTableUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateOrderLineInput represents a mutation input for creating orderlines.
+type CreateOrderLineInput struct {
+	ShopOrderID   int
+	Quantity      int
+	Price         float64
+	ProductItemID int
+	UserReviewIDs []int
+}
+
+// Mutate applies the CreateOrderLineInput on the OrderLineMutation builder.
+func (i *CreateOrderLineInput) Mutate(m *OrderLineMutation) {
+	m.SetShopOrderID(i.ShopOrderID)
+	m.SetQuantity(i.Quantity)
+	m.SetPrice(i.Price)
+	m.SetProductItemID(i.ProductItemID)
+	if v := i.UserReviewIDs; len(v) > 0 {
+		m.AddUserReviewIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateOrderLineInput on the OrderLineCreate builder.
+func (c *OrderLineCreate) SetInput(i CreateOrderLineInput) *OrderLineCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateOrderLineInput represents a mutation input for updating orderlines.
+type UpdateOrderLineInput struct {
+	ShopOrderID         *int
+	Quantity            *int
+	Price               *float64
+	ProductItemID       *int
+	ClearUserReview     bool
+	AddUserReviewIDs    []int
+	RemoveUserReviewIDs []int
+}
+
+// Mutate applies the UpdateOrderLineInput on the OrderLineMutation builder.
+func (i *UpdateOrderLineInput) Mutate(m *OrderLineMutation) {
+	if v := i.ShopOrderID; v != nil {
+		m.SetShopOrderID(*v)
+	}
+	if v := i.Quantity; v != nil {
+		m.SetQuantity(*v)
+	}
+	if v := i.Price; v != nil {
+		m.SetPrice(*v)
+	}
+	if v := i.ProductItemID; v != nil {
+		m.SetProductItemID(*v)
+	}
+	if i.ClearUserReview {
+		m.ClearUserReview()
+	}
+	if v := i.AddUserReviewIDs; len(v) > 0 {
+		m.AddUserReviewIDs(v...)
+	}
+	if v := i.RemoveUserReviewIDs; len(v) > 0 {
+		m.RemoveUserReviewIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateOrderLineInput on the OrderLineUpdate builder.
+func (c *OrderLineUpdate) SetInput(i UpdateOrderLineInput) *OrderLineUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateOrderLineInput on the OrderLineUpdateOne builder.
+func (c *OrderLineUpdateOne) SetInput(i UpdateOrderLineInput) *OrderLineUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateOrderStatusInput represents a mutation input for creating orderstatusslice.
+type CreateOrderStatusInput struct {
+	Status       string
+	ShopOrderIDs []int
+}
+
+// Mutate applies the CreateOrderStatusInput on the OrderStatusMutation builder.
+func (i *CreateOrderStatusInput) Mutate(m *OrderStatusMutation) {
+	m.SetStatus(i.Status)
+	if v := i.ShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateOrderStatusInput on the OrderStatusCreate builder.
+func (c *OrderStatusCreate) SetInput(i CreateOrderStatusInput) *OrderStatusCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateOrderStatusInput represents a mutation input for updating orderstatusslice.
+type UpdateOrderStatusInput struct {
+	Status             *string
+	ClearShopOrder     bool
+	AddShopOrderIDs    []int
+	RemoveShopOrderIDs []int
+}
+
+// Mutate applies the UpdateOrderStatusInput on the OrderStatusMutation builder.
+func (i *UpdateOrderStatusInput) Mutate(m *OrderStatusMutation) {
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if i.ClearShopOrder {
+		m.ClearShopOrder()
+	}
+	if v := i.AddShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
+	}
+	if v := i.RemoveShopOrderIDs; len(v) > 0 {
+		m.RemoveShopOrderIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateOrderStatusInput on the OrderStatusUpdate builder.
+func (c *OrderStatusUpdate) SetInput(i UpdateOrderStatusInput) *OrderStatusUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateOrderStatusInput on the OrderStatusUpdateOne builder.
+func (c *OrderStatusUpdateOne) SetInput(i UpdateOrderStatusInput) *OrderStatusUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateProductInput represents a mutation input for creating products.
 type CreateProductInput struct {
 	Name                     string
@@ -54,6 +472,86 @@ func (c *ProductCreate) SetInput(i CreateProductInput) *ProductCreate {
 	return c
 }
 
+// UpdateProductInput represents a mutation input for updating products.
+type UpdateProductInput struct {
+	Name                        *string
+	Description                 *string
+	ProductImage                *string
+	ClearProductCategoryID      bool
+	ProductCategoryID           *int
+	CreatedAt                   *time.Time
+	UpdatedAt                   *time.Time
+	ClearProductItem            bool
+	ProductItemID               *int
+	ClearPromotion              bool
+	PromotionID                 *int
+	ClearIngredientsTable       bool
+	IngredientsTableID          *int
+	ClearNutritionalInformation bool
+	NutritionalInformationID    *int
+}
+
+// Mutate applies the UpdateProductInput on the ProductMutation builder.
+func (i *UpdateProductInput) Mutate(m *ProductMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if v := i.ProductImage; v != nil {
+		m.SetProductImage(*v)
+	}
+	if i.ClearProductCategoryID {
+		m.ClearProductCategoryID()
+	}
+	if v := i.ProductCategoryID; v != nil {
+		m.SetProductCategoryID(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if i.ClearProductItem {
+		m.ClearProductItem()
+	}
+	if v := i.ProductItemID; v != nil {
+		m.SetProductItemID(*v)
+	}
+	if i.ClearPromotion {
+		m.ClearPromotion()
+	}
+	if v := i.PromotionID; v != nil {
+		m.SetPromotionID(*v)
+	}
+	if i.ClearIngredientsTable {
+		m.ClearIngredientsTable()
+	}
+	if v := i.IngredientsTableID; v != nil {
+		m.SetIngredientsTableID(*v)
+	}
+	if i.ClearNutritionalInformation {
+		m.ClearNutritionalInformation()
+	}
+	if v := i.NutritionalInformationID; v != nil {
+		m.SetNutritionalInformationID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateProductInput on the ProductUpdate builder.
+func (c *ProductUpdate) SetInput(i UpdateProductInput) *ProductUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateProductInput on the ProductUpdateOne builder.
+func (c *ProductUpdateOne) SetInput(i UpdateProductInput) *ProductUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateProductItemInput represents a mutation input for creating productitems.
 type CreateProductItemInput struct {
 	StockKeepingUnit    string
@@ -90,6 +588,496 @@ func (i *CreateProductItemInput) Mutate(m *ProductItemMutation) {
 
 // SetInput applies the change-set in the CreateProductItemInput on the ProductItemCreate builder.
 func (c *ProductItemCreate) SetInput(i CreateProductItemInput) *ProductItemCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateProductItemInput represents a mutation input for updating productitems.
+type UpdateProductItemInput struct {
+	StockKeepingUnit          *string
+	QuantityInStock           *int
+	ProductImage              *string
+	Price                     *float32
+	CreatedAt                 *time.Time
+	UpdatedAt                 *time.Time
+	ProductID                 *int
+	ClearOrderLine            bool
+	AddOrderLineIDs           []int
+	RemoveOrderLineIDs        []int
+	ClearShoppingCartItem     bool
+	AddShoppingCartItemIDs    []int
+	RemoveShoppingCartItemIDs []int
+}
+
+// Mutate applies the UpdateProductItemInput on the ProductItemMutation builder.
+func (i *UpdateProductItemInput) Mutate(m *ProductItemMutation) {
+	if v := i.StockKeepingUnit; v != nil {
+		m.SetStockKeepingUnit(*v)
+	}
+	if v := i.QuantityInStock; v != nil {
+		m.SetQuantityInStock(*v)
+	}
+	if v := i.ProductImage; v != nil {
+		m.SetProductImage(*v)
+	}
+	if v := i.Price; v != nil {
+		m.SetPrice(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.ProductID; v != nil {
+		m.SetProductID(*v)
+	}
+	if i.ClearOrderLine {
+		m.ClearOrderLine()
+	}
+	if v := i.AddOrderLineIDs; len(v) > 0 {
+		m.AddOrderLineIDs(v...)
+	}
+	if v := i.RemoveOrderLineIDs; len(v) > 0 {
+		m.RemoveOrderLineIDs(v...)
+	}
+	if i.ClearShoppingCartItem {
+		m.ClearShoppingCartItem()
+	}
+	if v := i.AddShoppingCartItemIDs; len(v) > 0 {
+		m.AddShoppingCartItemIDs(v...)
+	}
+	if v := i.RemoveShoppingCartItemIDs; len(v) > 0 {
+		m.RemoveShoppingCartItemIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateProductItemInput on the ProductItemUpdate builder.
+func (c *ProductItemUpdate) SetInput(i UpdateProductItemInput) *ProductItemUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateProductItemInput on the ProductItemUpdateOne builder.
+func (c *ProductItemUpdateOne) SetInput(i UpdateProductItemInput) *ProductItemUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreatePromotionInput represents a mutation input for creating promotions.
+type CreatePromotionInput struct {
+	Name               string
+	Description        string
+	DiscountPercentage int
+	StartDate          time.Time
+	EndDate            time.Time
+	ProductIDs         []int
+}
+
+// Mutate applies the CreatePromotionInput on the PromotionMutation builder.
+func (i *CreatePromotionInput) Mutate(m *PromotionMutation) {
+	m.SetName(i.Name)
+	m.SetDescription(i.Description)
+	m.SetDiscountPercentage(i.DiscountPercentage)
+	m.SetStartDate(i.StartDate)
+	m.SetEndDate(i.EndDate)
+	if v := i.ProductIDs; len(v) > 0 {
+		m.AddProductIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreatePromotionInput on the PromotionCreate builder.
+func (c *PromotionCreate) SetInput(i CreatePromotionInput) *PromotionCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdatePromotionInput represents a mutation input for updating promotions.
+type UpdatePromotionInput struct {
+	Name               *string
+	Description        *string
+	DiscountPercentage *int
+	StartDate          *time.Time
+	EndDate            *time.Time
+	AddProductIDs      []int
+	RemoveProductIDs   []int
+}
+
+// Mutate applies the UpdatePromotionInput on the PromotionMutation builder.
+func (i *UpdatePromotionInput) Mutate(m *PromotionMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if v := i.DiscountPercentage; v != nil {
+		m.SetDiscountPercentage(*v)
+	}
+	if v := i.StartDate; v != nil {
+		m.SetStartDate(*v)
+	}
+	if v := i.EndDate; v != nil {
+		m.SetEndDate(*v)
+	}
+	if v := i.AddProductIDs; len(v) > 0 {
+		m.AddProductIDs(v...)
+	}
+	if v := i.RemoveProductIDs; len(v) > 0 {
+		m.RemoveProductIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdatePromotionInput on the PromotionUpdate builder.
+func (c *PromotionUpdate) SetInput(i UpdatePromotionInput) *PromotionUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdatePromotionInput on the PromotionUpdateOne builder.
+func (c *PromotionUpdateOne) SetInput(i UpdatePromotionInput) *PromotionUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateShippingAddressInput represents a mutation input for creating shippingaddresses.
+type CreateShippingAddressInput struct {
+	PhoneNumber  string
+	AddressLine1 string
+	AddressLine2 *string
+	City         string
+	State        string
+	Country      string
+	PostalCode   string
+	ShopOrderIDs []int
+}
+
+// Mutate applies the CreateShippingAddressInput on the ShippingAddressMutation builder.
+func (i *CreateShippingAddressInput) Mutate(m *ShippingAddressMutation) {
+	m.SetPhoneNumber(i.PhoneNumber)
+	m.SetAddressLine1(i.AddressLine1)
+	if v := i.AddressLine2; v != nil {
+		m.SetAddressLine2(*v)
+	}
+	m.SetCity(i.City)
+	m.SetState(i.State)
+	m.SetCountry(i.Country)
+	m.SetPostalCode(i.PostalCode)
+	if v := i.ShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateShippingAddressInput on the ShippingAddressCreate builder.
+func (c *ShippingAddressCreate) SetInput(i CreateShippingAddressInput) *ShippingAddressCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateShippingAddressInput represents a mutation input for updating shippingaddresses.
+type UpdateShippingAddressInput struct {
+	PhoneNumber        *string
+	AddressLine1       *string
+	ClearAddressLine2  bool
+	AddressLine2       *string
+	City               *string
+	State              *string
+	Country            *string
+	PostalCode         *string
+	ClearShopOrder     bool
+	AddShopOrderIDs    []int
+	RemoveShopOrderIDs []int
+}
+
+// Mutate applies the UpdateShippingAddressInput on the ShippingAddressMutation builder.
+func (i *UpdateShippingAddressInput) Mutate(m *ShippingAddressMutation) {
+	if v := i.PhoneNumber; v != nil {
+		m.SetPhoneNumber(*v)
+	}
+	if v := i.AddressLine1; v != nil {
+		m.SetAddressLine1(*v)
+	}
+	if i.ClearAddressLine2 {
+		m.ClearAddressLine2()
+	}
+	if v := i.AddressLine2; v != nil {
+		m.SetAddressLine2(*v)
+	}
+	if v := i.City; v != nil {
+		m.SetCity(*v)
+	}
+	if v := i.State; v != nil {
+		m.SetState(*v)
+	}
+	if v := i.Country; v != nil {
+		m.SetCountry(*v)
+	}
+	if v := i.PostalCode; v != nil {
+		m.SetPostalCode(*v)
+	}
+	if i.ClearShopOrder {
+		m.ClearShopOrder()
+	}
+	if v := i.AddShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
+	}
+	if v := i.RemoveShopOrderIDs; len(v) > 0 {
+		m.RemoveShopOrderIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateShippingAddressInput on the ShippingAddressUpdate builder.
+func (c *ShippingAddressUpdate) SetInput(i UpdateShippingAddressInput) *ShippingAddressUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateShippingAddressInput on the ShippingAddressUpdateOne builder.
+func (c *ShippingAddressUpdateOne) SetInput(i UpdateShippingAddressInput) *ShippingAddressUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateShippingMethodInput represents a mutation input for creating shippingmethods.
+type CreateShippingMethodInput struct {
+	ShippingMethod string
+	ShippingCost   float64
+	ShopOrderIDs   []int
+}
+
+// Mutate applies the CreateShippingMethodInput on the ShippingMethodMutation builder.
+func (i *CreateShippingMethodInput) Mutate(m *ShippingMethodMutation) {
+	m.SetShippingMethod(i.ShippingMethod)
+	m.SetShippingCost(i.ShippingCost)
+	if v := i.ShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the CreateShippingMethodInput on the ShippingMethodCreate builder.
+func (c *ShippingMethodCreate) SetInput(i CreateShippingMethodInput) *ShippingMethodCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateShippingMethodInput represents a mutation input for updating shippingmethods.
+type UpdateShippingMethodInput struct {
+	ShippingMethod     *string
+	ShippingCost       *float64
+	ClearShopOrder     bool
+	AddShopOrderIDs    []int
+	RemoveShopOrderIDs []int
+}
+
+// Mutate applies the UpdateShippingMethodInput on the ShippingMethodMutation builder.
+func (i *UpdateShippingMethodInput) Mutate(m *ShippingMethodMutation) {
+	if v := i.ShippingMethod; v != nil {
+		m.SetShippingMethod(*v)
+	}
+	if v := i.ShippingCost; v != nil {
+		m.SetShippingCost(*v)
+	}
+	if i.ClearShopOrder {
+		m.ClearShopOrder()
+	}
+	if v := i.AddShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
+	}
+	if v := i.RemoveShopOrderIDs; len(v) > 0 {
+		m.RemoveShopOrderIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateShippingMethodInput on the ShippingMethodUpdate builder.
+func (c *ShippingMethodUpdate) SetInput(i UpdateShippingMethodInput) *ShippingMethodUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateShippingMethodInput on the ShippingMethodUpdateOne builder.
+func (c *ShippingMethodUpdateOne) SetInput(i UpdateShippingMethodInput) *ShippingMethodUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateShopOrderInput represents a mutation input for creating shoporders.
+type CreateShopOrderInput struct {
+	OrderDateAndTime  *time.Time
+	PaymentMethod     string
+	TotalPrice        float64
+	UserID            int
+	ShippingMethodID  int
+	OrderStatusID     int
+	ShippingAddressID int
+}
+
+// Mutate applies the CreateShopOrderInput on the ShopOrderMutation builder.
+func (i *CreateShopOrderInput) Mutate(m *ShopOrderMutation) {
+	if v := i.OrderDateAndTime; v != nil {
+		m.SetOrderDateAndTime(*v)
+	}
+	m.SetPaymentMethod(i.PaymentMethod)
+	m.SetTotalPrice(i.TotalPrice)
+	m.SetUserID(i.UserID)
+	m.SetShippingMethodID(i.ShippingMethodID)
+	m.SetOrderStatusID(i.OrderStatusID)
+	m.SetShippingAddressID(i.ShippingAddressID)
+}
+
+// SetInput applies the change-set in the CreateShopOrderInput on the ShopOrderCreate builder.
+func (c *ShopOrderCreate) SetInput(i CreateShopOrderInput) *ShopOrderCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateShopOrderInput represents a mutation input for updating shoporders.
+type UpdateShopOrderInput struct {
+	OrderDateAndTime  *time.Time
+	PaymentMethod     *string
+	TotalPrice        *float64
+	UserID            *int
+	ShippingMethodID  *int
+	OrderStatusID     *int
+	ShippingAddressID *int
+}
+
+// Mutate applies the UpdateShopOrderInput on the ShopOrderMutation builder.
+func (i *UpdateShopOrderInput) Mutate(m *ShopOrderMutation) {
+	if v := i.OrderDateAndTime; v != nil {
+		m.SetOrderDateAndTime(*v)
+	}
+	if v := i.PaymentMethod; v != nil {
+		m.SetPaymentMethod(*v)
+	}
+	if v := i.TotalPrice; v != nil {
+		m.SetTotalPrice(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.ShippingMethodID; v != nil {
+		m.SetShippingMethodID(*v)
+	}
+	if v := i.OrderStatusID; v != nil {
+		m.SetOrderStatusID(*v)
+	}
+	if v := i.ShippingAddressID; v != nil {
+		m.SetShippingAddressID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateShopOrderInput on the ShopOrderUpdate builder.
+func (c *ShopOrderUpdate) SetInput(i UpdateShopOrderInput) *ShopOrderUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateShopOrderInput on the ShopOrderUpdateOne builder.
+func (c *ShopOrderUpdateOne) SetInput(i UpdateShopOrderInput) *ShopOrderUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateShoppingCartInput represents a mutation input for creating shoppingcarts.
+type CreateShoppingCartInput struct {
+	UserID             int
+	ShoppingCartItemID *int
+}
+
+// Mutate applies the CreateShoppingCartInput on the ShoppingCartMutation builder.
+func (i *CreateShoppingCartInput) Mutate(m *ShoppingCartMutation) {
+	m.SetUserID(i.UserID)
+	if v := i.ShoppingCartItemID; v != nil {
+		m.SetShoppingCartItemID(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateShoppingCartInput on the ShoppingCartCreate builder.
+func (c *ShoppingCartCreate) SetInput(i CreateShoppingCartInput) *ShoppingCartCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateShoppingCartInput represents a mutation input for updating shoppingcarts.
+type UpdateShoppingCartInput struct {
+	UserID                *int
+	ClearShoppingCartItem bool
+	ShoppingCartItemID    *int
+}
+
+// Mutate applies the UpdateShoppingCartInput on the ShoppingCartMutation builder.
+func (i *UpdateShoppingCartInput) Mutate(m *ShoppingCartMutation) {
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if i.ClearShoppingCartItem {
+		m.ClearShoppingCartItem()
+	}
+	if v := i.ShoppingCartItemID; v != nil {
+		m.SetShoppingCartItemID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateShoppingCartInput on the ShoppingCartUpdate builder.
+func (c *ShoppingCartUpdate) SetInput(i UpdateShoppingCartInput) *ShoppingCartUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateShoppingCartInput on the ShoppingCartUpdateOne builder.
+func (c *ShoppingCartUpdateOne) SetInput(i UpdateShoppingCartInput) *ShoppingCartUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateShoppingCartItemInput represents a mutation input for creating shoppingcartitems.
+type CreateShoppingCartItemInput struct {
+	Quantity       int
+	ShoppingCartID int
+	ProductItemID  int
+}
+
+// Mutate applies the CreateShoppingCartItemInput on the ShoppingCartItemMutation builder.
+func (i *CreateShoppingCartItemInput) Mutate(m *ShoppingCartItemMutation) {
+	m.SetQuantity(i.Quantity)
+	m.SetShoppingCartID(i.ShoppingCartID)
+	m.SetProductItemID(i.ProductItemID)
+}
+
+// SetInput applies the change-set in the CreateShoppingCartItemInput on the ShoppingCartItemCreate builder.
+func (c *ShoppingCartItemCreate) SetInput(i CreateShoppingCartItemInput) *ShoppingCartItemCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateShoppingCartItemInput represents a mutation input for updating shoppingcartitems.
+type UpdateShoppingCartItemInput struct {
+	Quantity       *int
+	ShoppingCartID *int
+	ProductItemID  *int
+}
+
+// Mutate applies the UpdateShoppingCartItemInput on the ShoppingCartItemMutation builder.
+func (i *UpdateShoppingCartItemInput) Mutate(m *ShoppingCartItemMutation) {
+	if v := i.Quantity; v != nil {
+		m.SetQuantity(*v)
+	}
+	if v := i.ShoppingCartID; v != nil {
+		m.SetShoppingCartID(*v)
+	}
+	if v := i.ProductItemID; v != nil {
+		m.SetProductItemID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateShoppingCartItemInput on the ShoppingCartItemUpdate builder.
+func (c *ShoppingCartItemUpdate) SetInput(i UpdateShoppingCartItemInput) *ShoppingCartItemUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateShoppingCartItemInput on the ShoppingCartItemUpdateOne builder.
+func (c *ShoppingCartItemUpdateOne) SetInput(i UpdateShoppingCartItemInput) *ShoppingCartItemUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }
@@ -142,6 +1130,102 @@ func (c *UserCreate) SetInput(i CreateUserInput) *UserCreate {
 	return c
 }
 
+// UpdateUserInput represents a mutation input for updating users.
+type UpdateUserInput struct {
+	Username              *string
+	EmailAddress          *string
+	Password              *string
+	FirstName             *string
+	LastName              *string
+	CreatedAt             *time.Time
+	UpdatedAt             *time.Time
+	ClearUserAddress      bool
+	AddUserAddresIDs      []int
+	RemoveUserAddresIDs   []int
+	ClearUserReview       bool
+	AddUserReviewIDs      []int
+	RemoveUserReviewIDs   []int
+	ClearShoppingCart     bool
+	AddShoppingCartIDs    []int
+	RemoveShoppingCartIDs []int
+	ClearShopOrder        bool
+	AddShopOrderIDs       []int
+	RemoveShopOrderIDs    []int
+}
+
+// Mutate applies the UpdateUserInput on the UserMutation builder.
+func (i *UpdateUserInput) Mutate(m *UserMutation) {
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
+	}
+	if v := i.EmailAddress; v != nil {
+		m.SetEmailAddress(*v)
+	}
+	if v := i.Password; v != nil {
+		m.SetPassword(*v)
+	}
+	if v := i.FirstName; v != nil {
+		m.SetFirstName(*v)
+	}
+	if v := i.LastName; v != nil {
+		m.SetLastName(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if i.ClearUserAddress {
+		m.ClearUserAddress()
+	}
+	if v := i.AddUserAddresIDs; len(v) > 0 {
+		m.AddUserAddresIDs(v...)
+	}
+	if v := i.RemoveUserAddresIDs; len(v) > 0 {
+		m.RemoveUserAddresIDs(v...)
+	}
+	if i.ClearUserReview {
+		m.ClearUserReview()
+	}
+	if v := i.AddUserReviewIDs; len(v) > 0 {
+		m.AddUserReviewIDs(v...)
+	}
+	if v := i.RemoveUserReviewIDs; len(v) > 0 {
+		m.RemoveUserReviewIDs(v...)
+	}
+	if i.ClearShoppingCart {
+		m.ClearShoppingCart()
+	}
+	if v := i.AddShoppingCartIDs; len(v) > 0 {
+		m.AddShoppingCartIDs(v...)
+	}
+	if v := i.RemoveShoppingCartIDs; len(v) > 0 {
+		m.RemoveShoppingCartIDs(v...)
+	}
+	if i.ClearShopOrder {
+		m.ClearShopOrder()
+	}
+	if v := i.AddShopOrderIDs; len(v) > 0 {
+		m.AddShopOrderIDs(v...)
+	}
+	if v := i.RemoveShopOrderIDs; len(v) > 0 {
+		m.RemoveShopOrderIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdate builder.
+func (c *UserUpdate) SetInput(i UpdateUserInput) *UserUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateUserInput on the UserUpdateOne builder.
+func (c *UserUpdateOne) SetInput(i UpdateUserInput) *UserUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateUserAddressInput represents a mutation input for creating useraddresses.
 type CreateUserAddressInput struct {
 	IsDefault *bool
@@ -160,6 +1244,112 @@ func (i *CreateUserAddressInput) Mutate(m *UserAddressMutation) {
 
 // SetInput applies the change-set in the CreateUserAddressInput on the UserAddressCreate builder.
 func (c *UserAddressCreate) SetInput(i CreateUserAddressInput) *UserAddressCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateUserAddressInput represents a mutation input for updating useraddresses.
+type UpdateUserAddressInput struct {
+	IsDefault *bool
+	UserID    *int
+	AddressID *int
+}
+
+// Mutate applies the UpdateUserAddressInput on the UserAddressMutation builder.
+func (i *UpdateUserAddressInput) Mutate(m *UserAddressMutation) {
+	if v := i.IsDefault; v != nil {
+		m.SetIsDefault(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.AddressID; v != nil {
+		m.SetAddressID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateUserAddressInput on the UserAddressUpdate builder.
+func (c *UserAddressUpdate) SetInput(i UpdateUserAddressInput) *UserAddressUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateUserAddressInput on the UserAddressUpdateOne builder.
+func (c *UserAddressUpdateOne) SetInput(i UpdateUserAddressInput) *UserAddressUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// CreateUserReviewInput represents a mutation input for creating userreviews.
+type CreateUserReviewInput struct {
+	Rating           int
+	Review           string
+	CreatedAt        *time.Time
+	UpdatedAt        *time.Time
+	UserID           int
+	OrderedProductID int
+}
+
+// Mutate applies the CreateUserReviewInput on the UserReviewMutation builder.
+func (i *CreateUserReviewInput) Mutate(m *UserReviewMutation) {
+	m.SetRating(i.Rating)
+	m.SetReview(i.Review)
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	m.SetUserID(i.UserID)
+	m.SetOrderedProductID(i.OrderedProductID)
+}
+
+// SetInput applies the change-set in the CreateUserReviewInput on the UserReviewCreate builder.
+func (c *UserReviewCreate) SetInput(i CreateUserReviewInput) *UserReviewCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateUserReviewInput represents a mutation input for updating userreviews.
+type UpdateUserReviewInput struct {
+	Rating           *int
+	Review           *string
+	CreatedAt        *time.Time
+	UpdatedAt        *time.Time
+	UserID           *int
+	OrderedProductID *int
+}
+
+// Mutate applies the UpdateUserReviewInput on the UserReviewMutation builder.
+func (i *UpdateUserReviewInput) Mutate(m *UserReviewMutation) {
+	if v := i.Rating; v != nil {
+		m.SetRating(*v)
+	}
+	if v := i.Review; v != nil {
+		m.SetReview(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.UserID; v != nil {
+		m.SetUserID(*v)
+	}
+	if v := i.OrderedProductID; v != nil {
+		m.SetOrderedProductID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateUserReviewInput on the UserReviewUpdate builder.
+func (c *UserReviewUpdate) SetInput(i UpdateUserReviewInput) *UserReviewUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateUserReviewInput on the UserReviewUpdateOne builder.
+func (c *UserReviewUpdateOne) SetInput(i UpdateUserReviewInput) *UserReviewUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }

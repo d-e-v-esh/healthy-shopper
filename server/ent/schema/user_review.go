@@ -3,7 +3,9 @@ package schema
 import (
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -31,5 +33,12 @@ func (UserReview) Edges() []ent.Edge {
 		edge.From("user", User.Type).Ref("user_review").Unique().Field("user_id").Required(),
 
 		edge.From("ordered_product", OrderLine.Type).Ref("user_review").Unique().Field("ordered_product_id").Required(),
+	}
+}
+
+func (UserReview) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }

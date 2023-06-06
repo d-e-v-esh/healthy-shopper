@@ -155,6 +155,10 @@ func (pic *ProductItemCreate) defaults() {
 		v := productitem.DefaultCreatedAt()
 		pic.mutation.SetCreatedAt(v)
 	}
+	if _, ok := pic.mutation.UpdatedAt(); !ok {
+		v := productitem.DefaultUpdatedAt()
+		pic.mutation.SetUpdatedAt(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -196,6 +200,9 @@ func (pic *ProductItemCreate) check() error {
 	}
 	if _, ok := pic.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "ProductItem.created_at"`)}
+	}
+	if _, ok := pic.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "ProductItem.updated_at"`)}
 	}
 	if _, ok := pic.mutation.ProductID(); !ok {
 		return &ValidationError{Name: "product", err: errors.New(`ent: missing required edge "ProductItem.product"`)}

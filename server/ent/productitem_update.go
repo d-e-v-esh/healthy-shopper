@@ -95,20 +95,6 @@ func (piu *ProductItemUpdate) SetUpdatedAt(t time.Time) *ProductItemUpdate {
 	return piu
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (piu *ProductItemUpdate) SetNillableUpdatedAt(t *time.Time) *ProductItemUpdate {
-	if t != nil {
-		piu.SetUpdatedAt(*t)
-	}
-	return piu
-}
-
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (piu *ProductItemUpdate) ClearUpdatedAt() *ProductItemUpdate {
-	piu.mutation.ClearUpdatedAt()
-	return piu
-}
-
 // SetProduct sets the "product" edge to the Product entity.
 func (piu *ProductItemUpdate) SetProduct(p *Product) *ProductItemUpdate {
 	return piu.SetProductID(p.ID)
@@ -199,6 +185,7 @@ func (piu *ProductItemUpdate) RemoveShoppingCartItem(s ...*ShoppingCartItem) *Pr
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (piu *ProductItemUpdate) Save(ctx context.Context) (int, error) {
+	piu.defaults()
 	return withHooks(ctx, piu.sqlSave, piu.mutation, piu.hooks)
 }
 
@@ -221,6 +208,14 @@ func (piu *ProductItemUpdate) Exec(ctx context.Context) error {
 func (piu *ProductItemUpdate) ExecX(ctx context.Context) {
 	if err := piu.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (piu *ProductItemUpdate) defaults() {
+	if _, ok := piu.mutation.UpdatedAt(); !ok {
+		v := productitem.UpdateDefaultUpdatedAt()
+		piu.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -287,9 +282,6 @@ func (piu *ProductItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := piu.mutation.UpdatedAt(); ok {
 		_spec.SetField(productitem.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if piu.mutation.UpdatedAtCleared() {
-		_spec.ClearField(productitem.FieldUpdatedAt, field.TypeTime)
 	}
 	if piu.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -494,20 +486,6 @@ func (piuo *ProductItemUpdateOne) SetUpdatedAt(t time.Time) *ProductItemUpdateOn
 	return piuo
 }
 
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (piuo *ProductItemUpdateOne) SetNillableUpdatedAt(t *time.Time) *ProductItemUpdateOne {
-	if t != nil {
-		piuo.SetUpdatedAt(*t)
-	}
-	return piuo
-}
-
-// ClearUpdatedAt clears the value of the "updated_at" field.
-func (piuo *ProductItemUpdateOne) ClearUpdatedAt() *ProductItemUpdateOne {
-	piuo.mutation.ClearUpdatedAt()
-	return piuo
-}
-
 // SetProduct sets the "product" edge to the Product entity.
 func (piuo *ProductItemUpdateOne) SetProduct(p *Product) *ProductItemUpdateOne {
 	return piuo.SetProductID(p.ID)
@@ -611,6 +589,7 @@ func (piuo *ProductItemUpdateOne) Select(field string, fields ...string) *Produc
 
 // Save executes the query and returns the updated ProductItem entity.
 func (piuo *ProductItemUpdateOne) Save(ctx context.Context) (*ProductItem, error) {
+	piuo.defaults()
 	return withHooks(ctx, piuo.sqlSave, piuo.mutation, piuo.hooks)
 }
 
@@ -633,6 +612,14 @@ func (piuo *ProductItemUpdateOne) Exec(ctx context.Context) error {
 func (piuo *ProductItemUpdateOne) ExecX(ctx context.Context) {
 	if err := piuo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (piuo *ProductItemUpdateOne) defaults() {
+	if _, ok := piuo.mutation.UpdatedAt(); !ok {
+		v := productitem.UpdateDefaultUpdatedAt()
+		piuo.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -716,9 +703,6 @@ func (piuo *ProductItemUpdateOne) sqlSave(ctx context.Context) (_node *ProductIt
 	}
 	if value, ok := piuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(productitem.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if piuo.mutation.UpdatedAtCleared() {
-		_spec.ClearField(productitem.FieldUpdatedAt, field.TypeTime)
 	}
 	if piuo.mutation.ProductCleared() {
 		edge := &sqlgraph.EdgeSpec{

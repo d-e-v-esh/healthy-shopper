@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -28,5 +30,12 @@ func (ShippingAddress) Fields() []ent.Field {
 func (ShippingAddress) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("shop_order", ShopOrder.Type).Ref("shipping_address"),
+	}
+}
+
+func (ShippingAddress) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }

@@ -335,6 +335,12 @@ func init() {
 	productDescCreatedAt := productFields[7].Descriptor()
 	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
 	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
+	// productDescUpdatedAt is the schema descriptor for updated_at field.
+	productDescUpdatedAt := productFields[8].Descriptor()
+	// product.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
+	// product.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
 	productitemFields := schema.ProductItem{}.Fields()
 	_ = productitemFields
 	// productitemDescStockKeepingUnit is the schema descriptor for stock_keeping_unit field.
@@ -385,6 +391,12 @@ func init() {
 	productitemDescCreatedAt := productitemFields[5].Descriptor()
 	// productitem.DefaultCreatedAt holds the default value on creation for the created_at field.
 	productitem.DefaultCreatedAt = productitemDescCreatedAt.Default.(func() time.Time)
+	// productitemDescUpdatedAt is the schema descriptor for updated_at field.
+	productitemDescUpdatedAt := productitemFields[6].Descriptor()
+	// productitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	productitem.DefaultUpdatedAt = productitemDescUpdatedAt.Default.(func() time.Time)
+	// productitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	productitem.UpdateDefaultUpdatedAt = productitemDescUpdatedAt.UpdateDefault.(func() time.Time)
 	promotionFields := schema.Promotion{}.Fields()
 	_ = promotionFields
 	// promotionDescName is the schema descriptor for name field.
@@ -699,6 +711,8 @@ func init() {
 	userDescUpdatedAt := userFields[6].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	useraddressFields := schema.UserAddress{}.Fields()
 	_ = useraddressFields
 	// useraddressDescIsDefault is the schema descriptor for is_default field.

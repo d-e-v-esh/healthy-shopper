@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -26,5 +28,12 @@ func (NutritionalInformation) Edges() []ent.Edge {
 		edge.From("product", Product.Type).Ref("nutritional_information").Required(),
 
 		edge.To("nutritional_information_table", NutritionalInformationTable.Type).Unique().Field("nutritional_information_table_id").Required(), // Required here means that the nutritional information must have a nutritional information table
+	}
+}
+
+func (NutritionalInformation) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }

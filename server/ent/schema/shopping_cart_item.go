@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -26,5 +28,12 @@ func (ShoppingCartItem) Edges() []ent.Edge {
 
 		edge.From("shopping_cart", ShoppingCart.Type).Ref("shopping_cart_item").Unique().Field("shopping_cart_id").Required(),
 		edge.From("product_item", ProductItem.Type).Ref("shopping_cart_item").Unique().Field("product_item_id").Required(),
+	}
+}
+
+func (ShoppingCartItem) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }
