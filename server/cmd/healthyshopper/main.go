@@ -33,9 +33,21 @@ func Open(databaseUrl string) *ent.Client {
 func main() {
 	client := Open(databaseConnectionString)
 
+	redisStore := healthyshopper.NewRedisStore("localhost:6379", "", 0)
+
+	redisStore.Set("test", "test1212")
+	redisStore.Set("testNew", "test5656")
+
+	println(redisStore.Get("test"))
+	println(redisStore.Get("testNew"))
+
 	// Your code. For example:
+
 	ctx := context.Background()
-	if err := client.Schema.Create(ctx); err != nil {
+
+	redisContext := context.WithValue(ctx, "redis", redisStore)
+
+	if err := client.Schema.Create(redisContext); err != nil {
 		log.Fatal("opening ent client", err)
 	}
 
