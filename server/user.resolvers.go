@@ -6,12 +6,17 @@ package healthyshopper
 
 import (
 	"context"
-	"healthyshopper/ent"
+	"fmt"
 )
 
-// CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
-	return r.client.User.Create().SetInput(input).Save(ctx)
+// Register is the resolver for the register field.
+func (r *mutationResolver) Register(ctx context.Context, userInfo RegisterInput) (*UserResponse, error) {
+	panic(fmt.Errorf("not implemented: Register - register"))
+}
+
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, userInfo LoginInput) (*UserResponse, error) {
+	panic(fmt.Errorf("not implemented: Login - login"))
 }
 
 // Mutation returns MutationResolver implementation.

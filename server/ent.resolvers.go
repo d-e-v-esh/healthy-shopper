@@ -95,11 +95,6 @@ func (r *queryResolver) ShoppingCartItems(ctx context.Context) ([]*ent.ShoppingC
 	panic(fmt.Errorf("not implemented: ShoppingCartItems - shoppingCartItems"))
 }
 
-// Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
-	return r.client.User.Query().All(ctx)
-}
-
 // UserAddresses is the resolver for the userAddresses field.
 func (r *queryResolver) UserAddresses(ctx context.Context) ([]*ent.UserAddress, error) {
 	panic(fmt.Errorf("not implemented: UserAddresses - userAddresses"))
@@ -140,3 +135,13 @@ type productItemResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type createProductItemInputResolver struct{ *Resolver }
 type updateProductItemInputResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
+	return r.client.User.Query().All(ctx)
+}
