@@ -18,6 +18,8 @@ import (
 const defaultPort = "8080"
 const databaseConnectionString = "postgres://postgres:postgres@localhost:5432/HealthyShopper?sslmode=disable"
 
+type StoreKey struct{}
+
 // Open new connection
 func Open(databaseUrl string) *ent.Client {
 	db, err := sql.Open("pgx", databaseUrl)
@@ -31,34 +33,57 @@ func Open(databaseUrl string) *ent.Client {
 }
 
 func main() {
-	client := Open(databaseConnectionString)
+	databaseClient := Open(databaseConnectionString)
 
-	redisStore := healthyshopper.NewRedisStore("localhost:6379", "", 0)
+	// Handling Redis Sessions
+	http.HandleFunc("/redis", func(resWriter http.ResponseWriter, req *http.Request) {
 
-	redisStore.Set("test", "test1212")
-	redisStore.Set("testNew", "test5656")
+		redisStore := healthyshopper.NewRedisStore("localhost:6379", "", 0, resWriter, *req)
 
-	println(redisStore.Get("test"))
-	println(redisStore.Get("testNew"))
+		ctx := context.WithValue(req.Context(), StoreKey{}, redisStore)
 
-	// Your code. For example:
+		redisStore.SetCookie("test", "test1212")
+		redisStore.SetCookie("testNew", "test5656")
 
-	ctx := context.Background()
+		println(redisStore.Get("test"))
+		println(redisStore.Get("testNew"))
 
-	redisContext := context.WithValue(ctx, "redis", redisStore)
+		// Your code. For example:
 
-	if err := client.Schema.Create(redisContext); err != nil {
-		log.Fatal("opening ent client", err)
-	}
+		redisContext := context.WithValue(ctx, "redis", redisStore)
 
-	// Configure the server and start listening on :8080.
-	srv := handler.NewDefaultServer(healthyshopper.NewSchema(client))
-	http.Handle("/",
-		playground.Handler("User", "/query"),
-	)
-	http.Handle("/query", srv)
+		if err := databaseClient.Schema.Create(redisContext); err != nil {
+			log.Fatal("opening ent client", err)
+		}
+
+	})
+
+	graphqlServer := handler.NewDefaultServer(healthyshopper.NewSchema(databaseClient))
+
+	http.Handle("/", graphqlServer)
+
+	http.Handle("/graphql", playground.Handler("GraphQL Playground", "/"))
+
 	log.Println("listening on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal("http server terminated", err)
 	}
+
+	// log.Printf("connect to http://localhost%s/graphql for GraphQL playground", defaultPort)
+	// err := http.ListenAndServe(defaultPort, nil)
+	// if err != nil {
+	// 	log.Fatal("http server terminated", err)
+	// }
+
+	// Configure the server and start listening on :8080.
+
+	// // http.Handle("/graphql",
+	// // 	playground.Handler("GraphQL Playground", "/graphql"),
+	// // )
+	// // // http.Handle("/graphql", server)
+
+	// log.Println("listening on :8080")
+	// if err := http.ListenAndServe(":8080", nil); err != nil {
+	// 	log.Fatal("http server terminated", err)
+	// }
 }
