@@ -2,33 +2,74 @@ package healthyshopper
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"net/http"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
+// Cookie Config
+const cookieName = "hh"
+const cookieExpiration = 24 * time.Hour * 30
+const httpOnly = true
+const secure = false
+const sameSite = http.SameSiteNoneMode
+
 type RedisStore struct {
-	client *redis.Client
-	ctx    context.Context
+	client    *redis.Client
+	ctx       context.Context
+	resWriter http.ResponseWriter
+	req       *http.Request
+}
+
+func randBase64String(entropyBytes int) string {
+	b := make([]byte, entropyBytes)
+	rand.Read(b)
+	return base64.StdEncoding.EncodeToString(b)
 }
 
 // NewRedisStore creates a new RedisStore
-func NewRedisStore(addr string, password string, db int) *RedisStore {
-	r := &RedisStore{}
-	r.client = redis.NewClient(&redis.Options{
+func NewRedisStore(addr string, password string, db int, resWriter http.ResponseWriter, req http.Request) *RedisStore {
+	redisStore := &RedisStore{}
+	redisStore.client = redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password, // no password set
 		DB:       db,       // use default DB
 	})
-	r.ctx = context.Background()
-	return r
+	redisStore.ctx = context.Background()
+	redisStore.resWriter = resWriter
+	redisStore.req = &req
+
+	return redisStore
 }
 
 // Set adds a key-value pair to the Redis store
-func (r *RedisStore) Set(key string, value string) error {
-	err := r.client.Set(r.ctx, key, value, 0).Err()
+func (r *RedisStore) SetCookie(key string, value string) error {
+
+	// Set key-value pair
+	err := r.client.Set(r.ctx, key, value, cookieExpiration).Err()
+
 	if err != nil {
 		return err
 	}
+
+	// Set cookie
+	cookieValue := randBase64String(33) // 33 bytes entropy
+
+	cookie := &http.Cookie{
+		Name:     cookieName,
+		Value:    cookieValue,
+		Expires:  time.Now().Add(cookieExpiration),
+		HttpOnly: httpOnly,
+		Secure:   secure,
+		Path:     "/",
+		SameSite: sameSite,
+		Domain:   "localhost",
+	}
+	http.SetCookie(r.resWriter, cookie)
+
 	return nil
 }
 
@@ -42,10 +83,16 @@ func (r *RedisStore) Get(key string) (string, error) {
 }
 
 // Delete removes a key from the Redis store
-func (r *RedisStore) Delete(key string) error {
+func (r *RedisStore) DeleteCookie(key string) error {
 	err := r.client.Del(r.ctx, key).Err()
 	if err != nil {
 		return err
 	}
+
+	http.SetCookie(r.resWriter, &http.Cookie{
+		Name:   key,
+		MaxAge: -1,
+	})
+
 	return nil
 }
