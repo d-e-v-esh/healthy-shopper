@@ -35,32 +35,27 @@ func Open(databaseUrl string) *ent.Client {
 func main() {
 	databaseClient := Open(databaseConnectionString)
 
-	// Handling Redis Sessions
-	http.HandleFunc("/redis", func(resWriter http.ResponseWriter, req *http.Request) {
+	http.HandleFunc("/", func(resWriter http.ResponseWriter, req *http.Request) {
 
 		redisStore := healthyshopper.NewRedisStore("localhost:6379", "", 0, resWriter, *req)
 
-		ctx := context.WithValue(req.Context(), StoreKey{}, redisStore)
+		ctx := context.WithValue(context.Background(), "redisStore", redisStore)
 
-		redisStore.SetCookie("test", "test1212")
-		redisStore.SetCookie("testNew", "test5656")
+		// redisStore.SetCookie("test")
 
-		println(redisStore.Get("test"))
-		println(redisStore.Get("testNew"))
-
-		// Your code. For example:
-
-		redisContext := context.WithValue(ctx, "redis", redisStore)
-
-		if err := databaseClient.Schema.Create(redisContext); err != nil {
+		if err := databaseClient.Schema.Create(ctx); err != nil {
 			log.Fatal("opening ent client", err)
 		}
 
+		graphqlServer := handler.NewDefaultServer(healthyshopper.NewSchema(databaseClient))
+
+		graphqlServer.ServeHTTP(resWriter, req.WithContext(ctx))
+
 	})
 
-	graphqlServer := handler.NewDefaultServer(healthyshopper.NewSchema(databaseClient))
+	// graphqlServer := handler.NewDefaultServer(healthyshopper.NewSchema(databaseClient))
 
-	http.Handle("/", graphqlServer)
+	// http.Handle("/", graphqlServer)
 
 	http.Handle("/graphql", playground.Handler("GraphQL Playground", "/"))
 
@@ -69,21 +64,4 @@ func main() {
 		log.Fatal("http server terminated", err)
 	}
 
-	// log.Printf("connect to http://localhost%s/graphql for GraphQL playground", defaultPort)
-	// err := http.ListenAndServe(defaultPort, nil)
-	// if err != nil {
-	// 	log.Fatal("http server terminated", err)
-	// }
-
-	// Configure the server and start listening on :8080.
-
-	// // http.Handle("/graphql",
-	// // 	playground.Handler("GraphQL Playground", "/graphql"),
-	// // )
-	// // // http.Handle("/graphql", server)
-
-	// log.Println("listening on :8080")
-	// if err := http.ListenAndServe(":8080", nil); err != nil {
-	// 	log.Fatal("http server terminated", err)
-	// }
 }

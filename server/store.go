@@ -15,7 +15,7 @@ const cookieName = "hh"
 const cookieExpiration = 24 * time.Hour * 30
 const httpOnly = true
 const secure = false
-const sameSite = http.SameSiteNoneMode
+const sameSite = http.SameSiteLaxMode
 
 type RedisStore struct {
 	client    *redis.Client
@@ -46,17 +46,15 @@ func NewRedisStore(addr string, password string, db int, resWriter http.Response
 }
 
 // Set adds a key-value pair to the Redis store
-func (r *RedisStore) SetCookie(key string, value string) error {
+func (r *RedisStore) SetCookie(value string) error {
 
-	// Set key-value pair
-	err := r.client.Set(r.ctx, key, value, cookieExpiration).Err()
+	cookieValue := randBase64String(33) // 33 bytes entropy
+
+	err := r.client.Set(r.ctx, cookieValue, value, cookieExpiration).Err()
 
 	if err != nil {
 		return err
 	}
-
-	// Set cookie
-	cookieValue := randBase64String(33) // 33 bytes entropy
 
 	cookie := &http.Cookie{
 		Name:     cookieName,
@@ -68,6 +66,7 @@ func (r *RedisStore) SetCookie(key string, value string) error {
 		SameSite: sameSite,
 		Domain:   "localhost",
 	}
+
 	http.SetCookie(r.resWriter, cookie)
 
 	return nil

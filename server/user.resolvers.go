@@ -9,9 +9,34 @@ import (
 	"fmt"
 )
 
+type StoreKey struct{}
+
 // Register is the resolver for the register field.
 func (r *mutationResolver) Register(ctx context.Context, userInfo RegisterInput) (*UserResponse, error) {
-	panic(fmt.Errorf("not implemented: Register - register"))
+
+	// Create a new user
+	user, err := r.client.User.
+		Create().
+		SetUsername(userInfo.Username).
+		SetEmailAddress(userInfo.EmailAddress).
+		SetPassword(userInfo.Password).
+		SetFirstName(userInfo.FirstName).
+		SetLastName(userInfo.LastName).
+		Save(ctx)
+
+	redisStore := ctx.Value("redisStore").(*RedisStore)
+
+	redisStore.SetCookie("Register Cookie")
+
+	// store, ok := ctx.Value(StoreKey{}).(RedisStore)
+
+	// store.SetCookie("Register Cookie")
+	// if !ok {
+	// 	// Handle case where there's no Redis store in the context.
+	// 	log.Fatal("No Redis store in context")
+	// }
+
+	return &UserResponse{user, []*Error{}}, err
 }
 
 // Login is the resolver for the login field.
