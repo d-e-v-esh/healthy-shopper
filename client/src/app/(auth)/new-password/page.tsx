@@ -15,8 +15,6 @@ import InputAdornment from "@mui/material/InputAdornment";
 
 // hooks
 import { useBoolean } from "../../../hooks/useBoolean";
-// assets
-import SentIcon from "../../../assets/icons/SetIcon";
 // components
 import Iconify from "../../../components/Iconify";
 import FormProvider from "../../../components/FormProvider";
@@ -138,8 +136,6 @@ export default function ModernNewPasswordView() {
 
   const renderHead = (
     <>
-      <SentIcon sx={{ height: 96 }} />
-
       <Stack spacing={1} sx={{ my: 5 }}>
         <Typography variant="h3">Add new password</Typography>
       </Stack>
