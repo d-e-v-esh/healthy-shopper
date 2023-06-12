@@ -1,0 +1,27 @@
+input RegisterInput {
+  firstName: String!
+  lastName: String!
+  username: String!
+  emailAddress: String!
+  password: String!
+}
+
+input LoginInput {
+  usernameOrEmailAddress: String!
+  password: String!
+}
+
+type UserResponse {
+  user: User
+  errors: [Error]
+}
+
+type Error {
+  field: String!
+  message: String!
+}
+
+extend type Mutation {
+  register(userInfo: RegisterInput!): UserResponse!
+  login(userInfo: LoginInput!): UserResponse!
+}
