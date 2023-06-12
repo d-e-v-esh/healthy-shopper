@@ -11,12 +11,12 @@ import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import Grid from "@mui/material/Unstable_Grid2";
 
-import { countries } from "../../assets/countries";
+import { countries } from "../assets/countries";
 
-import Iconify from "../../components/iconify";
-import FormProvider from "./formProvider";
-import RHFAutocomplete from "./rhfAutocomplete";
-import RHFTextField from "./rhfTextField";
+import Iconify from "./Iconify";
+import FormProvider from "./FormProvider";
+import RHFAutocomplete from "./RHFAutocomplete";
+import RHFTextField from "./RHFTextField";
 
 // ----------------------------------------------------------------------
 
