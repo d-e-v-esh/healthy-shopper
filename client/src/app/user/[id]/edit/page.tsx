@@ -1,4 +1,4 @@
-import UserNewEditForm from "@/components/user/userNewEditForm";
+import UserNewEditForm from "@/components/UserNewEditForm";
 
 export default function UserEditPage() {
   return (
