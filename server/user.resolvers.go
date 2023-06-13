@@ -7,14 +7,29 @@ package healthyshopper
 import (
 	"context"
 	"fmt"
+	"healthyshopper/ent"
+	resErr "healthyshopper/pkg/response_errors"
+	"healthyshopper/pkg/validation"
 )
 
-type StoreKey struct{}
-
 // Register is the resolver for the register field.
-func (r *mutationResolver) Register(ctx context.Context, userInfo RegisterInput) (*UserResponse, error) {
-
+func (r *mutationResolver) Register(ctx context.Context, userInfo RegisterInput) (*ent.User, error) {
 	// Create a new user
+
+	registerInput := &validation.RegisterInput{
+		FirstName:    userInfo.FirstName,
+		LastName:     userInfo.LastName,
+		Username:     userInfo.Username,
+		EmailAddress: userInfo.EmailAddress,
+		Password:     userInfo.Password, // This password will not meet the complexity requirements
+	}
+
+	validationError := validation.ValidateRegisterInput(registerInput)
+
+	if validationError != nil {
+		fmt.Println("Validation Error: ", validationError)
+	}
+
 	user, err := r.client.User.
 		Create().
 		SetUsername(userInfo.Username).
@@ -28,20 +43,39 @@ func (r *mutationResolver) Register(ctx context.Context, userInfo RegisterInput)
 
 	redisStore.SetCookie("Register Cookie")
 
-	// store, ok := ctx.Value(StoreKey{}).(RedisStore)
+	if validationError != nil {
+		return nil, validationError
+	} else if err != nil {
 
-	// store.SetCookie("Register Cookie")
-	// if !ok {
-	// 	// Handle case where there's no Redis store in the context.
-	// 	log.Fatal("No Redis store in context")
-	// }
+		return nil, &resErr.ResponseError{
+			MainError: err,
+			Field:     "reasdfasdfblablablabla",
+			Message:   "RegisterErrorMessage",
+		}
 
-	return &UserResponse{user, []*Error{}}, err
+	}
+
+	return user, nil
 }
 
 // Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, userInfo LoginInput) (*UserResponse, error) {
+func (r *mutationResolver) Login(ctx context.Context, userInfo LoginInput) (*ent.User, error) {
 	panic(fmt.Errorf("not implemented: Login - login"))
+}
+
+// Me is the resolver for the me field.
+func (r *queryResolver) Me(ctx context.Context) (*ent.User, error) {
+	panic(fmt.Errorf("not implemented: Me - me"))
+}
+
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id int) (*ent.User, error) {
+	panic(fmt.Errorf("not implemented: User - user"))
+}
+
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context, currentPageNumber int, limitValue int) (*PaginatedUser, error) {
+	panic(fmt.Errorf("not implemented: Users - users"))
 }
 
 // Mutation returns MutationResolver implementation.

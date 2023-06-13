@@ -3,16 +3,22 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"healthyshopper"
 	"healthyshopper/ent"
 	"log"
 	"net/http"
 
+	resErr "healthyshopper/pkg/response_errors"
+
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
+
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 const defaultPort = "8080"
@@ -41,21 +47,31 @@ func main() {
 
 		ctx := context.WithValue(context.Background(), "redisStore", redisStore)
 
-		// redisStore.SetCookie("test")
-
 		if err := databaseClient.Schema.Create(ctx); err != nil {
 			log.Fatal("opening ent client", err)
 		}
 
 		graphqlServer := handler.NewDefaultServer(healthyshopper.NewSchema(databaseClient))
 
+		graphqlServer.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
+			err := graphql.DefaultErrorPresenter(ctx, e)
+
+			var myErr *resErr.ResponseError
+			if errors.As(e, &myErr) {
+				err.Message = myErr.MainError.Error()
+				err.Extensions = map[string]interface{}{
+					"field":   myErr.Field,
+					"message": myErr.Message,
+				}
+			}
+
+			return err
+
+		})
+
 		graphqlServer.ServeHTTP(resWriter, req.WithContext(ctx))
 
 	})
-
-	// graphqlServer := handler.NewDefaultServer(healthyshopper.NewSchema(databaseClient))
-
-	// http.Handle("/", graphqlServer)
 
 	http.Handle("/graphql", playground.Handler("GraphQL Playground", "/"))
 
