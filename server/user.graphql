@@ -11,17 +11,18 @@ input LoginInput {
   password: String!
 }
 
-type UserResponse {
-  user: User
-  errors: [Error]
+type PaginatedUser {
+  users: [User]!
+  totalUsers: Int!
 }
 
-type Error {
-  field: String!
-  message: String!
+extend type Query {
+  me: User
+  user(id: ID!): User
+  users(currentPageNumber: Int!, limitValue: Int!): PaginatedUser!
 }
 
 extend type Mutation {
-  register(userInfo: RegisterInput!): UserResponse!
-  login(userInfo: LoginInput!): UserResponse!
+  register(userInfo: RegisterInput!): User
+  login(userInfo: LoginInput!): User
 }
