@@ -24,20 +24,23 @@ var customFieldErrors = map[string]string{
 	"RegisterInput.Password":     "Password is required, must be at least 8 characters long, and contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 symbol.",
 }
 
-func ValidateRegisterInput(registerInput *RegisterInput) error {
+type ValidationError struct {
+	Field        string
+	ErrorMessage string
+}
+
+func ValidateRegisterInput(registerInput *RegisterInput) (ValidationError, error) {
 
 	validate := validator.New()
 
 	// Add custom validation for password
 	_ = validate.RegisterValidation("password", func(fl validator.FieldLevel) bool {
 		password := fl.Field().String()
-		fmt.Println("Password: ", password)
 		length := len(password) >= 8
 		uppercase := regexp.MustCompile(`[A-Z]`).MatchString(password)
 		lowercase := regexp.MustCompile(`[a-z]`).MatchString(password)
 		number := regexp.MustCompile(`[0-9]`).MatchString(password)
 		symbol := regexp.MustCompile(`[^\w\s]`).MatchString(password)
-		fmt.Println(length, uppercase, lowercase, number, symbol)
 		return length && uppercase && lowercase && number && symbol
 	})
 
@@ -48,15 +51,17 @@ func ValidateRegisterInput(registerInput *RegisterInput) error {
 
 	err := validate.Struct(registerInput)
 	if err != nil {
-		if _, ok := err.(*validator.InvalidValidationError); ok {
-			return err
-		}
+		fmt.Println()
 
 		for _, err := range err.(validator.ValidationErrors) {
-			return fmt.Errorf(customFieldErrors[err.Namespace()])
+
+			return ValidationError{Field: err.Field(), ErrorMessage: customFieldErrors[err.Namespace()]},
+				fmt.Errorf(customFieldErrors[err.Namespace()])
+
 		}
+
 	}
 
 	// User input is valid
-	return nil
+	return ValidationError{Field: "", ErrorMessage: ""}, nil
 }
