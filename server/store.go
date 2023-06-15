@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -45,12 +46,12 @@ func NewRedisStore(addr string, password string, db int, resWriter http.Response
 	return redisStore
 }
 
-// Set adds a key-value pair to the Redis store
-func (r *RedisStore) SetCookie(value string) error {
+// Set adds a key-value pair to the Redis store and sets the cookie
+func (r *RedisStore) SetCookie(userId int) error {
 
 	cookieValue := randBase64String(33) // 33 bytes entropy
 
-	err := r.client.Set(r.ctx, cookieValue, value, cookieExpiration).Err()
+	err := r.client.Set(r.ctx, cookieValue, userId, cookieExpiration).Err()
 
 	if err != nil {
 		return err
@@ -72,16 +73,19 @@ func (r *RedisStore) SetCookie(value string) error {
 	return nil
 }
 
-// Get retrieves the value for a key from the Redis store
-func (r *RedisStore) Get(key string) (string, error) {
-	val, err := r.client.Get(r.ctx, key).Result()
-	if err != nil {
-		return "", err
-	}
-	return val, nil
+// Get retrieves the cookie from the browser and returns the value from the Redis store
+func (r *RedisStore) GetCookie() (int, error) {
+
+	key := r.req.Cookies()[0].Value
+
+	val, _ := r.client.Get(r.ctx, key).Result()
+
+	intVal, _ := strconv.Atoi(val)
+
+	return intVal, nil
 }
 
-// Delete removes a key from the Redis store
+// Delete removes a key from the Redis store and deletes the cookie
 func (r *RedisStore) DeleteCookie(key string) error {
 	err := r.client.Del(r.ctx, key).Err()
 	if err != nil {
