@@ -8,8 +8,10 @@ import (
 	"context"
 	"fmt"
 	"healthyshopper/ent"
+	"healthyshopper/ent/user"
 	resErr "healthyshopper/pkg/response_errors"
 	"healthyshopper/pkg/validation"
+	"strings"
 )
 
 // Register is the resolver for the register field.
@@ -24,10 +26,18 @@ func (r *mutationResolver) Register(ctx context.Context, userInfo RegisterInput)
 		Password:     userInfo.Password, // This password will not meet the complexity requirements
 	}
 
-	validationError := validation.ValidateRegisterInput(registerInput)
+	redisStore := ctx.Value("redisStore").(*RedisStore)
 
-	if validationError != nil {
-		fmt.Println("Validation Error: ", validationError)
+	validationError, err := validation.ValidateRegisterInput(registerInput)
+
+	if err != nil {
+
+		return nil, &resErr.ResponseError{
+			MainError: err,
+			Field:     validationError.Field,
+			Message:   validationError.ErrorMessage,
+		}
+
 	}
 
 	user, err := r.client.User.
@@ -39,33 +49,78 @@ func (r *mutationResolver) Register(ctx context.Context, userInfo RegisterInput)
 		SetLastName(userInfo.LastName).
 		Save(ctx)
 
-	redisStore := ctx.Value("redisStore").(*RedisStore)
+	if err != nil {
 
-	redisStore.SetCookie("Register Cookie")
+		if err.Error() == "ent: constraint failed: ERROR: duplicate key value violates unique constraint \"users_username_key\" (SQLSTATE 23505)" {
 
-	if validationError != nil {
-		return nil, validationError
-	} else if err != nil {
+			return nil, &resErr.ResponseError{
+				MainError: err,
+				Field:     "username",
+				Message:   "username already exists",
+			}
 
-		return nil, &resErr.ResponseError{
-			MainError: err,
-			Field:     "reasdfasdfblablablabla",
-			Message:   "RegisterErrorMessage",
+		} else if err.Error() == "ent: constraint failed: ERROR: duplicate key value violates unique constraint \"users_email_address_key\" (SQLSTATE 23505)" {
+
+			return nil, &resErr.ResponseError{
+				MainError: err,
+				Field:     "emailAddress",
+				Message:   "email address already exists",
+			}
+
+		} else {
+
+			return nil, &resErr.ResponseError{
+				MainError: fmt.Errorf("unknown error"),
+				Field:     "unknown",
+				Message:   "unknown error",
+			}
+
 		}
+	} else {
 
+		redisStore.SetCookie(user.ID)
+
+		return user, nil
 	}
 
-	return user, nil
 }
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, userInfo LoginInput) (*ent.User, error) {
-	panic(fmt.Errorf("not implemented: Login - login"))
+
+	var loggedInUser *ent.User
+	var err error
+	redisStore := ctx.Value("redisStore").(*RedisStore)
+
+	if strings.Contains(userInfo.UsernameOrEmailAddress, "@") {
+		fmt.Println("The string contains '@'.")
+		loggedInUser, err = r.client.User.Query().Where(user.EmailAddress(userInfo.UsernameOrEmailAddress)).Only(ctx)
+	} else {
+		loggedInUser, err = r.client.User.Query().Where(user.Username(userInfo.UsernameOrEmailAddress)).Only(ctx)
+	}
+
+	// check password
+
+	redisStore.SetCookie(loggedInUser.ID)
+	return loggedInUser, err
+
 }
 
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*ent.User, error) {
-	panic(fmt.Errorf("not implemented: Me - me"))
+
+	// Get the user from the context
+	redisStore := ctx.Value("redisStore").(*RedisStore)
+
+	userID, err := redisStore.GetCookie()
+	if err != nil {
+		return nil, err
+	}
+
+	currentUser, err := r.client.User.Query().Where(user.ID(userID)).Only(ctx)
+
+	return currentUser, err
+
 }
 
 // User is the resolver for the user field.
